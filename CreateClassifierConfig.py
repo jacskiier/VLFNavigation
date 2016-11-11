@@ -13,7 +13,7 @@ if __name__ == '__main__':
     overwriteConfigFile = True
 
     classifierType = 'LSTM'
-    classifierSetName = 'ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD'
+    classifierSetName = 'ClassificationAllClasses1LPlus1MLPStatefulWaveletAutoBatchRlrRMSPropTD'
     modelStoreFolder = os.path.join(rawDataFolder, "Processed Data Models", classifierType, classifierSetName)
 
     # classes are 0 indexed except when printed as a label!!!
@@ -241,12 +241,12 @@ if __name__ == '__main__':
     elif classifierType == 'LSTM':
         classifierGoal = 'classification'
         # LSTM
-        lstm_layers_sizes = [500, 500]
-        dropout_W = 0.5
-        dropout_U = 0.5
+        lstm_layers_sizes = [100]
+        dropout_W = 0.0
+        dropout_U = 0.0
         dropout_LSTM = 0.0
-        W_regularizer_l1_LSTM = 0.0001
-        U_regularizer_l1_LSTM = 0.0001
+        W_regularizer_l1_LSTM = 0.0
+        U_regularizer_l1_LSTM = 0.0
         b_regularizer_l1_LSTM = 0.0
         W_regularizer_l2_LSTM = 0.0
         U_regularizer_l2_LSTM = 0.0
@@ -258,10 +258,10 @@ if __name__ == '__main__':
         trainLSTM = True
 
         # MLP
-        hidden_layers_sizes = [500, 500]
+        hidden_layers_sizes = [100]
         hidden_activations = 'tanh'
-        dropout_Hidden = 0.5
-        W_regularizer_l1_hidden = 0.0001
+        dropout_Hidden = 0.0
+        W_regularizer_l1_hidden = 0.0
         b_regularizer_l1_hidden = 0.0
         W_regularizer_l2_hidden = 0.0
         b_regularizer_l2_hidden = 0.0
@@ -310,8 +310,9 @@ if __name__ == '__main__':
         matrixIsDiscrete = {'plantMatrices': False, 'QMatrix': False}
 
         # Wavelet Layer
-        useWaveletTransform = False
+        useWaveletTransform = True
         waveletBanks = 100
+        maxWindowSize = 10000
         kValues = None
         sigmaValues = None
 
@@ -431,6 +432,7 @@ if __name__ == '__main__':
                 'waveletBanks': waveletBanks,
                 'kValues': kValues,
                 'sigmaValues': sigmaValues,
+                'maxWindowSize': maxWindowSize,
             }
             configDict.update(waveletDict)
         if reduceLearningRate:

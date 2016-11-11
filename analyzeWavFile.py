@@ -95,8 +95,8 @@ if plotSpecgram:
     Pxx, freqs, bins, im = plt.specgram(actualDataY, NFFT=2 ** fftPower, Fs=1 / timeStep, noverlap=2 ** (fftPower - 1),
                                         cmap=cm.get_cmap("gist_heat"))
 
-    # plt.pcolormesh(bins,freqs,10*np.log10(Pxx),cmap=cm.gist_heat)
-    # plt.imshow(10*np.log10(Pxx),interpolation = 'nearest',cmap = cm.gist_heat,aspect = 'auto')
+    # plt.pcolormesh(bins,freqs,10*np.log10(Pxx),cmap=cm.get_cmap("gist_heat"))
+    # plt.imshow(10*np.log10(Pxx),interpolation = 'nearest',cmap = cm.get_cmap("gist_heat"),aspect = 'auto')
     plt.title("Specgram of {0}".format(fileName))
     plt.xlabel("time (s)")
     plt.ylabel("Frequency (Hz)")

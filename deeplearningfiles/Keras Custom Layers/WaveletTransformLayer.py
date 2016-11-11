@@ -193,7 +193,7 @@ class WaveletTransformLayer(Layer):
 
 if __name__ == '__main__':
     plt.close('all')
-    signalLength = 44100
+    signalLength = 44100 * 5
     input_channelsMain = 3
     maxWindowSizeMain = 10000
     minSigmasPerWindowMain = 8

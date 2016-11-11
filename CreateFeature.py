@@ -147,8 +147,8 @@ def getFFTFromDataFile(filePatherArg, showFiguresArg, fftPowerArg):
         Pxx, freqs, bins, im = plt.specgram(actualDataY, NFFT=2 ** fftPowerArg, Fs=1 / timeStep,
                                             noverlap=2 ** (fftPowerArg - 1), cmap=cm.get_cmap("gist_heat"))
 
-        # plt.pcolormesh(bins,freqs,10*np.log10(Pxx),cmap=cm.gist_heat)
-        # plt.imshow(10*np.log10(Pxx),interpolation = 'nearest',cmap = cm.gist_heat,aspect = 'auto')
+        # plt.pcolormesh(bins,freqs,10*np.log10(Pxx),cmap=cm.get_cmap("gist_heat"))
+        # plt.imshow(10*np.log10(Pxx),interpolation = 'nearest',cmap = cm.get_cmap("gist_heat"),aspect = 'auto')
     else:
         (Pxx, freqs, bins) = mlab.specgram(actualDataY, NFFT=2 ** fftPowerArg, Fs=1 / timeStep,
                                            noverlap=2 ** (fftPowerArg - 1))
@@ -310,7 +310,7 @@ def collectPatchFFTFeaturesFromWAVFile(filePatherArg, fftPowerArg=10, windowTime
             fC = np.vstack(tuple(statArray)).reshape((-1,), order='F')
             if showFiguresArg:
                 plt.figure(5)
-                plt.imshow(statArray[0][:].reshape((NFArg, NTArg)), interpolation='nearest', cmap=cm.gist_heat,
+                plt.imshow(statArray[0][:].reshape((NFArg, NTArg)), interpolation='nearest', cmap=cm.get_cmap("gist_heat"),
                            aspect='auto')
             gc.collect()
         # #stack the fC onto the previous ones for this WAV file
@@ -336,7 +336,11 @@ def collectFFTFeaturesFromWAVFile(filePatherArg, fftPowerArg=10, showFiguresArg=
     return fXsubArg
 
 
-def collectRawAmplitudeFromWAVFile(filePatherArg, poolingSize=None, poolingType=None, maxTime=None):
+def collectRawAmplitudeFromWAVFile(filePatherArg,
+                                   windowTimeLength,
+                                   poolingSize=None,
+                                   poolingType=None,
+                                   maxTime=None):
     (actualDataY, samplingRate) = readDataFile(filePatherArg)
     # if burstMethod:
     #     with pd.HDFStore(filePatherArg, 'r') as datasetStore:
@@ -345,6 +349,7 @@ def collectRawAmplitudeFromWAVFile(filePatherArg, poolingSize=None, poolingType=
     # pick off the time I want
     if maxTime is not None:
         actualDataY = actualDataY[:int(maxTime * samplingRate)]
+
     # downsample if applicable
     if poolingType == 'max':
         actualDataY = numpy.max(
@@ -362,6 +367,12 @@ def collectRawAmplitudeFromWAVFile(filePatherArg, poolingSize=None, poolingType=
         pass
     else:
         raise ValueError("Invalid pooling type")
+
+    # window out the data
+    samplesPerWindow = int(windowTimeLength * float(samplingRate * poolingSize))
+    samplesInFinal = int(samplesPerWindow * np.floor(actualDataY.shape[0] / samplesPerWindow))
+    actualDataY = np.reshape(actualDataY[:samplesInFinal], (int(actualDataY.shape[0] / samplesPerWindow), samplesPerWindow))
+
     fXsubArg = actualDataY
     return fXsubArg
 
@@ -771,6 +782,7 @@ def buildFeatures(featureParameters, forceRefreshFeatures=False, showFigures=Fal
                                                               windowFreqBoundsArg=windowFreqBounds)
                     elif featureMethod == "RawAmplitude":
                         fXsub = collectRawAmplitudeFromWAVFile(filePather,
+                                                               windowTimeLength,
                                                                poolingSize=poolingSize,
                                                                poolingType=poolingType,
                                                                maxTime=maxTime)
@@ -803,6 +815,9 @@ def buildFeatures(featureParameters, forceRefreshFeatures=False, showFigures=Fal
     return not processedFilesCount > maxFiles  # 0 means i failed to do all files 1 means I'm done
 
 
+################################
+# Main Start           #########
+################################
 def runMain():
     ################################
     # Run Parameters Begin ########
@@ -817,7 +832,7 @@ def runMain():
     removeFeatureSetNames = []
     maxFiles = 100
 
-    featureSetName = 'RawAmplitudeShortTime'
+    featureSetName = 'RawAmplitude'
     featureMethod = 'RawAmplitude'
     signalSource = 'Loop Antenna With iPhone 4'
     # signalSource = '3-Axis Dipole With SRI Receiver'
@@ -1017,11 +1032,12 @@ def runMain():
 
             if poolingType == 'none' or poolingType is None:
                 poolingSize = 1
-            windowTimeLength = 1.0 / samplingRate * poolingSize
+            samplesPerWindow = int(samplingRate / 10.0)
+            windowTimeLength = samplesPerWindow / float(samplingRate * poolingSize)
 
-            maxTime = 10  # in seconds
+            maxTime = 5 * 60  # in seconds
 
-            imageShape = (1,)
+            imageShape = (samplesPerWindow,)
             imageShapeOrder = (0,)
 
             featureParametersDefault = {
@@ -1030,6 +1046,7 @@ def runMain():
                 'rawDataFolder': rawDataFolder,
                 'featureDataFolder': featureDataFolder,
                 'feature parameters': {
+                    'samplesPerWindow': samplesPerWindow,
                     'featureMethod': featureMethod,
                     'windowTimeLength': windowTimeLength,
                     'poolingSize': poolingSize,
@@ -1083,6 +1100,7 @@ def runMain():
         if not overwriteConfigFile:
             assert not doesFileAlreadyExist, 'do you want to overwirte the config file?'
         with open(configFileName, 'w') as myConfigFile:
+            print("Set Name: {0}".format(featureSetName))
             yaml.dump(featureParametersDefault, myConfigFile, default_flow_style=False, width=1000)
             if doesFileAlreadyExist:
                 print("Overwrote Feature config file {0}".format(configFileName))

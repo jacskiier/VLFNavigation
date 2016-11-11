@@ -11,6 +11,7 @@ doHardSigmoid = False
 doResidualStuff = False
 doSemiPositiveStuff = False
 doZipshiz = False
+doResoluitonComparison = False
 
 if doTheanoShiz:
     m = T.matrix(dtype=theano.config.floatX)
@@ -330,3 +331,35 @@ if doZipshiz:
     loc2 = locationArray[['Latitude', 'Longitude', 'Altitude']].view(np.float64).reshape(locationArray.shape + (-1,))
     loc3 = (locationArray['Timestamp'] - locationArray['Timestamp'][0]) / 1000.0
     print (np.hstack((loc3[:, None], loc2)).shape)
+
+if doResoluitonComparison:
+    def getPixelsPerSize(pixelHeight, pixelWidth, diagonal):
+        totalPixels = pixelHeight * pixelWidth
+        scaleFactor = diagonal / np.sqrt(pixelHeight ** 2 + pixelWidth ** 2)
+        screenHeight = pixelHeight * scaleFactor
+        screenWidth = pixelWidth * scaleFactor
+        pixelsPerSize = totalPixels / (screenHeight * screenWidth)
+        return pixelsPerSize
+
+
+    def getNewDiag(pixelHeight, pixelWidth, diagonal, newPixelHeight=3840, newPixelWidth=2160):
+        aspectRatio = pixelWidth / float(pixelHeight)
+        pixelsPerSize = getPixelsPerSize(pixelHeight, pixelWidth, diagonal)
+        newTotalPixels = newPixelHeight * newPixelWidth
+        newArea = newTotalPixels / pixelsPerSize
+        newDiag = np.sqrt((newArea * (1 + aspectRatio ** 2)) / aspectRatio)
+        return newDiag
+
+
+    pixelHeightMain = 1200
+    pixelWidthMain = 1920
+    # newPixelHeightMain = 3840
+    # newPixelWidthMain = 2160
+    newPixelHeightMain = 5120
+    newPixelWidthMain = 2160
+    diagonalMain = 24
+
+    pixelsPerSize = getPixelsPerSize(pixelHeightMain, pixelWidthMain, diagonalMain)
+    print ("pixels per size: {0}".format(pixelsPerSize))
+    newDiag = getNewDiag(pixelHeightMain, pixelWidthMain, diagonalMain, newPixelHeightMain, newPixelWidthMain)
+    print ("new diag: {0}".format(newDiag))

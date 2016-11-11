@@ -8,7 +8,6 @@ import shutil
 import matplotlib.pylab as plt
 import numpy as np
 
-import theano
 import theano.tensor as T
 
 import keras.callbacks
@@ -21,7 +20,7 @@ import keras.constraints
 import keras.backend as K
 
 import ClassificationUtils
-import linearRegression
+import RegressionUtils
 from KalmanFilter import getDiscreteSystem
 from KalmanFilter import KalmanFilterLayer
 from WaveletTransformLayer import WaveletTransformLayer
@@ -40,7 +39,7 @@ def showModel(modelArg):
     sio.seek(0)
     img = mpimg.imread(sio)
     # plot the image
-    imgplot = plt.imshow(img, aspect='equal')
+    plt.imshow(img, aspect='equal')
     plt.show()
 
 
@@ -262,6 +261,8 @@ def compileAModel(model, classifierParameters, datasetParameters):
     # loss type
     if lossType == 'falsePositiveRate':
         lossType = falsePositiveRate
+    elif lossType == 'crossEntropyWithIndex':
+        lossType = crossEntropyWithIndex
 
     # optimizer
     epsilon = classifierParameters['epsilon']
@@ -423,11 +424,11 @@ def getPred_Values_True_Labels(datasetFileName='mnist.pkl.gz', experimentStoreFo
     useTimeDistributedOutput = classifierParameters[
         'useTimeDistributedOutput'] if 'useTimeDistributedOutput' in classifierParameters else False
 
-    datasets, inputs, nClassesTotal, max_batch_size = linearRegression.load_data(datasetFileName, rogueClasses=(),
-                                                                                 makeSharedData=False,
-                                                                                 makeSequenceForX=makeSequencesForX,
-                                                                                 makeSequenceForY=useTimeDistributedOutput,
-                                                                                 timesteps=timesteps)
+    datasets, inputs, nClassesTotal, max_batch_size = RegressionUtils.load_data(datasetFileName, rogueClasses=(),
+                                                                                makeSharedData=False,
+                                                                                makeSequenceForX=makeSequencesForX,
+                                                                                makeSequenceForY=useTimeDistributedOutput,
+                                                                                timesteps=timesteps)
 
     if whichSetArg > 2 or whichSetArg < 0:
         raise ValueError("Invalid which set number {0}".format(whichSetArg))
@@ -451,7 +452,7 @@ def getPred_Values_True_Labels(datasetFileName='mnist.pkl.gz', experimentStoreFo
     # yer = true_values[0::batch_size, 1::2].flatten()
     # # plt.plot(yer, xer, marker=None, c='b')
     # plt.subplot(1, 2, 1)
-    # plt.scatter(yer, xer, marker='x', c=range(xer.size), cmap=plt.cm.spectral)
+    # plt.scatter(yer, xer, marker='x', c=range(xer.size), cmap=cm.get_cmap("spectral"))
     # plt.ylim([0, 1])
     # plt.xlim([0, 1])
     #
@@ -463,7 +464,7 @@ def getPred_Values_True_Labels(datasetFileName='mnist.pkl.gz', experimentStoreFo
     # yer = newTruth[0, :, 1]
     # plt.subplot(1, 2, 2)
     # # plt.plot(yer, xer, marker=None, c='g')
-    # plt.scatter(yer, xer, marker='x', c=range(xer.size), cmap=plt.cm.spectral)
+    # plt.scatter(yer, xer, marker='x', c=range(xer.size), cmap=cm.get_cmap("spectral"))
     # plt.ylim([0, 1])
     # plt.xlim([0, 1])
     # plt.show()
@@ -483,7 +484,7 @@ def getPred_Values_True_Labels(datasetFileName='mnist.pkl.gz', experimentStoreFo
             # yer = predicted_y_values[0::batch_size, :, 1].flatten()
             # # plt.plot(yer, xer, marker=None, c='b')
             # plt.subplot(1, 2, 1)
-            # plt.scatter(yer, xer, marker='x', c=range(xer.size), cmap=plt.cm.spectral)
+            # plt.scatter(yer, xer, marker='x', c=range(xer.size), cmap=cm.get_cmap("spectral"))
             # plt.ylim([0, 1])
             # plt.xlim([0, 1])
             predicted_y_values = np.reshape(predicted_y_values, newshape=(
@@ -500,7 +501,7 @@ def getPred_Values_True_Labels(datasetFileName='mnist.pkl.gz', experimentStoreFo
             # yer = predicted_y_values[0, :, 1]
             # plt.subplot(1, 2, 2)
             # # plt.plot(yer, xer, marker=None, c='g')
-            # plt.scatter(yer, xer, marker='x', c=range(xer.size), cmap=plt.cm.spectral)
+            # plt.scatter(yer, xer, marker='x', c=range(xer.size), cmap=cm.get_cmap("spectral"))
             # plt.ylim([0, 1])
             # plt.xlim([0, 1])
             # plt.show()
@@ -589,17 +590,19 @@ def makeStatisticsForModel(experimentsFolder, statisticStoreFolder, featureParam
             'y value parameters'] else 0.0
         predicted_values_master = (predicted_values_master / yScaleFactor) - yBias
         true_values_master = (true_values_master / yScaleFactor) - yBias
-        thresholdsMaster = linearRegression.getStatistics(predicted_values_master, true_values_master,
-                                                          classLabels=classLabelsMaster,
-                                                          rogueClasses=rogueClassesMaster,
-                                                          setName=setNames[whichSet],
-                                                          statisticsStoreFolder=statisticStoreFolder,
-                                                          datasetParameters=datasetParameters,
-                                                          weightsName=modelStoreNameType)
+        thresholdsMaster = RegressionUtils.getStatistics(predicted_values_master, true_values_master,
+                                                         setName=setNames[whichSet],
+                                                         statisticsStoreFolder=statisticStoreFolder,
+                                                         datasetParameters=datasetParameters,
+                                                         weightsName=modelStoreNameType)
         if len(rogueClassesMaster) > 0:
-            linearRegression.rogueAnalysis(thresholdsMaster, predicted_values_master, true_values_master,
-                                           classLabels=classLabelsMaster, rogueClasses=rogueClassesMaster,
-                                           setName=setNames[whichSet], statisticsStoreFolder=statisticStoreFolder)
+            RegressionUtils.rogueAnalysis(thresholdsMaster,
+                                          predicted_values_master,
+                                          true_values_master,
+                                          classLabels=classLabelsMaster,
+                                          rogueClasses=rogueClassesMaster,
+                                          setName=setNames[whichSet],
+                                          statisticsStoreFolder=statisticStoreFolder)
     else:
         thresholdSet = 1
         plotLabels = datasetParameters['yValueType'] == 'gpsD' and useLabels
@@ -732,12 +735,12 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
             (datasets,
              inputs,
              outputs,
-             max_batch_size) = linearRegression.load_data(datasetFile,
-                                                          rogueClasses=(),
-                                                          makeSharedData=False,
-                                                          makeSequenceForX=makeSequencesForX,
-                                                          makeSequenceForY=useTimeDistributedOutput,
-                                                          timesteps=timesteps)
+             max_batch_size) = RegressionUtils.load_data(datasetFile,
+                                                         rogueClasses=(),
+                                                         makeSharedData=False,
+                                                         makeSequenceForX=makeSequencesForX,
+                                                         makeSequenceForY=useTimeDistributedOutput,
+                                                         timesteps=timesteps)
             (X_train, X_valid, X_test) = (datasets[0][0], datasets[1][0], datasets[2][0])
             (y_train, y_valid, y_test) = (datasets[0][1], datasets[1][1], datasets[2][1])
         else:
@@ -825,15 +828,19 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
         waveletBanks = classifierParameters['waveletBanks'] if 'waveletBanks' in classifierParameters else 1
         kValues = classifierParameters['kValues'] if 'kValues' in classifierParameters else None
         sigmaValues = classifierParameters['sigmaValues'] if 'sigmaValues' in classifierParameters else None
-
+        maxWindowSize = classifierParameters['maxWindowSize'] if 'maxWindowSize' in classifierParameters else 10000
         model = Sequential()
 
         if useWaveletTransform:
-            waveletLayer = WaveletTransformLayer(output_dim=waveletBanks,
+            waveletLayer = WaveletTransformLayer(batch_input_shape=(batch_size, timesteps, 1, data_dim),
+                                                 output_dim=waveletBanks,
+                                                 maxWindowSize=maxWindowSize,
                                                  kValues=kValues,
                                                  sigmaValues=sigmaValues,
                                                  name="Wavelet Layer")
             model.add(waveletLayer)
+            # I am padding out the input_channel dimension to be 1
+            (X_train, X_valid, X_test) = (X_train[:, :, None, :], X_valid[:, :, None, :], X_test[:, :, None, :])
 
         for layerIndex in range(1, 1 + len(lstm_layers_sizes)):
             lstmIndex = layerIndex - 1

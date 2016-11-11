@@ -199,6 +199,11 @@ def getSetNameForFile(filename, defaultSetName, fileNamesNumbersToSets):
 
 def filterFilesByFileNumber(files, baseFileName, removeFileNumbers=(), onlyFileNumbers=()):
     if baseFileName in removeFileNumbers or baseFileName in onlyFileNumbers:
+        largestFileNumberRemove = np.max(np.array(removeFileNumbers[baseFileName])) if len(removeFileNumbers[baseFileName]) > 0 else 0
+        largestFileNumberOnly = np.max(np.array(onlyFileNumbers[baseFileName])) if len(onlyFileNumbers[baseFileName]) > 0 else 0
+        largestFileNumber = max(largestFileNumberRemove, largestFileNumberOnly)
+        errorString = "you have a file number {0} that is over the possible files {1}".format(largestFileNumber, files.size)
+        assert largestFileNumber < files.size, errorString
         removeMask = np.ones(files.shape, dtype=bool)
         if baseFileName in removeFileNumbers and len(removeFileNumbers[baseFileName]) > 0:
             removeMask[np.array(removeFileNumbers[baseFileName])] = False

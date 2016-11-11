@@ -18,6 +18,7 @@ from CreateFeature import buildFeatures
 import CreateUtils
 import CoordinateTransforms
 import tictoc
+
 timer = tictoc.tictoc()
 
 doScaryShuffle = True
@@ -518,6 +519,7 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
     allSetsSameRows = datasetParameters['allSetsSameRows'] if 'allSetsSameRows' in datasetParameters else False
 
     packagedRowsPerSetDict = {}
+    trueRowsPerSetDict = {}
     kerasRowMultiplier = 1
     if rowPackagingStyle is not None:
         newRowsMax = 0
@@ -547,6 +549,7 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
             else:
                 newRows = uniqueRows.shape[0]
             packagedRowsPerSetDict[setName] = newRows
+            trueRowsPerSetDict[setName] = uniqueRows.shape[0]
             totalColumnsX = setValue[0].shape[1]
             totalColumnsY = setValue[1].shape[1]
             tempX = np.zeros((newRows, totalColumnsX * totalColumnCount))
@@ -603,7 +606,7 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
                     #         plotYKeras(tempSet, newRows, runNumber, True)
             setValue[0] = tempSets[0]
             setValue[1] = tempSets[1]
-    return setDictArg, packagedRowsPerSetDict, kerasRowMultiplier
+    return setDictArg, packagedRowsPerSetDict, trueRowsPerSetDict, kerasRowMultiplier
 
 
 def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False):
@@ -748,8 +751,7 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
 
         for (setName, rowsInSet) in totalRowsInSetDict.iteritems():
             setDict[setName] = [np.zeros((rowsInSet, totalXColumns)), np.zeros((rowsInSet, totalyColumns))]
-            if rowPackagingStyle is not None:
-                rowProcessingMetadataDict[setName] = np.zeros((rowsInSet, totalMetadataPackagingColumns))
+            rowProcessingMetadataDict[setName] = np.zeros((rowsInSet, totalMetadataPackagingColumns))
         setsRowsProcessedTotal = {}
 
         for baseFileName in allBaseFileNames:
@@ -800,14 +802,18 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
 
         # repackage the sets for processing
         timer.tic("Repackaging sets")
-        setDict, packagedRowsPerSetDict, kerasRowMultiplier = repackageSets(setDict, datasetParameters,
-                                                                            rowProcessingMetadataDict)
+        (setDict,
+         packagedRowsPerSetDict,
+         trueRowsPerSetDict,
+         kerasRowMultiplier) = repackageSets(setDict,
+                                             datasetParameters,
+                                             rowProcessingMetadataDict)
         timer.toc()
 
+        # Start set breakout by fractions
         numberOfSamples = 0
         for setName, setValue in setDict.iteritems():
             numberOfSamples += setValue[0].shape[0]
-        print("Total samples to work with {0}".format(numberOfSamples))
         if len(setFractions) > 0:
             timer.tic("Split sets apart to make new sets")
             if numberOfSamples > 0:
@@ -823,11 +829,15 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
                     totalFilesInSetDict[toSet] = totalFilesInSetDict[fromSet]
             timer.toc()
 
+        print("Total samples in all sets {0}".format(numberOfSamples))
+        print("Samples Per Set:")
         for setName, setValue in setDict.iteritems():
-            print("{setName} set has {samples} samples".format(setName=setName, samples=setValue[0].shape[0]))
+            print("\t{setName}: {samples} samples".format(setName=setName, samples=setValue[0].shape[0]))
         print("Features per set {0}".format(totalXColumns))
         print("Output Dim per set {0}".format(totalyColumns))
-
+        outputString = '\n'.join(['\t{setName}: {rows}'.format(setName=setName, rows=rows) for setName, rows in trueRowsPerSetDict.iteritems()])
+        print("True Rows Per Set\n{0}".format(outputString))
+        print("Keras Row Multiplier: {kerasRowMultiplier}".format(kerasRowMultiplier=kerasRowMultiplier))
         timer.tic("Save datasets and labels")
         with pd.HDFStore(datasetFile, 'w') as datasetStore:
             for setName, setValue in setDict.iteritems():
@@ -839,6 +849,7 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
         datasetParametersToDump = dict(datasetParameters)
         datasetParametersToDump['allIncludedFiles'] = allIncludedFiles
         datasetParametersToDump['filesInSets'] = totalFilesInSetDict
+        datasetParametersToDump['trueRowsPerSetDict'] = trueRowsPerSetDict
         datasetParametersToDump['packagedRowsPerSetDict'] = packagedRowsPerSetDict
         datasetParametersToDump['kerasRowMultiplier'] = kerasRowMultiplier
         datasetParametersToDump['totalXColumns'] = totalXColumns
@@ -925,7 +936,7 @@ def mainRun():
     rawDataFolder = CreateUtils.getRawDataFolder()
     # Run Parameters   ############
     runNow = True
-    forceRefreshFeatures = False
+    forceRefreshFeatures = True
     overwriteConfigFile = True
     forceRefreshDataset = True
     rebuildFromConfig = True
@@ -934,7 +945,7 @@ def mainRun():
     removeFileNumbers = {}
     onlyFileNumbers = {}
     removeFeatureSetNames = []
-    onlyThisFeatureSetNames = ['PatchShortTallAllFreq']
+    onlyThisFeatureSetNames = ['RawAmplitude']
     showFigures = True
 
     # Parameters Begin ############
@@ -962,13 +973,13 @@ def mainRun():
         "you can't have both repeatSequenceBeginningAtEnd and repeatSequenceEndingAtEnd"
 
     # Packaging
-    rowPackagingStyle = 'gpsD'  # None, 'BaseFileNameWithNumber', 'gpsD'
-    gridSizePackage = (100, 100, 1000)
+    rowPackagingStyle = 'BaseFileNameWithNumber'  # None, 'BaseFileNameWithNumber', 'gpsD'
     padRowPackageWithZeros = True
     repeatRowPackageBeginningAtEnd = False
     repeatRowPackageEndingAtEnd = True
     assert not (repeatRowPackageBeginningAtEnd and repeatRowPackageEndingAtEnd), \
         "you can't have both repeatRowPackageBeginningAtEnd and repeatRowPackageEndingAtEnd"
+    gridSizePackage = (100, 100, 1000)
     allSetsSameRows = True
     # keras packaging
     alternateRowsForKeras = True
@@ -977,11 +988,11 @@ def mainRun():
         "You must keep all sets same rows for keras packging to work in keras"
 
     # filter features
-    filterXToUpperDiagonal = False
-    filterPCA = True
+    filterPCA = False
     filterFitSets = ["train"]  # names of the sets you want to use to filter
     filterPCAn_components = None
     filterPCAwhiten = True
+    filterXToUpperDiagonal = False
 
     # x scaling
     xScaleFactor = 1.0
@@ -1005,7 +1016,7 @@ def mainRun():
     localLevelOriginInECEF = [507278.89822834, -4884824.02376298, 4056425.76820216]  # Neighborhood Center
 
     # metadata features
-    useMetadata = True
+    useMetadata = False
     metadataList = ['CadenceBike', 'CrankRevolutions', 'SpeedInstant', 'WheelRevolutions', 'DayPercent']
     metadataShape = (len(metadataList),)
 
@@ -1120,11 +1131,11 @@ def mainRun():
     # allBaseFileNames = ["bikeneighborhood"]
     # yValueType = 'gpsC'
 
-    datasetName = 'bikeneighborhoodPackgpsDNormDTDMG20PG20'
+    datasetName = 'bikeneighborhoodRawAmplitudePackFile'
     allBaseFileNames = ["bikeneighborhood"]
     yValueType = 'gpsD'
-    onlyFileNumbers = {"bikeneighborhood": []}
-    removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]}
+    onlyFileNumbers = {"bikeneighborhood": [22, 23, 8]}
+    removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 26]}
     defaultSetName = "train"
     fileNamesNumbersToSets = [("valid", "bikeneighborhood", [12, 14, 16, 18, 20, 22, 24]), ('test', "bikeneighborhood", [8])]
 
@@ -1146,6 +1157,7 @@ def mainRun():
 
     processedDataFolder = os.path.join(rawDataFolder, "Processed Data Datasets", datasetName)
 
+    # region: Make Dicts
     datasetParametersToDump = {
         'rawDataFolder': rawDataFolder,
         'processedDataFolder': processedDataFolder,
@@ -1227,6 +1239,7 @@ def mainRun():
             'metadataShape': metadataShape
         }
         datasetParametersToDump.update(metadataDict)
+    # endregion
 
     if (not os.path.exists(datasetConfigFileName)) or overwriteConfigFile:
         if not os.path.exists(processedDataFolder):
