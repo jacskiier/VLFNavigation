@@ -1,18 +1,15 @@
 import numpy as np
-import theano
-import theano.tensor as T
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation
 from keras.layers import Embedding
 from keras.layers import LSTM
 from keras.datasets import imdb
 from keras.optimizers import SGD
-from linearRegression import load_data
+from ClassificationUtils import load_data
 import pandas as pd
 import os
-import readwav
+import CreateUtils
 import KerasClassifiers
-import pylab as plt
 
 if __name__ == '__main__':
     thingToDo = 4
@@ -153,13 +150,7 @@ if __name__ == '__main__':
         score = model.evaluate(X_test, y_test, batch_size=16)
         print("The final score is {0}".format(score))
     elif thingToDo == 4:
-        if os.name == 'nt':
-            rawDataFolder = os.path.join("E:\\", "Users", "Joey", "Documents", "Virtual Box Shared Folder")
-        elif os.name == 'posix':
-            rawDataFolder = os.path.join("/media", "sena", "Greed Island", "Users", "Joey", "Documents",
-                                         "Virtual Box Shared Folder")
-        else:
-            raise ValueError("Bad os")
+        rawDataFolder = CreateUtils.getRawDataFolder()
         loadWeightsFilePath = os.path.join(rawDataFolder,
                                            'Data Experiments',
                                            'PatchShortTallAllFreq',
@@ -167,7 +158,7 @@ if __name__ == '__main__':
                                            'LSTM',
                                            'RegressionAllClasses2LPlus2MLPStatefulKalmanTrainDQ2AutoBatchDropRlrPWeightRMSPropTD',
                                            'bestLoss_modelWeights.h5')
-        filePatherArg = readwav.convertPathToThisOS(loadWeightsFilePath)
+        filePatherArg = CreateUtils.convertPathToThisOS(loadWeightsFilePath)
         with pd.HDFStore(filePatherArg, 'r') as datasetStore:
             print datasetStore.root
             print datasetStore.root.model_weights
@@ -184,4 +175,3 @@ if __name__ == '__main__':
                     print weightName
                     arr = np.asarray(weightValue)
                     print arr
-

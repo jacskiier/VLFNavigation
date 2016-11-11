@@ -1,15 +1,15 @@
 import sklearn.ensemble
 from sklearn import gaussian_process
 import os
-import linearRegression
-import logistic_sgd
+import RegressionUtils
 import cPickle
 
 import matplotlib.pylab as plt
 import numpy as np
 
 
-def makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters, datasetParameters, classifierParameters, valueMethod=0, useLabels=True, whichSet=1, showFigures=True):
+def makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters, datasetParameters, classifierParameters, valueMethod=0,
+                           useLabels=True, whichSet=1, showFigures=True):
     """
     Make staticstics for a model using the features, datset, and classifier given whose model is already made
 
@@ -47,13 +47,14 @@ def makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featurePara
     if os.path.exists(os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
         datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')
     else:
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'], datasetParameters['datasetName'] + '.pkl.gz')
+        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'],
+                                   datasetParameters['datasetName'] + '.pkl.gz')
 
     rogueClassesMaster = classifierParameters['rogueClasses']
 
-    #get predicted values
+    # get predicted values
     print("Getting predicted values for {0}".format(classifierParameters['classifierType']))
-    datasets, inputs, outputs, max_batch_size = linearRegression.load_data(datasetFile, rogueClasses=(), makeSharedData=False)
+    datasets, inputs, outputs, max_batch_size = RegressionUtils.load_data(datasetFile, rogueClasses=(), makeSharedData=False)
     modelStoreFilePathFullTemp = os.path.join(experimentsFolder, 'best_model.pkl')
     print ("opening model {0}".format(modelStoreFilePathFullTemp))
     rfcs = cPickle.load(open(modelStoreFilePathFullTemp))
@@ -87,23 +88,26 @@ def makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featurePara
     # y_pred = y_est
 
     y_preds = []
-    numRfcs = len(rfcs) if isinstance(rfcs,tuple) else 1
+    numRfcs = len(rfcs) if isinstance(rfcs, tuple) else 1
     for rfc, currentDim in zip(rfcs, range(numRfcs)):
         y_predtemp = rfc.predict(X_test)
         y_preds.append(y_predtemp)
-    #y_pred = np.transpose(np.vstack(tuple(y_preds)))
+    # y_pred = np.transpose(np.vstack(tuple(y_preds)))
     y_pred = np.vstack(tuple(y_preds))
 
     if classifierParameters['classifierGoal'] == 'regression':
-        linearRegression.getStatistics(predictedValues=y_pred, trueValues=y_test, setName=setNames[whichSet], statisticsStoreFolder=statisticsStoreFolder, datasetParameters=datasetParameters)
+        RegressionUtils.getStatistics(predictedValues=y_pred,
+                                      trueValues=y_test,
+                                      setName=setNames[whichSet],
+                                      statisticsStoreFolder=statisticsStoreFolder,
+                                      datasetParameters=datasetParameters)
     else:
         raise ValueError("Classification isn't working yet for Sklearn types")
     if showFigures:
         plt.show()
 
 
-
-def skleanensemble_parameterized(featureParameters, datasetParameters, classifierParameters, forceRebuildModel = False):
+def skleanensemble_parameterized(featureParameters, datasetParameters, classifierParameters, forceRebuildModel=False):
     """
     Train a Logistic Regression model using the features, datset, and classifier parameters given
 
@@ -125,21 +129,24 @@ def skleanensemble_parameterized(featureParameters, datasetParameters, classifie
     if os.path.exists(os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
         datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')
     else:
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'], datasetParameters['datasetName'] + '.pkl.gz')
+        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'],
+                                   datasetParameters['datasetName'] + '.pkl.gz')
 
     experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureParameters['featureSetName'], datasetParameters['datasetName'],
                                      classifierParameters['classifierType'], classifierParameters['classifierSetName'])
 
     bestModelFilePath = os.path.join(experimentsFolder, 'best_model.pkl')
     if not os.path.exists(bestModelFilePath) or forceRebuildModel:
-        datasets, inputs, outputs, max_batch_size = linearRegression.load_data(datasetFile, rogueClasses=(), makeSharedData=False)
+        datasets, inputs, outputs, max_batch_size = RegressionUtils.load_data(datasetFile, rogueClasses=(), makeSharedData=False)
 
         X_train = datasets[0][0]
         X_train[np.isnan(X_train)] = 0
         if classifierParameters['classifierType'] == 'RandomForest':
             max_features = classifierParameters['max_features'] if 'max_features' in classifierParameters else 'auto'
             max_depth = classifierParameters['max_depth'] if 'max_depth' in classifierParameters else None
-            classifier = sklearn.ensemble.RandomForestRegressor(n_estimators=classifierParameters['treeNumber'], random_state= classifierParameters['rngSeed'], verbose=True, n_jobs = 4,max_features=max_features, max_depth=max_depth)
+            classifier = sklearn.ensemble.RandomForestRegressor(n_estimators=classifierParameters['treeNumber'],
+                                                                random_state=classifierParameters['rngSeed'], verbose=True, n_jobs=4,
+                                                                max_features=max_features, max_depth=max_depth)
             y_train = datasets[0][1]
             print("Fitting training data with classifier type {0}".format(classifierParameters['classifierType']))
             classifier.fit(X_train, y_train)
@@ -150,16 +157,18 @@ def skleanensemble_parameterized(featureParameters, datasetParameters, classifie
                 cPickle.dump(classifier, f)
         elif classifierParameters['classifierType'] == 'ADABoost':
             classifiers = []
-            appendY = classifierParameters['appendY'] if  'appendY' in classifierParameters else False
-            max_depth = classifierParameters['max_depth'] if  'max_depth' in classifierParameters else 20
+            appendY = classifierParameters['appendY'] if 'appendY' in classifierParameters else False
+            max_depth = classifierParameters['max_depth'] if 'max_depth' in classifierParameters else 20
             for currentDim in range(datasets[0][1].ndim):
-                classifiertemp = sklearn.ensemble.AdaBoostRegressor(sklearn.tree.DecisionTreeRegressor(max_depth=max_depth), n_estimators=classifierParameters['estimators'], random_state=classifierParameters['rngSeed'])
+                classifiertemp = sklearn.ensemble.AdaBoostRegressor(sklearn.tree.DecisionTreeRegressor(max_depth=max_depth),
+                                                                    n_estimators=classifierParameters['estimators'],
+                                                                    random_state=classifierParameters['rngSeed'])
                 X_traintemp = X_train
-                y_traintemp = datasets[0][1][:,currentDim]
+                y_traintemp = datasets[0][1][:, currentDim]
 
                 if appendY:
                     yset = list(set(range(datasets[0][1].ndim)) - {currentDim})
-                    yarray = datasets[0][1][:,yset]
+                    yarray = datasets[0][1][:, yset]
                     X_traintemp = np.hstack((X_train, yarray))
 
                 print("Fitting training data with classifier type {0}".format(classifierParameters['classifierType']))
@@ -169,13 +178,13 @@ def skleanensemble_parameterized(featureParameters, datasetParameters, classifie
             # save the fitted model as a pickle
             modelStoreFilePathFullTemp = os.path.join(experimentsFolder, 'best_model.pkl')
             with open(modelStoreFilePathFullTemp, 'wb') as f:
-                cPickle.dump( tuple(classifiers), f)
+                cPickle.dump(tuple(classifiers), f)
         elif classifierParameters['classifierType'] == 'GradientBoosting':
             classifiers = []
             for currentDim in datasets[0][1].ndim:
                 classifiertemp = sklearn.ensemble.GradientBoostingRegressor(max_depth=2,
-                                                                    n_estimators=classifierParameters['estimators'],
-                                                                    random_state=classifierParameters['rngSeed'])
+                                                                            n_estimators=classifierParameters['estimators'],
+                                                                            random_state=classifierParameters['rngSeed'])
                 y_traintemp = datasets[0][1][:, currentDim]
 
                 print("Fitting training data with classifier type {0}".format(classifierParameters['classifierType']))
@@ -202,5 +211,3 @@ def skleanensemble_parameterized(featureParameters, datasetParameters, classifie
                 cPickle.dump(tuple(classifiers), f)
         else:
             raise ValueError()
-
-

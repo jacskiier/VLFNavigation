@@ -14,12 +14,14 @@ import gpxpy
 import gpxpy.gpx
 import pandas as pd
 from tqdm import tqdm
+
 gpxpy.gpx.DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
 import geocoder
 
-def convertASCIIToWAVandGPX(dataCollectFolder, dataCollectBaseName, rawDataFolder, maxRows=None, showFigures=False, windowSize=0.05, forceSampleRate=None, makeAndReadHF=True, saveToWAV=True, skipHighSpeedFile=False):
 
+def convertASCIIToWAVandGPX(dataCollectFolder, dataCollectBaseName, rawDataFolder, maxRows=None, showFigures=False, windowSize=0.05,
+                            forceSampleRate=None, makeAndReadHF=True, saveToWAV=True, skipHighSpeedFile=False):
     if not skipHighSpeedFile:
         highSpeedFile = os.path.join(dataCollectFolder, dataCollectBaseName + '.hsa')
         highSpeedFilehf = os.path.join(dataCollectFolder, dataCollectBaseName + '.hf')
@@ -28,13 +30,13 @@ def convertASCIIToWAVandGPX(dataCollectFolder, dataCollectBaseName, rawDataFolde
             print("Reading {0} into array from hf file".format(highSpeedFilehf))
             with pd.HDFStore(highSpeedFilehf, 'r') as featureStore:
                 highSpeedArray = featureStore['hsa'].as_matrix()
-            highSpeedArrayValues = highSpeedArray[:,1:4]
-            highSpeedArrayDates = highSpeedArray[:,0]
+            highSpeedArrayValues = highSpeedArray[:, 1:4]
+            highSpeedArrayDates = highSpeedArray[:, 0]
         else:
             print("Reading {0} into array from hsa file using genfromtxt".format(highSpeedFile))
             # num_linesHighSpeedFile = sum(1 for line in open(highSpeedFile))
             # print('number of lines in high speed = {0}'.format(num_linesHighSpeedFile))
-            highSpeedArray = np.genfromtxt(highSpeedFile, converters={0:dateutil.parser.parse}, delimiter='\t', max_rows= maxRows)
+            highSpeedArray = np.genfromtxt(highSpeedFile, converters={0: dateutil.parser.parse}, delimiter='\t', max_rows=maxRows)
             highSpeedArrayDates = highSpeedArray['f0']
             highSpeedArrayValues = highSpeedArray[['f1', 'f2', 'f3']].view(np.float64).reshape(highSpeedArray[['f1', 'f2', 'f3']].shape + (-1,))
 
@@ -52,17 +54,18 @@ def convertASCIIToWAVandGPX(dataCollectFolder, dataCollectBaseName, rawDataFolde
 
         if forceSampleRate is not None:
             sampleRate = forceSampleRate
-            samplePeriod = 1.0/sampleRate
+            samplePeriod = 1.0 / sampleRate
 
         print("Making Gap Indices arrays")
-        gapIndices = np.where(np.diff(highSpeedArrayDates) > datetime.timedelta(seconds=windowSize*2))[0]
-        gapIndicesStarts = gapIndices[:-1]+1
-        gapIndicesEnds = gapIndices[1:]+1
-        gapStartAndStop =  np.vstack((gapIndicesStarts, gapIndicesEnds)).transpose()
+        gapIndices = np.where(np.diff(highSpeedArrayDates) > datetime.timedelta(seconds=windowSize * 2))[0]
+        gapIndicesStarts = gapIndices[:-1] + 1
+        gapIndicesEnds = gapIndices[1:] + 1
+        gapStartAndStop = np.vstack((gapIndicesStarts, gapIndicesEnds)).transpose()
 
         print("Making Time diff and time ranges arrays")
         totalTimeDifference = (highSpeedArrayDates[-1] - highSpeedArrayDates[0]).total_seconds()
-        timeRanges = np.array([highSpeedArrayDates[0] + datetime.timedelta(microseconds=i*samplePeriod*1e6) for i in xrange(1+int(totalTimeDifference * sampleRate))])
+        timeRanges = np.array([highSpeedArrayDates[0] + datetime.timedelta(microseconds=i * samplePeriod * 1e6) for i in
+                               xrange(1 + int(totalTimeDifference * sampleRate))])
 
         if showFigures:
             plt.figure(1)
@@ -77,24 +80,25 @@ def convertASCIIToWAVandGPX(dataCollectFolder, dataCollectBaseName, rawDataFolde
 
         print("Making In Seconds Arrays")
         highSpeedArrayDatesInSeconds = np.array(convertToSecondsSince(highSpeedArrayDates, highSpeedArrayDates[0]), dtype=np.float64)
-        timeRangesInSeconds = np.arange(start=0, stop=timeRanges.shape[0]*samplePeriod, step=samplePeriod, dtype=np.float64)
+        timeRangesInSeconds = np.arange(start=0, stop=timeRanges.shape[0] * samplePeriod, step=samplePeriod, dtype=np.float64)
 
         burstStartTimes = np.zeros((gapStartAndStop.shape[0],))
         newValues = np.zeros((timeRanges.shape[0], highSpeedArrayValues.shape[1]))
-        timeRangesGapIndices = np.zeros((gapStartAndStop.shape[0],2))
+        timeRangesGapIndices = np.zeros((gapStartAndStop.shape[0], 2))
         for dim in range(highSpeedArrayValues.shape[1]):
-            for burstNumber in tqdm(range(gapStartAndStop.shape[0]),"Channel {0}".format(dim)):
+            for burstNumber in tqdm(range(gapStartAndStop.shape[0]), "Channel {0}".format(dim)):
                 burstStartIndex = gapStartAndStop[burstNumber, 0]
                 burstEndIndex = gapStartAndStop[burstNumber, 1]
-                gapFiller = interp1d(highSpeedArrayDatesInSeconds[burstStartIndex:burstEndIndex],highSpeedArrayValues[burstStartIndex:burstEndIndex,dim], kind='linear', assume_sorted=True)
-                timeRangeStartIndex = np.argmin( np.abs(timeRangesInSeconds - highSpeedArrayDatesInSeconds[burstStartIndex])) + 1
-                timeRangeEndIndex = np.argmin( np.abs(timeRangesInSeconds - highSpeedArrayDatesInSeconds[burstEndIndex-1])) - 1
+                gapFiller = interp1d(highSpeedArrayDatesInSeconds[burstStartIndex:burstEndIndex],
+                                     highSpeedArrayValues[burstStartIndex:burstEndIndex, dim], kind='linear', assume_sorted=True)
+                timeRangeStartIndex = np.argmin(np.abs(timeRangesInSeconds - highSpeedArrayDatesInSeconds[burstStartIndex])) + 1
+                timeRangeEndIndex = np.argmin(np.abs(timeRangesInSeconds - highSpeedArrayDatesInSeconds[burstEndIndex - 1])) - 1
                 burstStartTimes[burstNumber] = timeRangesInSeconds[timeRangeStartIndex]
-                newValues[timeRangeStartIndex:timeRangeEndIndex,dim] = gapFiller(timeRangesInSeconds[timeRangeStartIndex:timeRangeEndIndex])
-                timeRangesGapIndices[burstNumber,:] = np.array([timeRangeStartIndex, timeRangeEndIndex])
+                newValues[timeRangeStartIndex:timeRangeEndIndex, dim] = gapFiller(timeRangesInSeconds[timeRangeStartIndex:timeRangeEndIndex])
+                timeRangesGapIndices[burstNumber, :] = np.array([timeRangeStartIndex, timeRangeEndIndex])
 
-        firstBurstStart = np.argmin( np.abs(timeRangesInSeconds - highSpeedArrayDatesInSeconds[gapStartAndStop[0, 0]])) + 1
-        lastBurstEnd = np.argmin( np.abs(timeRangesInSeconds - highSpeedArrayDatesInSeconds[gapStartAndStop[-1, 1]-1])) - 1
+        firstBurstStart = np.argmin(np.abs(timeRangesInSeconds - highSpeedArrayDatesInSeconds[gapStartAndStop[0, 0]])) + 1
+        lastBurstEnd = np.argmin(np.abs(timeRangesInSeconds - highSpeedArrayDatesInSeconds[gapStartAndStop[-1, 1] - 1])) - 1
         highSpeedArrayValues = newValues[firstBurstStart:lastBurstEnd, :]
         timeRangesInSeconds = timeRangesInSeconds[firstBurstStart:lastBurstEnd]
         # wavFileStartTime = timeRanges[gapStartAndStop[0, 0]]
@@ -133,7 +137,7 @@ def convertASCIIToWAVandGPX(dataCollectFolder, dataCollectBaseName, rawDataFolde
         print("Reading HF file {0}".format(highSpeedHFFile))
         with pd.HDFStore(highSpeedHFFile, 'r') as datasetStore:
             timeRanges = datasetStore['timestamps'].as_matrix()
-            timeRangesGapIndices  = datasetStore['gapStartStopIndices'].as_matrix()
+            timeRangesGapIndices = datasetStore['gapStartStopIndices'].as_matrix()
             wavFileStartTime = timeRanges[int(timeRangesGapIndices[0, 0]), 0]
             wavFileStartTime = datetime.datetime.utcfromtimestamp((wavFileStartTime - np.datetime64('1970-01-01T00:00:00Z')) / np.timedelta64(1, 's'))
 
@@ -150,8 +154,8 @@ def convertASCIIToWAVandGPX(dataCollectFolder, dataCollectBaseName, rawDataFolde
 
     print("Building GPX object from {0}".format(gpsFile))
     firstTime = True
-    with open(gpsFile,'r') as gpsFileObject:
-        for line in tqdm(gpsFileObject.readlines(),"Lines in GPS Message File"):
+    with open(gpsFile, 'r') as gpsFileObject:
+        for line in tqdm(gpsFileObject.readlines(), "Lines in GPS Message File"):
             initialDatePart = line[:23]
             gprmcMessage = line[26:]
             gprmcSplit = gprmcMessage.split(',')
@@ -163,8 +167,10 @@ def convertASCIIToWAVandGPX(dataCollectFolder, dataCollectBaseName, rawDataFolde
                 if latMatcher is None or lonMatcher is None:
                     print ("Bad Message {0}".format(gprmcMessage))
                     continue
-                lat = (float(lonMatcher.group('degrees')) + float(latMatcher.group("minutes") + "." + latMatcher.group("decimalMinutes")) / 60.0) * (-1 if gprmcSplit[4] == 'S' else 1)
-                lon = (float(lonMatcher.group('degrees')) + float(lonMatcher.group("minutes") + "." + lonMatcher.group("decimalMinutes")) / 60.0) * (-1 if gprmcSplit[6] == 'W' else 1)
+                lat = (float(lonMatcher.group('degrees')) + float(latMatcher.group("minutes") + "." + latMatcher.group("decimalMinutes")) / 60.0) * (
+                -1 if gprmcSplit[4] == 'S' else 1)
+                lon = (float(lonMatcher.group('degrees')) + float(lonMatcher.group("minutes") + "." + lonMatcher.group("decimalMinutes")) / 60.0) * (
+                -1 if gprmcSplit[6] == 'W' else 1)
 
                 # lat = (float(gprmcSplit[3][:2]) + float(gprmcSplit[3][2:])/60) * (-1 if gprmcSplit[4] == 'S' else 1)
                 # lon = (float(gprmcSplit[5][:3]) + float(gprmcSplit[5][3:])/60) * (-1 if gprmcSplit[6] == 'W' else 1)
@@ -178,7 +184,7 @@ def convertASCIIToWAVandGPX(dataCollectFolder, dataCollectBaseName, rawDataFolde
                     print(" Bad latitude {lat} or longitude {lon}".format(lat=lat, lon=lon))
                     continue
 
-                ele = geocoder.google([lat,lon], method = 'elevation').meters
+                ele = geocoder.google([lat, lon], method='elevation').meters
                 coordDict = {
                     'latitude': lat,
                     'longitude': lon,
@@ -191,19 +197,24 @@ def convertASCIIToWAVandGPX(dataCollectFolder, dataCollectBaseName, rawDataFolde
                 if firstTime:
                     print('GPX file starts at {0}'.format(timeStamp))
                     firstTime = False
-                    gps_trackPoint = gpxpy.gpx.GPXTrackPoint(float(coordDict["latitude"]), float(coordDict["longitude"]), elevation=coordDict["altitude"], time=wavFileStartTime,
-                                                             horizontal_dilution=coordDict["horizontalAccuracy"], vertical_dilution=coordDict["verticalAccuracy"],
+                    gps_trackPoint = gpxpy.gpx.GPXTrackPoint(float(coordDict["latitude"]), float(coordDict["longitude"]),
+                                                             elevation=coordDict["altitude"], time=wavFileStartTime,
+                                                             horizontal_dilution=coordDict["horizontalAccuracy"],
+                                                             vertical_dilution=coordDict["verticalAccuracy"],
                                                              speed=coordDict["speed"])
                     gpx_segment.points.append(gps_trackPoint)
 
-                gps_trackPoint = gpxpy.gpx.GPXTrackPoint(float(coordDict["latitude"]), float(coordDict["longitude"]), elevation=coordDict["altitude"], time=timeStamp,
-                                                         horizontal_dilution=coordDict["horizontalAccuracy"], vertical_dilution=coordDict["verticalAccuracy"], speed=coordDict["speed"])
+                gps_trackPoint = gpxpy.gpx.GPXTrackPoint(float(coordDict["latitude"]), float(coordDict["longitude"]), elevation=coordDict["altitude"],
+                                                         time=timeStamp,
+                                                         horizontal_dilution=coordDict["horizontalAccuracy"],
+                                                         vertical_dilution=coordDict["verticalAccuracy"], speed=coordDict["speed"])
                 gpx_segment.points.append(gps_trackPoint)
 
     gpsFilePath = os.path.join(rawDataFolder, dataCollectBaseName + '.gpx')
     print("Writing GPX file to {0}".format(gpsFilePath))
     with open(gpsFilePath, 'w') as f:
         f.write(gpx.to_xml())
+
 
 if __name__ == '__main__':
     if os.name == 'nt':
@@ -215,10 +226,11 @@ if __name__ == '__main__':
     else:
         raise ValueError("This OS is not allowed")
 
-    dataCollectBaseNames = ['afittest00000', 'cartest00000', 'cartest00001', 'hometest00000', 'hometest00001', 'hometest00002', 'hometest00003', 'carneighborhood00000', 'carneighborhood00001']
+    dataCollectBaseNames = ['afittest00000', 'cartest00000', 'cartest00001', 'hometest00000', 'hometest00001', 'hometest00002', 'hometest00003',
+                            'carneighborhood00000', 'carneighborhood00001']
     dataCollectBaseNames = ['carneighborhood00003']
-
 
     for dataCollectBaseNameMain in dataCollectBaseNames:
         print("Starting base file {0}".format(dataCollectBaseNameMain))
-        convertASCIIToWAVandGPX(dataCollectFolderMain, dataCollectBaseNameMain, rawDataFolderMain, maxRows=None, showFigures=False, makeAndReadHF=False, saveToWAV=False, skipHighSpeedFile=True)
+        convertASCIIToWAVandGPX(dataCollectFolderMain, dataCollectBaseNameMain, rawDataFolderMain, maxRows=None, showFigures=False,
+                                makeAndReadHF=False, saveToWAV=False, skipHighSpeedFile=True)

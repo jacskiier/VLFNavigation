@@ -4,21 +4,17 @@ Created on Fri Oct 30 09:14:05 2015
 
 @author: jacsk
 """
-import cPickle
-import gzip
 import numpy as np
-import readwav
-import timer
 import pandas as pd
 import pandas.tools.plotting
 import matplotlib.pylab as plt
-from mpl_toolkits.mplot3d import Axes3D
 import os
+import CreateDataset
 
 numOfFeatures = 3
 numberOfSamples = 7000
 outputs = 1
-samplesPerOutput = numberOfSamples/outputs
+samplesPerOutput = numberOfSamples / outputs
 runType = 'regression'
 
 rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\test raw data folder\\"
@@ -26,34 +22,35 @@ rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearni
 fX = np.array([])
 fY = np.array([])
 
-fx = np.ones((samplesPerOutput,numOfFeatures))
+fx = np.ones((samplesPerOutput, numOfFeatures))
 
 np.random.seed(10)
-F = np.random.randint(1,10,(numOfFeatures,outputs))
+F = np.random.randint(1, 10, (numOfFeatures, outputs))
 print (F)
 for x in range(outputs):
     if runType == 'classifier':
-        fx = np.zeros((samplesPerOutput,numOfFeatures))
-        fx[:,(x/float(outputs))*numOfFeatures:((x+1)/float(outputs))*numOfFeatures] = np.expand_dims( np.arange(numOfFeatures/outputs)*(x+1),0)
-        fx[:,(x/float(outputs))*numOfFeatures:((x+1)/float(outputs))*numOfFeatures] = np.expand_dims( np.arange(numOfFeatures/outputs),0)
+        fx = np.zeros((samplesPerOutput, numOfFeatures))
+        fx[:, (x / float(outputs)) * numOfFeatures:((x + 1) / float(outputs)) * numOfFeatures] = np.expand_dims(
+            np.arange(numOfFeatures / outputs) * (x + 1), 0)
+        fx[:, (x / float(outputs)) * numOfFeatures:((x + 1) / float(outputs)) * numOfFeatures] = np.expand_dims(np.arange(numOfFeatures / outputs), 0)
 
         fy = np.ones((samplesPerOutput,)) * x
     elif runType == 'regression':
-        fx = np.random.rand(samplesPerOutput,numOfFeatures) * 10.0
+        fx = np.random.rand(samplesPerOutput, numOfFeatures) * 10.0
 
-        fy = np.dot(fx, F ) + np.random.randn(samplesPerOutput,outputs) * 2.0
+        fy = np.dot(fx, F) + np.random.randn(samplesPerOutput, outputs) * 2.0
 
     if fX.shape == (0L,):
         fX = fx
     else:
-        fX = np.vstack((fX,fx))    
+        fX = np.vstack((fX, fx))
 
     if fY.shape == (0L,):
         fY = fy
     else:
-        fY = np.vstack((fY,fy))
+        fY = np.vstack((fY, fy))
 
-(fX,fY) = readwav.shuffle_in_unison_inplace(fX,fY)
+(fX, fY) = CreateDataset.shuffle_in_unison_inplace(fX, fY)
 
 numberOfSamples = fX.shape[0]
 train_set = np.array([])
@@ -67,7 +64,7 @@ if numberOfSamples > 0:
     test_set = (fX[validSetEnd:-1, :], fY[validSetEnd:-1])
 
 outputLabelsFinal = [str(a) for a in range(outputs)]
-datasetFile = os.path.join(rawDataFolder, 'Processed Data Datasets','Test','Test.hf')
+datasetFile = os.path.join(rawDataFolder, 'Processed Data Datasets', 'Test', 'Test.hf')
 with pd.HDFStore(datasetFile, 'a') as datasetStore:
     datasetStore['train_set_x'] = pd.DataFrame(train_set[0])
     datasetStore['valid_set_x'] = pd.DataFrame(valid_set[0])
@@ -84,8 +81,8 @@ with pd.HDFStore(datasetFile, 'a') as datasetStore:
 
 df = pd.DataFrame(train_set[0])
 df2 = pd.DataFrame(train_set[1])
-df3 = pd.concat([df, df2], axis = 1)
-df3.columns = ["x"+str(x) for x in  range(numOfFeatures)]  + ["y"+str(y) for y in range(outputs)]
+df3 = pd.concat([df, df2], axis=1)
+df3.columns = ["x" + str(x) for x in range(numOfFeatures)] + ["y" + str(y) for y in range(outputs)]
 print(df3)
 axes = pd.tools.plotting.scatter_matrix(df3, alpha=0.2)
 plt.tight_layout()

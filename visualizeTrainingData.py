@@ -4,37 +4,37 @@ Created on Thu Oct 29 14:05:37 2015
 
 @author: jacsk
 """
-import sys
 import os
 import yaml
 import StringIO
-
-import readwav
-import logistic_sgd
-import linearRegression
+import time
 
 import numpy as np
+
 import matplotlib.collections
 import matplotlib.pylab as plt
 import matplotlib.cm as cm
 import matplotlib.animation as animation
-import sklearn.manifold
-from tqdm import tqdm
+import matplotlib.patches
+from mpl_toolkits.mplot3d import Axes3D
 
-plt.rcParams[
-    'animation.ffmpeg_path'] = 'E:\\Program Files\\ffmpeg\\ffmpeg-20160512-git-cd244fa-win64-static\\bin\\ffmpeg.exe'
+from tqdm import tqdm
 
 import pandas as pd
 import pandas.tools.plotting
 
-from mpl_toolkits.mplot3d import Axes3D
-
+import sklearn.manifold
 from sklearn.cluster import DBSCAN
 from sklearn import metrics
 from sklearn.cluster import MiniBatchKMeans
 from sklearn import decomposition
 
-import time
+import ClassificationUtils
+import RegressionUtils
+import CreateDataset
+
+plt.rcParams[
+    'animation.ffmpeg_path'] = 'E:\\Program Files\\ffmpeg\\ffmpeg-20160512-git-cd244fa-win64-static\\bin\\ffmpeg.exe'
 
 if os.name == 'nt':
     rawDataFolder = os.path.join("E:\\", "Users", "Joey", "Documents",
@@ -101,17 +101,15 @@ else:
                                datasetParameters['datasetName'] + '.pkl.gz')
 
 if datasetParameters['yValueType'] != 'gpsC':
-    datasets, inputs, outputs, max_batch_size = logistic_sgd.load_data(datasetFile,
-                                                                       rogueClasses=(),
-                                                                       makeSharedData=False)
-    outputLabels, outputLabelsRaw = logistic_sgd.getLabelsForDataset(processedDataFolderMain, datasetFile,
-                                                                     includeRawLabels=True)
+    datasets, inputs, outputs, max_batch_size = ClassificationUtils.load_data(datasetFile,
+                                                                              rogueClasses=(),
+                                                                              makeSharedData=False)
 else:
-    datasets, inputs, outputs, max_batch_size = linearRegression.load_data(datasetFile,
-                                                                           rogueClasses=(),
-                                                                           makeSharedData=False)
-    outputLabels, outputLabelsRaw = logistic_sgd.getLabelsForDataset(processedDataFolderMain, datasetFile,
-                                                                     includeRawLabels=True)
+    datasets, inputs, outputs, max_batch_size = RegressionUtils.load_data(datasetFile,
+                                                                          rogueClasses=(),
+                                                                          makeSharedData=False)
+outputLabels, outputLabelsRaw = ClassificationUtils.getLabelsForDataset(processedDataFolderMain, datasetFile,
+                                                                        includeRawLabels=True)
 
 train_set, valid_set, test_set = datasets
 imageShape = featureParameters['imageShape']
@@ -199,7 +197,7 @@ if showImages or makeAnimation:
         workingImageData = np.reshape(originalFlatFeatures, imageShape, order='C')
         # now reorder that shape into channel,width,height order
         imageShapeOrder = featureParameters['imageShapeOrder']
-        workingImageData = readwav.shuffleDimensions(workingImageData, imageShapeOrder)
+        workingImageData = CreateDataset.shuffleDimensions(workingImageData, imageShapeOrder)
         # but i actually want width,height, channel so do some swapping
         workingImageData = np.swapaxes(workingImageData, 0, 2)
         # this swap is just so i can plot each channel in the sub plot
@@ -394,8 +392,8 @@ if gpsGrid:
     yWorking = y
     if yValueType == 'gpsC':
         yWorking = yWorking / yScaleFactor - yBias
-        yWorkingDiscrete = readwav.deterineYValuesGridByGPSArrayInLocalLevelCoords(yWorking, gridSize)
-        indexOfNewLabels, currentLabelList = readwav.getIndexOfLabels(yWorkingDiscrete, [])
+        yWorkingDiscrete = CreateDataset.deterineYValuesGridByGPSArrayInLocalLevelCoords(yWorking, gridSize)
+        indexOfNewLabels, currentLabelList = CreateDataset.getIndexOfLabels(yWorkingDiscrete, [])
         outputString = '\n'.join(currentLabelList)
         outputLabelsAsArray = np.genfromtxt(StringIO.StringIO(outputString), delimiter=',')
         hist, bin_edges = np.histogram(indexOfNewLabels, bins=len(currentLabelList))
@@ -409,7 +407,7 @@ if gpsGrid:
     plt.figure(1)
     ax = plt.gca()
     diffArray = np.diff(np.sort(outputLabelsAsArray[:, 0]))
-    gridSizeX = np.min(diffArray[diffArray > 0] )
+    gridSizeX = np.min(diffArray[diffArray > 0])
     diffArray = np.diff(np.sort(outputLabelsAsArray[:, 1]))
     gridSizeY = np.min(diffArray[diffArray > 0])
     for outputLabelsAsNumbers in outputLabelsAsArray:

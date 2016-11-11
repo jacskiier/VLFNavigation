@@ -1,10 +1,3 @@
-import logistic_sgd
-import linearRegression
-import readwav
-from KalmanFilter import getDiscreteSystem
-from KalmanFilter import KalmanFilterLayer
-from WaveletTransformLayer import WaveletTransformLayer
-
 import os
 
 import csv
@@ -26,6 +19,13 @@ from keras.optimizers import rmsprop, adam
 from keras.regularizers import WeightRegularizer
 import keras.constraints
 import keras.backend as K
+
+import ClassificationUtils
+import linearRegression
+from KalmanFilter import getDiscreteSystem
+from KalmanFilter import KalmanFilterLayer
+from WaveletTransformLayer import WaveletTransformLayer
+import CreateUtils
 
 
 def showModel(modelArg):
@@ -93,7 +93,7 @@ def truePositiveRate(y_true, p_y_given_x):
 def crossEntropyWithIndex(y_true, p_y_given_x):
     y_trueFlat = T.flatten(y_true)
     p_y_given_xFlat = T.reshape(p_y_given_x, (
-    T.prod(p_y_given_x.shape) / p_y_given_x.shape[p_y_given_x.ndim - 1], p_y_given_x.shape[p_y_given_x.ndim - 1]))
+        T.prod(p_y_given_x.shape) / p_y_given_x.shape[p_y_given_x.ndim - 1], p_y_given_x.shape[p_y_given_x.ndim - 1]))
     vals = - T.log(p_y_given_xFlat[:, y_trueFlat])
     return T.mean(vals)
 
@@ -337,12 +337,12 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
     useTimeDistributedOutput = classifierParameters[
         'useTimeDistributedOutput'] if 'useTimeDistributedOutput' in classifierParameters else False
 
-    datasets, inputs, outputs, max_batch_size = logistic_sgd.load_data(datasetFileName,
-                                                                       rogueClasses=(),
-                                                                       makeSharedData=False,
-                                                                       makeSequenceForX=makeSequencesForX,
-                                                                       makeSequenceForY=useTimeDistributedOutput,
-                                                                       timesteps=timesteps)
+    datasets, inputs, outputs, max_batch_size = ClassificationUtils.load_data(datasetFileName,
+                                                                              rogueClasses=(),
+                                                                              makeSharedData=False,
+                                                                              makeSequenceForX=makeSequencesForX,
+                                                                              makeSequenceForY=useTimeDistributedOutput,
+                                                                              timesteps=timesteps)
     if whichSetArg > 2 or whichSetArg < 0:
         raise ValueError("Invalid which set number {0}".format(whichSetArg))
     X_test = datasets[whichSetArg][0]
@@ -372,7 +372,7 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
     trueValues = np.reshape(trueValues, (trueValues.shape[0] * trueValues.shape[1], trueValues.shape[2]))
 
     processedDataFolder = os.path.dirname(datasetFileName)
-    classLabels = logistic_sgd.getLabelsForDataset(processedDataFolder, datasetFileName)
+    classLabels = ClassificationUtils.getLabelsForDataset(processedDataFolder, datasetFileName)
 
     # predicted_class ranges from 0 to nClasses
     predicted_class = np.argmax(predicted_probabilities, axis=1)
@@ -518,7 +518,7 @@ def getPred_Values_True_Labels(datasetFileName='mnist.pkl.gz', experimentStoreFo
             # true_values.shape =  (run x timesteps x data dim)
 
     processedDataFolder = os.path.dirname(datasetFileName)
-    classLabels = logistic_sgd.getLabelsForDataset(processedDataFolder, datasetFileName, nClassesTotal=nClassesTotal)
+    classLabels = ClassificationUtils.getLabelsForDataset(processedDataFolder, datasetFileName, nClassesTotal=nClassesTotal)
 
     return predicted_y_values, true_values, classLabels
 
@@ -564,7 +564,7 @@ def makeStatisticsForModel(experimentsFolder, statisticStoreFolder, featureParam
 
     valueMethods = ['Probability', 'Probability Ratio', 'Probability Difference']
     setNames = ['Training', 'Validation', 'Testing']
-    processedDataFolder = readwav.convertPathToThisOS(datasetParameters['processedDataFolder'])
+    processedDataFolder = CreateUtils.convertPathToThisOS(datasetParameters['processedDataFolder'])
 
     if os.path.exists(os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')):
         datasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')
@@ -613,10 +613,10 @@ def makeStatisticsForModel(experimentsFolder, statisticStoreFolder, featureParam
                                                                         modelStoreNameType=modelStoreNameType)
         (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster) = tupleOutputTemp
         # make EER thresholds with the validation set
-        eerThresholdsMaster = logistic_sgd.getEERThreshold(predicted_class_master,
-                                                           predicted_values_master,
-                                                           true_class_master,
-                                                           rogueClasses=rogueClassesMaster)
+        eerThresholdsMaster = ClassificationUtils.getEERThreshold(predicted_class_master,
+                                                                  predicted_values_master,
+                                                                  true_class_master,
+                                                                  rogueClasses=rogueClassesMaster)
 
         # Now get the test set and test the thresholds I just made
         presentSet = whichSet
@@ -631,27 +631,27 @@ def makeStatisticsForModel(experimentsFolder, statisticStoreFolder, featureParam
         if not useLabels:
             classLabelsMaster = None
         # using the thresholds from before but now the test set plot what this looks like
-        logistic_sgd.plotThresholds(predicted_class_master,
-                                    predicted_values_master,
-                                    true_class_master,
-                                    eerThresholdsMaster,
-                                    classLabels=classLabelsMaster,
-                                    rogueClasses=rogueClassesMaster,
-                                    setName=setNames[presentSet],
-                                    valueMethodName=valueMethods[valueMethod],
-                                    statisticsStoreFolder=statisticStoreFolder,
-                                    plotLabels=plotLabels)
+        ClassificationUtils.plotThresholds(predicted_class_master,
+                                           predicted_values_master,
+                                           true_class_master,
+                                           eerThresholdsMaster,
+                                           classLabels=classLabelsMaster,
+                                           rogueClasses=rogueClassesMaster,
+                                           setName=setNames[presentSet],
+                                           valueMethodName=valueMethods[valueMethod],
+                                           statisticsStoreFolder=statisticStoreFolder,
+                                           plotLabels=plotLabels)
 
         if len(rogueClassesMaster) > 0:
-            logistic_sgd.rogueAnalysis(eerThresholdsMaster,
-                                       predicted_class_master,
-                                       predicted_values_master,
-                                       true_class_master,
-                                       classLabels=classLabelsMaster,
-                                       rogueClasses=rogueClassesMaster,
-                                       setName=setNames[presentSet],
-                                       valueMethodName=valueMethods[valueMethod],
-                                       statisticsStoreFolder=statisticStoreFolder)
+            ClassificationUtils.rogueAnalysis(eerThresholdsMaster,
+                                              predicted_class_master,
+                                              predicted_values_master,
+                                              true_class_master,
+                                              classLabels=classLabelsMaster,
+                                              rogueClasses=rogueClassesMaster,
+                                              setName=setNames[presentSet],
+                                              valueMethodName=valueMethods[valueMethod],
+                                              statisticsStoreFolder=statisticStoreFolder)
     if showFigures:
         plt.show()
 
@@ -698,8 +698,8 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
     :param showModelAsFigure: do you want to show the model right before running
     """
 
-    rawDataFolder = readwav.convertPathToThisOS(datasetParameters['rawDataFolder'])
-    processedDataFolder = readwav.convertPathToThisOS(datasetParameters['processedDataFolder'])
+    rawDataFolder = CreateUtils.convertPathToThisOS(datasetParameters['rawDataFolder'])
+    processedDataFolder = CreateUtils.convertPathToThisOS(datasetParameters['processedDataFolder'])
 
     if os.path.exists(os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')):
         datasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')
@@ -744,11 +744,12 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
             (datasets,
              inputs,
              outputs,
-             max_batch_size) = logistic_sgd.load_data(datasetFile, rogueClasses=(),
-                                                      makeSharedData=False,
-                                                      makeSequenceForX=makeSequencesForX,
-                                                      makeSequenceForY=useTimeDistributedOutput,
-                                                      timesteps=timesteps)
+             max_batch_size) = ClassificationUtils.load_data(datasetFile,
+                                                             rogueClasses=(),
+                                                             makeSharedData=False,
+                                                             makeSequenceForX=makeSequencesForX,
+                                                             makeSequenceForY=useTimeDistributedOutput,
+                                                             timesteps=timesteps)
             (X_train, X_valid, X_test) = (datasets[0][0], datasets[1][0], datasets[2][0])
             lossType = classifierParameters['lossType']
             if lossType in ['falsePositiveRate']:

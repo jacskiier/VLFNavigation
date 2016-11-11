@@ -20,7 +20,6 @@ References:
 """
 __docformat__ = 'restructedtext en'
 
-
 import os
 import sys
 import timeit
@@ -34,7 +33,9 @@ import yaml
 import cPickle
 import logistic_sgd
 import linearRegression
-import pandas as pd
+import ClassificationUtils
+import RegressionUtils
+
 
 # start-snippet-1
 class HiddenLayer(object):
@@ -149,7 +150,7 @@ class MLP(object):
         self.input = inputs
 
         self.hiddenLayers = []
-        if isinstance(n_hidden,int):
+        if isinstance(n_hidden, int):
             self.hiddenLayersSizes = (n_hidden,)
         else:
             self.hiddenLayersSizes = tuple(n_hidden)
@@ -193,7 +194,7 @@ class MLP(object):
         # square of L2 norm to be small
         self.L2_sqr = (self.logRegressionLayer.W ** 2).sum()
         for hiddenLayer in self.hiddenLayers:
-            self.L2_sqr = self.L2_sqr + (hiddenLayer.W **2).sum()
+            self.L2_sqr = self.L2_sqr + (hiddenLayer.W ** 2).sum()
 
         # the parameters of the model are the parameters of the two layer it is
         # made out of
@@ -212,7 +213,7 @@ class MLP(object):
         return self.logRegressionLayer.errors(y)
 
     # same holds for the function computing the number of errors
-    def negative_log_likelihood(self,y):
+    def negative_log_likelihood(self, y):
         return self.logRegressionLayer.negative_log_likelihood(y)
 
 
@@ -251,7 +252,7 @@ class MLPRegression(object):
         """
 
         self.hiddenLayers = []
-        if isinstance(n_hidden,int):
+        if isinstance(n_hidden, int):
             self.hiddenLayersSizes = (n_hidden,)
         else:
             self.hiddenLayersSizes = tuple(n_hidden)
@@ -295,7 +296,7 @@ class MLPRegression(object):
         # square of L2 norm to be small
         self.L2_sqr = (self.linearRegressionLayer.W ** 2).sum()
         for hiddenLayer in self.hiddenLayers:
-            self.L2_sqr = self.L2_sqr + (hiddenLayer.W **2).sum()
+            self.L2_sqr = self.L2_sqr + (hiddenLayer.W ** 2).sum()
 
         # the parameters of the model are the parameters of the two layer it is
         # made out of
@@ -312,22 +313,23 @@ class MLPRegression(object):
     def errors(self, y):
         return self.linearRegressionLayer.errors(y)
 
-    def negative_log_likelihood(self,y):
+    def negative_log_likelihood(self, y):
         return self.linearRegressionLayer.negative_log_likelihood(y)
+
 
 def test_mlp(dataset='mnist.pkl.gz',
              experimentStoreFolder='',
-             rogueClasses = (),
+             rogueClasses=(),
              learning_rate=0.01,
              L1_reg=0.00,
              L2_reg=0.0001,
              n_epochs=1000,
              batch_size=20,
              n_hidden=500,
-             patience = 10000,
+             patience=10000,
              patience_increase=2,
              improvement_threshold=0.995,
-             rngSeed = 1234
+             rngSeed=1234
              ):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer
@@ -378,7 +380,7 @@ def test_mlp(dataset='mnist.pkl.gz',
     :type rngSeed: int
     :param rngSeed: the random seed to use for the number generator
    """
-    datasets,inputs,outputs,max_batch_size = logistic_sgd.load_data(dataset, rogueClasses= rogueClasses)
+    datasets, inputs, outputs, max_batch_size = ClassificationUtils.load_data(dataset, rogueClasses=rogueClasses)
 
     train_set_x, train_set_y = datasets[0]
     valid_set_x, valid_set_y = datasets[1]
@@ -398,7 +400,7 @@ def test_mlp(dataset='mnist.pkl.gz',
     index = T.lscalar()  # index to a [mini]batch
     x = T.matrix('x')  # the data is presented as rasterized images
     y = T.ivector('y')  # the labels are presented as 1D vector of
-                        # [int] labels
+    # [int] labels
 
     rng = numpy.random.RandomState(rngSeed)
 
@@ -449,7 +451,7 @@ def test_mlp(dataset='mnist.pkl.gz',
     updates = [
         (param, param - learning_rate * gparam)
         for param, gparam in zip(classifier.params, gparams)
-    ]
+        ]
 
     # compiling a Theano function `train_model` that returns the cost, but
     # in the same time updates the parameter of the model based on the rules
@@ -473,10 +475,10 @@ def test_mlp(dataset='mnist.pkl.gz',
     # early-stopping parameters
 
     validation_frequency = min(n_train_batches, patience / 2)
-                                  # go through this many
-                                  # minibatche before checking the network
-                                  # on the validation set; in this case we
-                                  # check every epoch
+    # go through this many
+    # minibatche before checking the network
+    # on the validation set; in this case we
+    # check every epoch
 
     best_validation_loss = numpy.inf
     best_iter = 0
@@ -508,7 +510,7 @@ def test_mlp(dataset='mnist.pkl.gz',
                         minibatch=minibatch_index + 1,
                         batches=n_train_batches,
                         trainloss=numpy.max(minibatch_avg_cost),
-                        valloss=100.0*this_validation_loss,
+                        valloss=100.0 * this_validation_loss,
                         patience=patience,
                         iteration=current_iter,
                         doneness=100.0 * current_iter / float(patience)
@@ -517,8 +519,8 @@ def test_mlp(dataset='mnist.pkl.gz',
 
                 # if we got the best validation score until now
                 if this_validation_loss < best_validation_loss:
-                    #improve patience if loss improvement is good enough
-                    if this_validation_loss < best_validation_loss * improvement_threshold :
+                    # improve patience if loss improvement is good enough
+                    if this_validation_loss < best_validation_loss * improvement_threshold:
                         patience = max(patience, current_iter * patience_increase)
 
                     best_validation_loss = this_validation_loss
@@ -577,34 +579,34 @@ def test_mlp(dataset='mnist.pkl.gz',
     test_losses = [test_model(i) for i in xrange(n_test_batches)]
     test_score = numpy.mean(test_losses)
 
-    print('Optimization complete. Best epochs/Total eposh {best_epoch}/{epoch},  Train error {train_score:3.2f}, Validation error {valid_score:3.2f}, Test error {test_score:3.2f}'.format
-          (epoch=epoch,
-           best_epoch=best_iter,
-           test_score=test_score * 100.0,
-           valid_score=valid_score * 100.0,
-           train_score=train_score * 100.0)
-          )
+    print(
+        'Optimization complete. Best epochs/Total eposh {best_epoch}/{epoch},  Train error {train_score:3.2f}, Validation error {valid_score:3.2f}, Test error {test_score:3.2f}'.format
+        (epoch=epoch,
+         best_epoch=best_iter,
+         test_score=test_score * 100.0,
+         valid_score=valid_score * 100.0,
+         train_score=train_score * 100.0)
+    )
 
     print >> sys.stderr, ('The code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
 
+
 def test_mlp_regression(dataset='mnist.pkl.gz',
-                 experimentStoreFolder='',
-                 rogueClasses=(),
-                 learning_rate=0.01,
-                 L1_reg=0.00,
-                 L2_reg=0.0001,
-                 n_epochs=1000,
-                 batch_size=20,
-                 n_hidden=500,
-                 patience=10000,
-                 patience_increase=2,
-                 improvement_threshold=0.995,
-                 rngSeed=1234
-                 ):
-
-
+                        experimentStoreFolder='',
+                        rogueClasses=(),
+                        learning_rate=0.01,
+                        L1_reg=0.00,
+                        L2_reg=0.0001,
+                        n_epochs=1000,
+                        batch_size=20,
+                        n_hidden=500,
+                        patience=10000,
+                        patience_increase=2,
+                        improvement_threshold=0.995,
+                        rngSeed=1234
+                        ):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer
     perceptron
@@ -654,7 +656,7 @@ def test_mlp_regression(dataset='mnist.pkl.gz',
     :type rngSeed: int
     :param rngSeed: the random seed to use for the number generator
     """
-    datasets, inputs, outputs, max_batch_size = linearRegression.load_data(dataset, rogueClasses=rogueClasses)
+    datasets, inputs, outputs, max_batch_size = RegressionUtils.load_data(dataset, rogueClasses=rogueClasses)
 
     train_set_x, train_set_y = datasets[0]
     valid_set_x, valid_set_y = datasets[1]
@@ -814,13 +816,13 @@ def test_mlp_regression(dataset='mnist.pkl.gz',
                                        in xrange(n_test_batches)]
                         test_score = numpy.mean(test_losses)
 
-                        print('\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t    New best model of test error {test_score:4.5f}'.format(test_score=test_score))
+                        print('\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t    New best model of test error {test_score:4.5f}'.format(
+                            test_score=test_score))
 
                         # save the best model
                         modelStoreFilePathFullTemp = os.path.join(experimentStoreFolder, 'best_model.pkl')
                         with open(modelStoreFilePathFullTemp, 'wb') as f:
                             cPickle.dump(classifier, f)
-
 
                 if patience <= currentIteration:
                     done_looping = True
@@ -857,7 +859,8 @@ def test_mlp_regression(dataset='mnist.pkl.gz',
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
 
-def mlp_parameterized(featureParameters, datasetParameters, classifierParameters, forceRebuildModel = False):
+
+def mlp_parameterized(featureParameters, datasetParameters, classifierParameters, forceRebuildModel=False):
     """
     Train a Logistic Regression model using the features, datset, and classifier parameters given
 
@@ -881,7 +884,8 @@ def mlp_parameterized(featureParameters, datasetParameters, classifierParameters
     if os.path.exists(os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
         datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')
     else:
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'], datasetParameters['datasetName'] + '.pkl.gz')
+        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'],
+                                   datasetParameters['datasetName'] + '.pkl.gz')
 
     experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureParameters['featureSetName'], datasetParameters['datasetName'],
                                      classifierParameters['classifierType'], classifierParameters['classifierSetName'])
@@ -889,8 +893,8 @@ def mlp_parameterized(featureParameters, datasetParameters, classifierParameters
     bestModelFilePath = os.path.join(experimentsFolder, 'best_model.pkl')
     if not os.path.exists(bestModelFilePath) or forceRebuildModel:
         if classifierParameters['classifierGoal'] == 'classification':
-            test_mlp(dataset = datasetFile,
-                     experimentStoreFolder= experimentsFolder,
+            test_mlp(dataset=datasetFile,
+                     experimentStoreFolder=experimentsFolder,
                      learning_rate=classifierParameters['learning_rate'],
                      L1_reg=classifierParameters['L1_reg'],
                      L2_reg=classifierParameters['L2_reg'],
@@ -905,19 +909,21 @@ def mlp_parameterized(featureParameters, datasetParameters, classifierParameters
                      )
         else:
             test_mlp_regression(dataset=datasetFile,
-                     experimentStoreFolder=experimentsFolder,
-                     learning_rate=classifierParameters['learning_rate'],
-                     L1_reg=classifierParameters['L1_reg'],
-                     L2_reg=classifierParameters['L2_reg'],
-                     n_epochs=classifierParameters['n_epochs'],
-                     batch_size=classifierParameters['batch_size'],
-                     n_hidden=classifierParameters['n_hidden'],
-                     patience=classifierParameters['patience'],
-                     patience_increase=classifierParameters['patience_increase'],
-                     improvement_threshold=classifierParameters['improvement_threshold'],
-                     rngSeed=classifierParameters['rngSeed'],
-                     rogueClasses=classifierParameters['rogueClasses']
-                     )
+                                experimentStoreFolder=experimentsFolder,
+                                learning_rate=classifierParameters['learning_rate'],
+                                L1_reg=classifierParameters['L1_reg'],
+                                L2_reg=classifierParameters['L2_reg'],
+                                n_epochs=classifierParameters['n_epochs'],
+                                batch_size=classifierParameters['batch_size'],
+                                n_hidden=classifierParameters['n_hidden'],
+                                patience=classifierParameters['patience'],
+                                patience_increase=classifierParameters['patience_increase'],
+                                improvement_threshold=classifierParameters['improvement_threshold'],
+                                rngSeed=classifierParameters['rngSeed'],
+                                rogueClasses=classifierParameters['rogueClasses']
+                                )
+
+
 if __name__ == '__main__':
     rawDataFolderMain = r"E:\\Users\\Joey\Documents\\Virtual Box Shared Folder\\"
 

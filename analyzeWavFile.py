@@ -14,26 +14,14 @@ import matplotlib.cm as cm
 from python_speech_features import mfcc
 from python_speech_features import logfbank
 
-import readwav
-
-
-def everyOther(v, offset=0):
-    return [v[i] for i in range(offset, len(v), 2)]
-
+import CreateFeature
+import CreateUtils
 
 plt.close("all")
 
 fftPower = 10
 
-if os.name == 'nt':
-    rawDataFolder = os.path.join("E:", "Users", "Joey", "Documents",
-                                 "Virtual Box Shared Folder")  # VLF signals raw data folder
-    # rawDataFolder = r"L:\\Thesis Files\\DataFolder\\" # 3 Axis VLF Antenna signals raw data folder
-elif os.name == 'posix':
-    rawDataFolder = os.path.join("media", "sena", "Greed Island", "Users", "Joey", "Documents",
-                                 "Virtual Box Shared Folder")  # VLF signals raw data folder
-else:
-    raise ValueError("This OS is not allowed")
+rawDataFolder = CreateUtils.getRawDataFolder()
 
 # fileName = 'algebra00004.wav'
 # fileName = 'cube00001.wav'
@@ -47,7 +35,7 @@ fileName = 'bikeneighborhood00006.wav'
 
 filePather = os.path.join(rawDataFolder, fileName)
 
-(actualDataY, samplingRate) = readwav.readDataFile(filePather)
+(actualDataY, samplingRate) = CreateFeature.readDataFile(filePather)
 actualDataX = np.arange(actualDataY.shape[-1]) * 1.0 / samplingRate
 timeStep = 1.0 / samplingRate
 
@@ -149,7 +137,7 @@ if mfccView:
     fbank_feat = logfbank(actualDataY, samplingRate)
 
     print(mfcc_feat.shape)
-    plt.imshow(mfcc_feat.transpose(), interpolation='nearest', aspect='auto', cmap=cm.gist_heat)
+    plt.imshow(mfcc_feat.transpose(), interpolation='nearest', aspect='auto', cmap=cm.get_cmap("gist_heat"))
     plt.ylabel('Mel Cepstral Coefficient')
     plt.xlabel('Feature Sample')
     plt.show()

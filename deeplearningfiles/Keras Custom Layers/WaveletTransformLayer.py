@@ -102,15 +102,24 @@ class WaveletTransformLayer(Layer):
 
     def call(self, inputSignal, mask=None):
         # inputSignal = (bs x timesteps x input_channels x input_dim)
-        inputSignalReshaped = T.swapaxes(inputSignal, 1, 2)  # (bs x  input_channels x timesteps x input_dim)
-        inputSignalReshaped = T.swapaxes(inputSignalReshaped, 2, 3)  # (bs x  input_channels x input_dim x timesteps)
+
+        inputSignalReshaped = T.swapaxes(inputSignal, 1, 2)
+        # (bs x  input_channels x timesteps x input_dim)
+
+        isrShape = inputSignalReshaped.shape
+        inputSignalReshaped = T.reshape(inputSignalReshaped, (isrShape[0], isrShape[1], isrShape[2] * isrShape[3], 1))
+        # (bs x  input_channels x timesteps*input_dim, 1)
+
+        inputSignalReshaped = T.swapaxes(inputSignalReshaped, 2, 3)
+        # (bs x  input_channels x 1 x input_dim*timesteps)
+
         inputSignalReshaped.name = 'inputSignalReshaped'
         kValuesT = self.kValues  # (output_dim, )
         sigmaValuesT = self.sigmaValues  # (output_dim, )
 
         batch_size = self.batch_size
         input_channels = self.input_channels
-        input_rows = self.input_dim  # if this isn't one then you can deal with what happens
+        input_rows = 1 # I force reshape this to 1 by dumping input dim into the timestep dim
         input_columns = self.timesteps
         input_shape = (batch_size, input_channels, input_rows, input_columns)
         output_channels = self.input_channels

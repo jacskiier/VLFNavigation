@@ -4,19 +4,21 @@ import os
 import sys
 import timeit
 
+import cPickle
+import gzip
+import yaml
+
 import numpy
 
 import theano
 import theano.tensor as T
 from theano.sandbox.rng_mrg import MRG_RandomStreams
 
-from logistic_sgd import LogisticRegression, load_data, makeStatisticsForModel
+from logistic_sgd import LogisticRegression, makeStatisticsForModel
+from ClassificationUtils import load_data
 from mlp import HiddenLayer
 from rbm import RBM
 
-import cPickle
-import gzip
-import yaml
 
 # start-snippet-1
 class DBN(object):
@@ -57,7 +59,7 @@ class DBN(object):
         self.params = []
         self.n_layers = len(hidden_layers_sizes)
         self.hidden_layers_sizes = hidden_layers_sizes
-        
+
         assert self.n_layers > 0
 
         if not theano_rng:
@@ -66,7 +68,7 @@ class DBN(object):
         # allocate symbolic variables for the data
         self.x = T.matrix('x')  # the data is presented as rasterized images
         self.y = T.ivector('y')  # the labels are presented as 1D vector
-                                 # of [int] labels
+        # of [int] labels
         # end-snippet-1
         # The DBN is an MLP, for which all weights of intermediate
         # layers are shared with a different RBM.  We will first
@@ -143,8 +145,8 @@ class DBN(object):
         self.y_pred = self.logLayer.y_pred
         self.p_y_given_x = self.logLayer.p_y_given_x
 
-    def changeOutputSize(self,outputs):
-        #now I need to rebuild the bottom loglayer to account for new outputs
+    def changeOutputSize(self, outputs):
+        # now I need to rebuild the bottom loglayer to account for new outputs
         self.logLayer = LogisticRegression(
             inputs=self.sigmoid_layers[-1].output,
             n_in=self.hidden_layers_sizes[-1],
@@ -159,8 +161,8 @@ class DBN(object):
         # symbolic variable that points to the number of errors made on the
         # minibatch given by self.x and self.y
         self.errors = self.logLayer.errors(self.y)
-    
-    def pretraining_functions(self, train_set_x, batch_size, k, persistent_chainList = None ):
+
+    def pretraining_functions(self, train_set_x, batch_size, k, persistent_chainList=None):
         """
         Generates a list of functions, for performing one step of
         gradient descent at a given layer. The function will require
@@ -184,7 +186,7 @@ class DBN(object):
         learning_rate = T.scalar('lr')  # learning rate to use
 
         # number of batches
-        #n_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
+        # n_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
         # begining of a batch, given `index`
         batch_begin = index * batch_size
         # ending of a batch given `index`
@@ -193,7 +195,6 @@ class DBN(object):
         pretrain_fns = []
         indexer = 0
         for rbm in self.rbm_layers:
-
             persistent = persistent_chainList[indexer] if persistent_chainList is not None else None
             # get the cost and the updates list
             # using CD-k here (persisent=None) for training each RBM.
@@ -261,11 +262,11 @@ class DBN(object):
             updates=updates,
             givens={
                 self.x: train_set_x[
-                    index * batch_size: (index + 1) * batch_size
-                ],
+                        index * batch_size: (index + 1) * batch_size
+                        ],
                 self.y: train_set_y[
-                    index * batch_size: (index + 1) * batch_size
-                ]
+                        index * batch_size: (index + 1) * batch_size
+                        ]
             }
         )
 
@@ -274,11 +275,11 @@ class DBN(object):
             self.errors,
             givens={
                 self.x: test_set_x[
-                    index * batch_size: (index + 1) * batch_size
-                ],
+                        index * batch_size: (index + 1) * batch_size
+                        ],
                 self.y: test_set_y[
-                    index * batch_size: (index + 1) * batch_size
-                ]
+                        index * batch_size: (index + 1) * batch_size
+                        ]
             }
         )
 
@@ -287,11 +288,11 @@ class DBN(object):
             self.errors,
             givens={
                 self.x: valid_set_x[
-                    index * batch_size: (index + 1) * batch_size
-                ],
+                        index * batch_size: (index + 1) * batch_size
+                        ],
                 self.y: valid_set_y[
-                    index * batch_size: (index + 1) * batch_size
-                ]
+                        index * batch_size: (index + 1) * batch_size
+                        ]
             }
         )
 
@@ -308,7 +309,7 @@ class DBN(object):
 
 def test_DBN(dataset='mnist.pkl.gz',
              experimentStoreFolder='',
-             rogueClasses = (),
+             rogueClasses=(),
              finetune_lr=0.1,
              pretraining_epochs=100,
              pretrain_lr=0.01,
@@ -320,8 +321,8 @@ def test_DBN(dataset='mnist.pkl.gz',
              hidden_layers_sizes=(500, 500),
              patience_increase=10.,
              improvement_threshold=0.990,
-             patienceMultiplier = 10,
-             rngSeed = 123,
+             patienceMultiplier=10,
+             rngSeed=123,
              ):
     """
     Demonstrates how to train and test a Deep Belief Network.
@@ -376,11 +377,11 @@ def test_DBN(dataset='mnist.pkl.gz',
     .
     """
 
-    datasets,inputs,outputs,max_batch_size = load_data(dataset, rogueClasses=rogueClasses)
+    datasets, inputs, outputs, max_batch_size = load_data(dataset, rogueClasses=rogueClasses)
 
     train_set_x, train_set_y = datasets[0]
-    #valid_set_x, valid_set_y = datasets[1]
-    #test_set_x, test_set_y = datasets[2]
+    # valid_set_x, valid_set_y = datasets[1]
+    # test_set_x, test_set_y = datasets[2]
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
@@ -392,7 +393,7 @@ def test_DBN(dataset='mnist.pkl.gz',
         # construct the Deep Belief Network
         dbn = DBN(numpy_rng=numpy_rng, n_ins=inputs,
                   hidden_layers_sizes=hidden_layers_sizes,
-                  n_outs=outputs)         
+                  n_outs=outputs)
     else:
         dbn = cPickle.load(open(savedModel))
         dbn.changeOutputSize(outputs)
@@ -416,7 +417,7 @@ def test_DBN(dataset='mnist.pkl.gz',
         pretraining_fns = dbn.pretraining_functions(train_set_x=train_set_x,
                                                     batch_size=batch_size,
                                                     k=k)
-    
+
         print '... pre-training the model'
         start_time = timeit.default_timer()
         ## Pre-train layer-wise
@@ -430,7 +431,7 @@ def test_DBN(dataset='mnist.pkl.gz',
                                                 lr=pretrain_lr))
                 print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
                 print numpy.mean(c)
-    
+
         end_time = timeit.default_timer()
         # end-snippet-2
         print >> sys.stderr, ('The pretraining code for file ' +
@@ -452,10 +453,10 @@ def test_DBN(dataset='mnist.pkl.gz',
     # early-stopping parameters
     patience = patienceMultiplier * n_train_batches  # look as this many examples regardless 4
     validation_frequency = min(n_train_batches, patience / 2)
-                                  # go through this many
-                                  # minibatches before checking the network
-                                  # on the validation set; in this case we
-                                  # check every epoch
+    # go through this many
+    # minibatches before checking the network
+    # on the validation set; in this case we
+    # check every epoch
 
     best_validation_loss = numpy.inf
     test_score = 0.
@@ -488,10 +489,10 @@ def test_DBN(dataset='mnist.pkl.gz',
                 # if we got the best validation score until now
                 if this_validation_loss < best_validation_loss:
 
-                    #improve patience if loss improvement is good enough
+                    # improve patience if loss improvement is good enough
                     if (
-                        this_validation_loss < best_validation_loss *
-                        improvement_threshold
+                                this_validation_loss < best_validation_loss *
+                                improvement_threshold
                     ):
                         patience = max(patience, current_iter * patience_increase)
 
@@ -503,7 +504,7 @@ def test_DBN(dataset='mnist.pkl.gz',
                     modelStoreFilePathFullTemp = os.path.join(experimentStoreFolder, 'best_model.pkl')
                     with open(modelStoreFilePathFullTemp, 'w') as f:
                         cPickle.dump(dbn, f)
-                        
+
                     # test it on the test set
                     test_losses = test_model()
                     test_score = numpy.mean(test_losses)
@@ -511,7 +512,6 @@ def test_DBN(dataset='mnist.pkl.gz',
                            'best model %f %%') %
                           (epoch, minibatch_index + 1, n_train_batches,
                            test_score * 100.))
-                           
 
             if patience <= current_iter:
                 done_looping = True
@@ -530,7 +530,8 @@ def test_DBN(dataset='mnist.pkl.gz',
                           ' ran for %.2fm' % ((end_time - start_time)
                                               / 60.))
 
-def predict(dataset= 'mnist.pkl.gz', numOfValues = 10, experimentStoreFolder = ''):
+
+def predict(dataset='mnist.pkl.gz', numOfValues=10, experimentStoreFolder=''):
     """
     An example of how to load a trained model and use it
     to predict labels.
@@ -547,20 +548,21 @@ def predict(dataset= 'mnist.pkl.gz', numOfValues = 10, experimentStoreFolder = '
         outputs=dbn.logLayer.y_pred)
 
     # We can test it on some examples from test test
-    datasets,inputs,outputs,max_batch_size = load_data(dataset)
+    datasets, inputs, outputs, max_batch_size = load_data(dataset)
     (test_set_x, test_set_y) = datasets[2]
     test_set_x = test_set_x.get_value()
-    #test_set_y = test_set_y.get_value()
+    # test_set_y = test_set_y.get_value()
 
     f = gzip.open(dataset, 'rb')
     train_set, valid_set, test_set = cPickle.load(f)
     f.close()
-    
+
     predicted_values = predict_model(test_set_x[:numOfValues])
     print ("Predicted values for the first {0} examples in test set:".format(numOfValues))
     print predicted_values
     print ("Actual values for the first {0} examples in test set:".format(numOfValues))
     print test_set[1][:numOfValues]
+
 
 def dbn_parameterized(featureParameters, datasetParameters, classifierParameters, forceRebuildModel=False):
     """
@@ -586,7 +588,8 @@ def dbn_parameterized(featureParameters, datasetParameters, classifierParameters
     if os.path.exists(os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
         datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')
     else:
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'], datasetParameters['datasetName'] + '.pkl.gz')
+        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'],
+                                   datasetParameters['datasetName'] + '.pkl.gz')
 
     experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureParameters['featureSetName'], datasetParameters['datasetName'],
                                      classifierParameters['classifierType'], classifierParameters['classifierSetName'])
@@ -607,6 +610,7 @@ def dbn_parameterized(featureParameters, datasetParameters, classifierParameters
                  patienceMultiplier=classifierParameters['patienceMultiplier'],
                  rogueClasses=classifierParameters['rogueClasses']
                  )
+
 
 if __name__ == '__main__':
     rawDataFolderMain = r"E:\\Users\\Joey\Documents\\Virtual Box Shared Folder\\"

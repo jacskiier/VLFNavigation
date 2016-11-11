@@ -14,9 +14,9 @@ datasetName = "THoR"
 featureSetName = 'DefaultTHoRFeatures'
 whichSet = 0
 
-allStats = numpy.genfromtxt(os.path.join(rawDataFolder,'allStats.csv'), delimiter=',', usecols = [13], dtype='a')
+allStats = numpy.genfromtxt(os.path.join(rawDataFolder, 'allStats.csv'), delimiter=',', usecols=[13], dtype='a')
 if len(allStats.shape) <= 1:
-    allStats = numpy.expand_dims(allStats,1)
+    allStats = numpy.expand_dims(allStats, 1)
 
 processedDataFolder = os.path.join(rawDataFolder, "Processed Data Datasets", datasetName)
 datasetFile = os.path.join(processedDataFolder, featureSetName + '.hf')
@@ -38,7 +38,7 @@ elif whichSet == 1:
 else:
     p = p_test
 
-allStatsThisSet = allStats[p,:]
+allStatsThisSet = allStats[p, :]
 
 playTypes = ["FAC", "BLOCK", "MISS", "SHOT", "HIT", "GIVE", "TAKE", "PENL", "GOAL"]
 # longestNameLength = len(max(columnNames, key=len))
@@ -46,18 +46,18 @@ playTypes = ["FAC", "BLOCK", "MISS", "SHOT", "HIT", "GIVE", "TAKE", "PENL", "GOA
 # finalCsvDtype = [("players", 'S51')] + finalCsvDtype
 # fmtArg = ['%.18e' for playType in playTypes]
 # fmtArg = ['%s'] + fmtArg
-finalCsvArray = numpy.zeros((gradArray.shape[1], len(playTypes)+1), dtype='S51')
-columnNames = numpy.core.defchararray.replace(columnNames,',','_')
-finalCsvArray[:,0] = columnNames
+finalCsvArray = numpy.zeros((gradArray.shape[1], len(playTypes) + 1), dtype='S51')
+columnNames = numpy.core.defchararray.replace(columnNames, ',', '_')
+finalCsvArray[:, 0] = columnNames
 counter = 1
 for playType in playTypes:
     playTypeMask = numpy.squeeze(allStatsThisSet[:, 0] == playType)
     playTypeValsPerPlayer = numpy.sum(gradArray[playTypeMask, :], axis=0)
-    finalCsvArray[:,counter] = playTypeValsPerPlayer
-    counter+=1
+    finalCsvArray[:, counter] = playTypeValsPerPlayer
+    counter += 1
 
-finalCsvFile = os.path.join(rawDataFolder,'gradStats.csv')
+finalCsvFile = os.path.join(rawDataFolder, 'gradStats.csv')
 
-headerString = ','.join(['Player Name'] +playTypes)
+headerString = ','.join(['Player Name'] + playTypes)
 
-numpy.savetxt(fname=finalCsvFile, X=finalCsvArray, delimiter=',', header=headerString, footer= '', comments='', fmt='%s')
+numpy.savetxt(fname=finalCsvFile, X=finalCsvArray, delimiter=',', header=headerString, footer='', comments='', fmt='%s')

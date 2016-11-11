@@ -1,23 +1,19 @@
-import KerasClassifiers
-import readwav
-import RunExperiment
-
 import os
 
-import numpy as np
-import matplotlib.pylab as plt
-
-import theano
-import theano.tensor as T
-
-import scipy.signal
-
-import tqdm
-
+import keras.backend as K
 import keras.callbacks
 import keras.constraints
-import keras.backend as K
+import matplotlib.pylab as plt
+import numpy as np
+import scipy.signal
+import theano
+import theano.tensor as T
+import tqdm
 from keras.engine.topology import Layer
+
+import KerasClassifiers
+import RunExperiment
+import CreateUtils
 
 
 class KalmanFilterLayer(Layer):
@@ -463,7 +459,7 @@ def hard_sigmoid(x, leftZero=-2.5, rightOne=2.5, top=1, bottom=0):
     return y
 
 
-if __name__ == '__main__':
+def runMain():
     batch_size = 9
     timeSteps = 100
 
@@ -483,7 +479,7 @@ if __name__ == '__main__':
                                                          datasetName,
                                                          classifierType,
                                                          classifierSetName)
-    processedDataFolder = readwav.convertPathToThisOS(datasetParameters['processedDataFolder'])
+    processedDataFolder = CreateUtils.convertPathToThisOS(datasetParameters['processedDataFolder'])
     datasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')
     experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureSetName, datasetName, classifierType,
                                      classifierSetName)
@@ -817,3 +813,7 @@ if __name__ == '__main__':
                              linestyle='-')
 
     plt.show()
+
+
+if __name__ == '__main__':
+    runMain()

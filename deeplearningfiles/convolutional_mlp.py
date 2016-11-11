@@ -34,14 +34,16 @@ from theano.tensor.nnet import conv
 
 import yaml
 import cPickle
-import logistic_sgd
 import mlp
+
+import logistic_sgd
+import ClassificationUtils
 
 
 class LeNetConvPoolLayer(object):
     """Pool Layer of a convolutional network """
 
-    def __init__(self, rng, inputs, filter_shape, image_shape,  poolsize=(2, 2), W = None, b = None ):
+    def __init__(self, rng, inputs, filter_shape, image_shape, poolsize=(2, 2), W=None, b=None):
         """
         Allocate a LeNetConvPoolLayer with shared variable internal parameters.
 
@@ -125,12 +127,11 @@ class LenetClassifier:
                  rng,
                  nkerns=(20, 50),
                  imageShape=(1, 28, 28),
-                 imageShapeOrder = (0,1,2),
+                 imageShapeOrder=(0, 1, 2),
                  poolsize=(2, 2),
                  filtersize=(5, 5),
                  n_hidden=500,
-                 n_out=10,
-                 params=(None, None, None, None, None, None, None, None)
+                 n_out=10
                  ):
         # Reshape matrix of rasterized images of shape (batch_size, 28 * 28)
         # to a 4D tensor, compatible with our LeNetConvPoolLayer
@@ -138,9 +139,9 @@ class LenetClassifier:
         self.input = inputs
 
         # Since input shape may not be correct for our network this will now give the corrected shape after the dim shuffle
-        correctedImageShape = (imageShape[imageShapeOrder[0]],imageShape[imageShapeOrder[1]], imageShape[imageShapeOrder[2]])
+        correctedImageShape = (imageShape[imageShapeOrder[0]], imageShape[imageShapeOrder[1]], imageShape[imageShapeOrder[2]])
         # First we reshape the input to its natural shape that was given to us
-        self.layer0_input = self.input.reshape((self.input.shape[0], imageShape[0], imageShape[1], imageShape[2]), ndim = 4)
+        self.layer0_input = self.input.reshape((self.input.shape[0], imageShape[0], imageShape[1], imageShape[2]), ndim=4)
         # Now we dimshuffle the natural shape to our expected shape  of (batch_size, image channel, width, height)
         self.layer0_input = self.layer0_input.dimshuffle(0, imageShapeOrder[0] + 1, imageShapeOrder[1] + 1, imageShapeOrder[2] + 1)
 
@@ -166,12 +167,13 @@ class LenetClassifier:
             convolutionLayer = LeNetConvPoolLayer(
                 rng,
                 inputs=inputLayer,
-                image_shape = (None, inputnkern, lastOutputLayerShape[0], lastOutputLayerShape[1]),
-                filter_shape = (outputnkern, inputnkern, filtersize[0], filtersize[1]),
+                image_shape=(None, inputnkern, lastOutputLayerShape[0], lastOutputLayerShape[1]),
+                filter_shape=(outputnkern, inputnkern, filtersize[0], filtersize[1]),
                 poolsize=poolsize
             )
             self.convolutionLayers.append(convolutionLayer)
-            lastOutputLayerShape = ((lastOutputLayerShape[0] - filtersize[0]+1)/poolsize[0], (lastOutputLayerShape[1] - filtersize[1]+1)/ poolsize[1])
+            lastOutputLayerShape = (
+                (lastOutputLayerShape[0] - filtersize[0] + 1) / poolsize[0], (lastOutputLayerShape[1] - filtersize[1] + 1) / poolsize[1])
             # make sure I didn't shrink any image shape to 0
             assert all(lastOutputLayerShape), "The output for a layer was reduced to 0"
 
@@ -182,7 +184,7 @@ class LenetClassifier:
         # flatten to two dimensions and keep only the first the same
         hidden_layer_input = self.convolutionLayers[-1].output.flatten(2)
 
-        #connect to a MLP classifier
+        # connect to a MLP classifier
         self.mlp = mlp.MLP(
             rng=rng,
             inputs=hidden_layer_input,
@@ -202,8 +204,9 @@ class LenetClassifier:
     def errors(self, y):
         return self.mlp.errors(y)
 
-    def cost(self,y):
+    def cost(self, y):
         return self.mlp.negative_log_likelihood(y)
+
 
 def evaluate_lenet5(dataset='mnist.pkl.gz',
                     experimentStoreFolder='',
@@ -212,10 +215,10 @@ def evaluate_lenet5(dataset='mnist.pkl.gz',
                     n_epochs=200,
                     nkerns=(20, 50),
                     imageShape=(1, 28, 28),
-                    imageShapeOrder = (0,1,2),
-                    poolsize = (2,2),
-                    filtersize = (5,5),
-                    n_hidden = 500,
+                    imageShapeOrder=(0, 1, 2),
+                    poolsize=(2, 2),
+                    filtersize=(5, 5),
+                    n_hidden=500,
                     batch_size=500,
                     patience=10000,
                     patience_increase=2,
@@ -273,10 +276,10 @@ def evaluate_lenet5(dataset='mnist.pkl.gz',
     """
     rng = numpy.random.RandomState(rngSeed)
 
-    datasets,inputs,outputs,max_batch_size = logistic_sgd.load_data(dataset, rogueClasses=rogueClasses )
+    datasets, inputs, outputs, max_batch_size = ClassificationUtils.load_data(dataset, rogueClasses=rogueClasses)
 
     assert numpy.prod(imageShape) == inputs
-    
+
     train_set_x, train_set_y = datasets[0]
     valid_set_x, valid_set_y = datasets[1]
     test_set_x, test_set_y = datasets[2]
@@ -293,21 +296,19 @@ def evaluate_lenet5(dataset='mnist.pkl.gz',
     index = T.lscalar()  # index to a [mini]batch
 
     # start-snippet-1
-    x = T.matrix('x')   # the data is presented as rasterized images
+    x = T.matrix('x')  # the data is presented as rasterized images
     y = T.ivector('y')  # the labels are presented as 1D vector of
-                        # [int] labels
-
+    # [int] labels
 
     classifier = LenetClassifier(x,
                                  rng,
                                  imageShape=imageShape,
                                  imageShapeOrder=imageShapeOrder,
-                                 nkerns = nkerns,
+                                 nkerns=nkerns,
                                  n_out=outputs,
-                                 poolsize = poolsize,
-                                 filtersize = filtersize,
-                                 n_hidden =n_hidden
-                                 )
+                                 poolsize=poolsize,
+                                 filtersize=filtersize,
+                                 n_hidden=n_hidden)
     ######################
     # BUILD ACTUAL MODEL #
     ######################
@@ -348,7 +349,7 @@ def evaluate_lenet5(dataset='mnist.pkl.gz',
     updates = [
         (param_i, param_i - learning_rate * grad_i)
         for param_i, grad_i in zip(params, grads)
-    ]
+        ]
 
     train_model = theano.function(
         [index],
@@ -367,10 +368,10 @@ def evaluate_lenet5(dataset='mnist.pkl.gz',
     print '... training'
 
     validation_frequency = min(n_train_batches, patience / 2)
-                                  # go through this many
-                                  # minibatche before checking the network
-                                  # on the validation set; in this case we
-                                  # check every epoch
+    # go through this many
+    # minibatche before checking the network
+    # on the validation set; in this case we
+    # check every epoch
 
     best_validation_loss = numpy.inf
     best_iter = 0
@@ -402,9 +403,9 @@ def evaluate_lenet5(dataset='mnist.pkl.gz',
                 # if we got the best validation score until now
                 if this_validation_loss < best_validation_loss:
 
-                    #improve patience if loss improvement is good enough
-                    if this_validation_loss < best_validation_loss *  \
-                       improvement_threshold:
+                    # improve patience if loss improvement is good enough
+                    if this_validation_loss < best_validation_loss * \
+                            improvement_threshold:
                         patience = max(patience, current_iter * patience_increase)
 
                     # save best validation score and iteration number
@@ -415,7 +416,7 @@ def evaluate_lenet5(dataset='mnist.pkl.gz',
                     test_losses = [
                         test_model(i)
                         for i in xrange(n_test_batches)
-                    ]
+                        ]
                     test_score = numpy.mean(test_losses)
 
                     # save the best model
@@ -441,7 +442,8 @@ def evaluate_lenet5(dataset='mnist.pkl.gz',
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
 
-def convolutional_mlp_parameterized(featureParameters, datasetParameters, classifierParameters, forceRebuildModel = False):
+
+def convolutional_mlp_parameterized(featureParameters, datasetParameters, classifierParameters, forceRebuildModel=False):
     """
     Train a Logistic Regression model using the features, datset, and classifier parameters given
 
@@ -465,7 +467,8 @@ def convolutional_mlp_parameterized(featureParameters, datasetParameters, classi
     if os.path.exists(os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
         datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')
     else:
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'], datasetParameters['datasetName'] + '.pkl.gz')
+        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'],
+                                   datasetParameters['datasetName'] + '.pkl.gz')
 
     experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureParameters['featureSetName'], datasetParameters['datasetName'],
                                      classifierParameters['classifierType'], classifierParameters['classifierSetName'])
@@ -484,11 +487,12 @@ def convolutional_mlp_parameterized(featureParameters, datasetParameters, classi
                         nkerns=classifierParameters['nkerns'],
                         imageShape=featureParameters['imageShape'],
                         imageShapeOrder=featureParameters['imageShapeOrder'],
-                        poolsize = classifierParameters['poolsize'],
-                        filtersize = classifierParameters['filtersize'],
-                        n_hidden = classifierParameters['n_hidden'],
+                        poolsize=classifierParameters['poolsize'],
+                        filtersize=classifierParameters['filtersize'],
+                        n_hidden=classifierParameters['n_hidden'],
                         rogueClasses=classifierParameters['rogueClasses'],
                         )
+
 
 if __name__ == '__main__':
     rawDataFolderMain = r"E:\\Users\\Joey\Documents\\Virtual Box Shared Folder\\"
@@ -514,4 +518,7 @@ if __name__ == '__main__':
         modelSetParametersDefault = yaml.load(myConfigFile)
 
     convolutional_mlp_parameterized(featureParametersDefault, datasetParametersDefault, modelSetParametersDefault, forceRebuildModel=True)
-    logistic_sgd.makeStatisticsForModel(featureParametersDefault, datasetParametersDefault, modelSetParametersDefault)
+    experimentsFolderMain = ""
+    statisticsFolderMain = ""
+    logistic_sgd.makeStatisticsForModel(experimentsFolderMain, statisticsFolderMain, featureParametersDefault, datasetParametersDefault,
+                                        modelSetParametersDefault)

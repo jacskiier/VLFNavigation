@@ -1,6 +1,7 @@
 import os
 import yaml
-import readwav
+import shutil
+
 import logistic_sgd
 import mlp
 import convolutional_mlp
@@ -8,24 +9,11 @@ import DBN
 import linearRegression
 import SkleanEnsembleRegressors
 import KerasClassifiers
-import CreateFeatureConfig
-import CreateClassifierConfig
+import CreateFeature
+import CreateDataset
+import CreateUtils
 
-import shutil
-import re
-
-if os.name == 'nt':
-    rawDataFolder = os.path.join("E:\\", "Users", "Joey", "Documents",
-                                 "Virtual Box Shared Folder")  # VLF signals raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\DataFolder\\" # 3 Axis VLF Antenna signals raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\mnist raw data folder\\" # MNIST raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\test raw data folder\\" # Test raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\parse NHL\\"
-elif os.name == 'posix':
-    rawDataFolder = os.path.join("/media", "sena", "Greed Island", "Users", "Joey", "Documents",
-                                 "Virtual Box Shared Folder")  # VLF signals raw data folder
-else:
-    raise ValueError("Bad OS")
+rawDataFolder = CreateUtils.getRawDataFolder()
 
 featureSetNameMain = 'PatchShortTallAllFreq'
 datasetNameMain = ['bikeneighborhoodPackgpsDNormDTDMG20PG20']
@@ -115,13 +103,13 @@ def runExperiment(featureSetName, datasetName, classifierType, classifierSetName
     if not os.path.exists(statisticsStoreFolder):
         os.makedirs(statisticsStoreFolder)
 
-    if featureParameters['feature parameters']['featureMethod'] in CreateFeatureConfig.featureMethodNamesRebuildValid:
+    if featureParameters['feature parameters']['featureMethod'] in CreateUtils.featureMethodNamesRebuildValid:
         removeFileNumbers = datasetParameters['removeFileNumbers'] if 'removeFileNumbers' in datasetParameters else {}
         onlyFileNumbers = datasetParameters['onlyFileNumbers'] if 'onlyFileNumbers' in datasetParameters else {}
-        readwav.buildFeatures(featureParameters, forceRefreshFeatures=forceRefreshFeatures,
+        CreateFeature.buildFeatures(featureParameters, forceRefreshFeatures=forceRefreshFeatures,
                               allBaseFileNames=datasetParameters['allBaseFileNames'],
                               removeFileNumbers=removeFileNumbers, onlyFileNumbers=onlyFileNumbers)
-        readwav.buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=forceRefreshDataset)
+        CreateDataset.buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=forceRefreshDataset)
 
     # Copy over config files
     shutil.copyfile(featureConfigFileName, os.path.join(experimentsFolder, os.path.basename(featureConfigFileName)))
@@ -146,24 +134,24 @@ def runExperiment(featureSetName, datasetName, classifierType, classifierSetName
     elif modelParameters['classifierType'] == 'LinearRegression':
         linearRegression.sgd_optimization_parameterized(featureParameters, datasetParameters, modelParameters,
                                                         forceRebuildModel=forceRefreshModel)
-    elif modelParameters['classifierType'] in CreateClassifierConfig.sklearnensembleTypes:
+    elif modelParameters['classifierType'] in CreateUtils.sklearnensembleTypes:
         if modelParameters['classifierGoal'] == 'regression':
             SkleanEnsembleRegressors.skleanensemble_parameterized(featureParameters, datasetParameters, modelParameters,
                                                                   forceRebuildModel=forceRefreshModel)
         else:
             raise NotImplementedError()
-    elif modelParameters['classifierType'] in CreateClassifierConfig.kerasTypes:
+    elif modelParameters['classifierType'] in CreateUtils.kerasTypes:
         KerasClassifiers.kerasClassifier_parameterized(featureParameters, datasetParameters, modelParameters,
                                                        forceRebuildModel=forceRefreshModel,
                                                        showModelAsFigure=showFiguresArg[1])
 
     if not os.path.exists(os.path.join(experimentsFolder, 'results.yaml')) or forceRefreshStats:
-        if modelParameters['classifierType'] in CreateClassifierConfig.sklearnensembleTypes:
+        if modelParameters['classifierType'] in CreateUtils.sklearnensembleTypes:
             SkleanEnsembleRegressors.makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters,
                                                             datasetTestParameters, modelParameters, whichSet=whichSet,
                                                             showFigures=showFiguresArg[0],
                                                             useLabels=useLabels)
-        elif modelParameters['classifierType'] in CreateClassifierConfig.kerasTypes:
+        elif modelParameters['classifierType'] in CreateUtils.kerasTypes:
             KerasClassifiers.makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters,
                                                     datasetTestParameters, modelParameters, whichSet=whichSet,
                                                     showFigures=showFiguresArg[0],

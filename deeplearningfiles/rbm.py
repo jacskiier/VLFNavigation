@@ -20,22 +20,23 @@ import os
 from theano.tensor.shared_randomstreams import RandomStreams
 
 from utils import tile_raster_images
-from logistic_sgd import load_data
+from RegressionUtils import load_data
 
 
 # start-snippet-1
 class RBM(object):
     """Restricted Boltzmann Machine (RBM)  """
+
     def __init__(
-        self,
-        inputs=None,
-        n_visible=784,
-        n_hidden=500,
-        W=None,
-        hbias=None,
-        vbias=None,
-        numpy_rng=None,
-        theano_rng=None
+            self,
+            inputs=None,
+            n_visible=784,
+            n_hidden=500,
+            W=None,
+            hbias=None,
+            vbias=None,
+            numpy_rng=None,
+            theano_rng=None
     ):
         """
         RBM constructor. Defines the parameters of the model along with
@@ -359,7 +360,7 @@ class RBM(object):
 def test_rbm(learning_rate=0.1, training_epochs=15,
              dataset='mnist.pkl.gz', batch_size=20,
              n_chains=20, n_samples=10, output_folder='rbm_plots',
-             n_hidden=500, naturalWidth = 28, naturalHeight = 28, colorChannels = 1):
+             n_hidden=500, naturalWidth=28, naturalHeight=28, colorChannels=1):
     """
     Demonstrate how to train and afterwards sample from it using Theano.
 
@@ -390,9 +391,9 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     :param colorChannels: the number of channels in the features
     """
     tileSpacingx = 1
-    tileSpacingy = 1 
-    
-    datasets,inputs,outputs,max_batch_size = load_data(dataset)
+    tileSpacingy = 1
+
+    datasets, inputs, outputs, max_batch_size = load_data(dataset)
 
     train_set_x, train_set_y = datasets[0]
     test_set_x, test_set_y = datasets[2]
@@ -401,7 +402,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
 
     # allocate symbolic variables for the data
-    index = T.lscalar()    # index to a [mini]batch
+    index = T.lscalar()  # index to a [mini]batch
     x = T.matrix('x')  # the data is presented as rasterized images
 
     rng = numpy.random.RandomState(123)
@@ -461,7 +462,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
         image = Image.fromarray(
             tile_raster_images(
                 X=rbm.W.get_value(borrow=True).T,
-                img_shape=(naturalWidth, naturalHeight,colorChannels),
+                img_shape=(naturalWidth, naturalHeight, colorChannels),
                 tile_shape=(10, 10),
                 tile_spacing=(tileSpacingx, tileSpacingy)
             )
@@ -551,14 +552,16 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     # end-snippet-7
     os.chdir('../')
 
+
 if __name__ == '__main__':
     staticLocations = 'staticLocations.pkl.gz'
     testData = 'testdata.pkl.gz'
     datasetMain = staticLocations
-    processedDataFolder = r"E:\\Users\\Joey\Documents\\Virtual Box Shared Folder\\DataFiles\\"
+    processedDataFolder = r"E:\\Users\\Joey\Documents\\Virtual Box Shared Folder\\"
     datasetFilePath = os.path.join(processedDataFolder, datasetMain)
     naturalWidthMain = 50
     naturalHeightMain = 15
     colorChannelsMain = 4
-    outputFolder = "rbm_plots"
-    test_rbm(dataset = datasetFilePath, naturalWidth = naturalWidthMain, naturalHeight = naturalHeightMain, colorChannels = colorChannelsMain, output_folder = outputFolder)
+    outputFolder = os.path.join(processedDataFolder, "Imagery", "rbm_plots")
+    test_rbm(dataset=datasetFilePath, naturalWidth=naturalWidthMain, naturalHeight=naturalHeightMain, colorChannels=colorChannelsMain,
+             output_folder=outputFolder)

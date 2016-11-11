@@ -1,26 +1,9 @@
 import yaml
-import readwav
 import os
 import numpy as np
+import CreateUtils
 
-classifierTypes = ['LogisticRegression', 'MLP', 'ConvolutionalMLP', 'DBN', 'RandomForest', 'ADABoost']
-sklearnensembleTypes = ['RandomForest', 'ADABoost', 'GradientBoosting', 'GaussianProcess']
-kerasTypes = ['LSTM']
-
-if os.name == 'nt':
-    rawDataFolder = os.path.join("E:\\", "Users", "Joey", "Documents",
-                                 "Virtual Box Shared Folder")  # VLF signals raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\DataFolder\\" # 3 Axis VLF Antenna signals raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\
-    #   deeplearningfiles\\mnist raw data folder\\" # MNIST raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\
-    #   deeplearningfiles\\test raw data folder\\" # Test raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\parse NHL\\"
-elif os.name == 'posix':
-    rawDataFolder = os.path.join("/media", "sena", "Greed Island", "Users", "Joey", "Documents",
-                                 "Virtual Box Shared Folder")  # VLF signals raw data folder
-else:
-    raise ValueError("This OS is not allowed")
+rawDataFolder = CreateUtils.getRawDataFolder()
 
 ################################
 # Parameters Begin ############
@@ -354,7 +337,7 @@ if __name__ == '__main__':
                                            'LSTM',
                                            'RegressionAllClasses2LPlus2MLPStatefulAutoBatchDropRlrRMSPropTD2',
                                            'best_modelWeights.h5')
-        lossType = 'categorical_crossentropy' # ['mse', 'categorical_crossentropy', 'falsePositiveRate']
+        lossType = 'categorical_crossentropy'  # ['mse', 'categorical_crossentropy', 'falsePositiveRate']
         # ['root_mean_squared_error_unscaled', 'categorical_accuracy', 'falsePositiveRate']
         metrics = ['categorical_accuracy']
         optimizerType = 'rmsprop'
@@ -444,10 +427,10 @@ if __name__ == '__main__':
             configDict.update(kalmanDict)
         if useWaveletTransform:
             waveletDict = {
-                'useWaveletTransform':useWaveletTransform,
-                'waveletBanks':waveletBanks,
-                'kValues':kValues,
-                'sigmaValues':sigmaValues,
+                'useWaveletTransform': useWaveletTransform,
+                'waveletBanks': waveletBanks,
+                'kValues': kValues,
+                'sigmaValues': sigmaValues,
             }
             configDict.update(waveletDict)
         if reduceLearningRate:
@@ -481,7 +464,7 @@ if __name__ == '__main__':
     if doesFileExist:
         with open(configFileName, 'r') as myConfigFile:
             configDictLoaded = yaml.load(myConfigFile)
-            dictDiffer = readwav.DictDiffer(configDictLoaded, configDict)
+            dictDiffer = CreateUtils.DictDiffer(configDictLoaded, configDict)
             print(dictDiffer.printAllDiff())
     with open(configFileName, 'w') as myConfigFile:
         yaml.dump(configDict, myConfigFile, default_flow_style=False, width=1000)
