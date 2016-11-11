@@ -58,6 +58,9 @@ class WaveletTransformLayer(Layer):
             else:
                 assert initValue.shape[0] == self.output_dim * self.input_channels, "sigmaValues Bad size"
 
+    def get_output_shape_for(self, input_shape):
+        return input_shape[0], input_shape[1], input_shape[2] * self.output_dim
+
     def build(self, input_shape):
         # input_shape = (bs x timesteps x input_channels x input_dim)
         self.input_dim = input_shape[3]
@@ -119,7 +122,7 @@ class WaveletTransformLayer(Layer):
 
         batch_size = self.batch_size
         input_channels = self.input_channels
-        input_rows = 1 # I force reshape this to 1 by dumping input dim into the timestep dim
+        input_rows = 1  # I force reshape this to 1 by dumping input dim into the timestep dim
         input_columns = self.timesteps
         input_shape = (batch_size, input_channels, input_rows, input_columns)
         output_channels = self.input_channels
@@ -190,9 +193,9 @@ class WaveletTransformLayer(Layer):
 
 if __name__ == '__main__':
     plt.close('all')
-    signalLength = 44000
+    signalLength = 44100
     input_channelsMain = 3
-    maxWindowSizeMain = 1000
+    maxWindowSizeMain = 10000
     minSigmasPerWindowMain = 8
     minCyclesPerOneSigmaMain = 3
     sigmaMax = maxWindowSizeMain / minSigmasPerWindowMain
@@ -201,10 +204,11 @@ if __name__ == '__main__':
     batch_sizeMain = 1
 
     # signal for everyone
-    dt = 1 / 44000.0
+    dt = 1 / 44100.0  # second/sample
+    samplingRate = 1 / dt  # samples / second
+    nyquistFreq = samplingRate / 2.0
     start = 0
     end = signalLength * dt
-    print ("nyquist freq is {nyqist}".format(nyqist=1 / (2 * dt)))
     signalFreq = 100.0
     signalFreq2 = smallestK / float(maxWindowSizeMain * dt)
     x = np.arange(start, end, dt, dtype=theano.config.floatX)
@@ -215,6 +219,13 @@ if __name__ == '__main__':
     plt.figure(1)
     plt.plot(x, signal)
     plt.title("Signal")
+
+    print("Sampling Rate {samplingRate} Hz".format(samplingRate=samplingRate))
+    print("Nyquist freq is {nyqist} Hz".format(nyqist=nyquistFreq))
+    print("Sigma Max {sigmaMax} samples. Smallest K {smallestK} normFreq".format(sigmaMax=sigmaMax, smallestK=smallestK))
+    print("Sigma Max {sigma} seconds. Smallest Freq {freq} Hz".format(sigma=sigmaMax * dt, freq=smallestK / float(maxWindowSizeMain) * samplingRate))
+    secondsPerWindow = dt * maxWindowSizeMain
+    print("Seconds per window {secondsPerWindow}".format(secondsPerWindow=secondsPerWindow))
 
     sigmaValuesMain = (np.array([sigmaMax, sigmaMax / 2.0] * input_channelsMain)).astype(theano.config.floatX)
     kValuesMain = (np.array([smallestK, smallestK * 2.0] * input_channelsMain)).astype(theano.config.floatX)
