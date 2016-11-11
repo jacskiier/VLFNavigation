@@ -2,62 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="adaf546f-baf3-4e20-a082-824a85cc78b4" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/3wolfmoon.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_0.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_1.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_10.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_11.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_12.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_13.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_14.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_2.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_3.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_4.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_5.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_6.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_7.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_8.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/filters_at_epoch_9.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm_plots/samples.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/VLFNavigation.iml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/ConvertASCIIToWAV.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/CoordinateTransforms.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/CreateClassifierConfig.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/CreateDatasetConfig.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/CreateFeatureConfig.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/analyzeWavFile.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/crunchTHoRStats.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/.idea/.name" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/.idea/codeStyleSettings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/.idea/deeplearningfiles.iml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/.idea/encodings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/.idea/inspectionProfiles/Project_Default.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/.idea/inspectionProfiles/profiles_settings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/.idea/misc.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/.idea/modules.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/.idea/workspace.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/DBN.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/KalmanFilter.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/RunExperiment.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/SkleanEnsembleRegressors.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/convolutional_mlp.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/linearRegression.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/logistic_sgd.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/mlp.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/rbm.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deeplearningfiles/utils.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/kerashelper.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/makeTHoRhf.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/makeTestTrainingData.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/readwav.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/theanohelper.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/tictoc.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/visualizeTrainingData.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/analyzeWavFile.py" afterPath="$PROJECT_DIR$/analyzeWavFile.py" />
     </list>
     <ignored path="VLFNavigation.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -81,9 +26,11 @@
       <file leaf-file-name="analyzeWavFile.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/analyzeWavFile.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="180">
-              <caret line="81" column="11" selection-start-line="81" selection-start-column="11" selection-end-line="81" selection-end-column="11" />
-              <folding />
+            <state relative-caret-position="345">
+              <caret line="23" column="16" selection-start-line="23" selection-start-column="16" selection-end-line="23" selection-end-column="16" />
+              <folding>
+                <element signature="e#84#93#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -92,6 +39,13 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/analyzeWavFile.py" />
+      </list>
+    </option>
   </component>
   <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
   <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
@@ -419,9 +373,9 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="65" y="24" width="1855" height="1056" extended-state="6" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2498618" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2498618" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
@@ -441,6 +395,24 @@
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="Vcs.Log.UiProperties">
     <option name="RECENTLY_FILTERED_USER_GROUPS">
@@ -464,9 +436,11 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/analyzeWavFile.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="81" column="11" selection-start-line="81" selection-start-column="11" selection-end-line="81" selection-end-column="11" />
-          <folding />
+        <state relative-caret-position="345">
+          <caret line="23" column="16" selection-start-line="23" selection-start-column="16" selection-end-line="23" selection-end-column="16" />
+          <folding>
+            <element signature="e#84#93#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
