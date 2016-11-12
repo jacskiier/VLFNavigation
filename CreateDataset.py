@@ -936,7 +936,7 @@ def mainRun():
     rawDataFolder = CreateUtils.getRawDataFolder()
     # Run Parameters   ############
     runNow = True
-    forceRefreshFeatures = True
+    forceRefreshFeatures = False
     overwriteConfigFile = True
     forceRefreshDataset = True
     rebuildFromConfig = True
@@ -945,7 +945,7 @@ def mainRun():
     removeFileNumbers = {}
     onlyFileNumbers = {}
     removeFeatureSetNames = []
-    onlyThisFeatureSetNames = ['RawAmplitude']
+    onlyThisFeatureSetNames = ['PatchShortTallAllFreq']
     showFigures = True
 
     # Parameters Begin ############
@@ -988,7 +988,7 @@ def mainRun():
         "You must keep all sets same rows for keras packging to work in keras"
 
     # filter features
-    filterPCA = False
+    filterPCA = True
     filterFitSets = ["train"]  # names of the sets you want to use to filter
     filterPCAn_components = None
     filterPCAwhiten = True
@@ -1016,7 +1016,7 @@ def mainRun():
     localLevelOriginInECEF = [507278.89822834, -4884824.02376298, 4056425.76820216]  # Neighborhood Center
 
     # metadata features
-    useMetadata = False
+    useMetadata = True
     metadataList = ['CadenceBike', 'CrankRevolutions', 'SpeedInstant', 'WheelRevolutions', 'DayPercent']
     metadataShape = (len(metadataList),)
 
@@ -1131,10 +1131,10 @@ def mainRun():
     # allBaseFileNames = ["bikeneighborhood"]
     # yValueType = 'gpsC'
 
-    datasetName = 'bikeneighborhoodRawAmplitudePackFile'
+    datasetName = 'bikeneighborhoodPackFileNormCTDM'
     allBaseFileNames = ["bikeneighborhood"]
-    yValueType = 'gpsD'
-    onlyFileNumbers = {"bikeneighborhood": [22, 23, 8]}
+    yValueType = 'gpsC'
+    onlyFileNumbers = {"bikeneighborhood": []}
     removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 26]}
     defaultSetName = "train"
     fileNamesNumbersToSets = [("valid", "bikeneighborhood", [12, 14, 16, 18, 20, 22, 24]), ('test', "bikeneighborhood", [8])]

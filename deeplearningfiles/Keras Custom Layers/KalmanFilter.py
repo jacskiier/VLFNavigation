@@ -466,7 +466,7 @@ def runMain():
     makeUpData = False
 
     featureSetName = 'PatchShortTallAllFreq'
-    datasetName = 'bikeneighborhoodSequenceOneFileNormCTDM'
+    datasetName = 'bikeneighborhoodPackFileNormCTDM'
     classifierType = 'LSTM'
     classifierSetName = 'RegressionAllClasses2LPlus2MLPStatefulAutoBatchDropRlrPWeight3RMSPropTD'
     modelStoreNameType = "bestLoss"
@@ -511,10 +511,15 @@ def runMain():
         sigma_Initial = np.sqrt([5.25895608e-05, 0.001, 2.62760649e-05, 0.001])
         x_t0 = np.array([0.34633574, 0, 0.97964813, 0])
         P_t0 = np.diag(np.square(sigma_Initial)).astype(np.float32)
+        # F = np.array([[0, 1, 0, 0],
+        #               [0, 0, 0, 0],
+        #               [0, 0, 0, 1],
+        #               [0, 0, 0, 0], ], dtype=np.float32)  # ns x ns
         F = np.array([[0, 1, 0, 0],
                       [0, 0, 0, 0],
                       [0, 0, 0, 1],
-                      [0, 0, 0, 0], ], dtype=np.float32)  # ns x ns
+                      [0, 0, 0, 0], ], dtype=np.float32) / 5.0  # ns x ns
+
         # n, n_dot, e, e_dot
         B = np.zeros((ns, ni), dtype=np.float32)  # ns x ni
         C = np.array([[1, 0, 0, 0],

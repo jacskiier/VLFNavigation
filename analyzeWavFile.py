@@ -31,7 +31,7 @@ rawDataFolder = CreateUtils.getRawDataFolder()
 # fileName = 'afittest00000.wav'
 # fileName = 'carsound00000.wav'
 # fileName = 'biketest00001.wav'
-fileName = 'bikeneighborhood00006.wav'
+fileName = 'bikeneighborhood00026.wav'
 
 filePather = os.path.join(rawDataFolder, fileName)
 

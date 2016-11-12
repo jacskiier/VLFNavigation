@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="adaf546f-baf3-4e20-a082-824a85cc78b4" name="Default" comment="Inital Dump of Code files">
+    <list default="true" id="adaf546f-baf3-4e20-a082-824a85cc78b4" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CreateClassifierConfig.py" afterPath="$PROJECT_DIR$/CreateClassifierConfig.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CreateDataset.py" afterPath="$PROJECT_DIR$/CreateDataset.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CreateFeature.py" afterPath="$PROJECT_DIR$/CreateFeature.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CreateUtils.py" afterPath="$PROJECT_DIR$/CreateUtils.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/RunExperiment.py" afterPath="$PROJECT_DIR$/RunExperiment.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/analyzeWavFile.py" afterPath="$PROJECT_DIR$/analyzeWavFile.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" afterPath="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py" afterPath="$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/theanohelper.py" afterPath="$PROJECT_DIR$/theanohelper.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/KalmanFilter.py" afterPath="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/KalmanFilter.py" />
     </list>
     <ignored path="VLFNavigation.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -24,12 +20,14 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/VLFNavigation$CreateDataset.coverage" NAME="CreateDataset Coverage Results" MODIFIED="1478895614599" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$CreateDataset.coverage" NAME="CreateDataset Coverage Results" MODIFIED="1478901140370" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/VLFNavigation$theanohelper.coverage" NAME="theanohelper Coverage Results" MODIFIED="1478891186696" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$RunExperiment.coverage" NAME="RunExperiment Coverage Results" MODIFIED="1478895913413" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$RunExperiment.coverage" NAME="RunExperiment Coverage Results" MODIFIED="1478902135404" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/VLFNavigation$WaveletTransformLayer.coverage" NAME="WaveletTransformLayer Coverage Results" MODIFIED="1478896912428" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
     <SUITE FILE_PATH="coverage/VLFNavigation$CreateFeature.coverage" NAME="CreateFeature Coverage Results" MODIFIED="1478895527581" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$CreateClassifierConfig.coverage" NAME="CreateClassifierConfig Coverage Results" MODIFIED="1478895897569" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$KalmanFilter.coverage" NAME="KalmanFilter Coverage Results" MODIFIED="1478900753952" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$analyzeWavFile.coverage" NAME="analyzeWavFile Coverage Results" MODIFIED="1478908601829" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$CreateClassifierConfig.coverage" NAME="CreateClassifierConfig Coverage Results" MODIFIED="1478902128779" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
@@ -43,7 +41,7 @@
       <file leaf-file-name="CreateFeature.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CreateFeature.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="174">
+            <state relative-caret-position="16005">
               <caret line="1102" column="55" selection-start-line="1102" selection-start-column="55" selection-end-line="1102" selection-end-column="55" />
               <folding />
             </state>
@@ -53,11 +51,11 @@
       <file leaf-file-name="CreateDataset.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CreateDataset.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="173">
-              <caret line="939" column="30" selection-start-line="939" selection-start-column="30" selection-end-line="939" selection-end-column="30" />
+            <state relative-caret-position="13920">
+              <caret line="947" column="53" selection-start-line="947" selection-start-column="32" selection-end-line="947" selection-end-column="53" />
               <folding>
-                <element signature="e#51058#51078#0" expanded="false" />
-                <element signature="e#55854#55874#0" expanded="false" />
+                <element signature="e#51066#51086#0" expanded="false" />
+                <element signature="e#55849#55869#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -66,20 +64,20 @@
       <file leaf-file-name="CreateClassifierConfig.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CreateClassifierConfig.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="180">
-              <caret line="15" column="95" selection-start-line="15" selection-start-column="25" selection-end-line="15" selection-end-column="95" />
+            <state relative-caret-position="1200">
+              <caret line="312" column="35" selection-start-line="312" selection-start-column="35" selection-end-line="312" selection-end-column="35" />
               <folding>
-                <element signature="e#849#1585#0" expanded="false" />
-                <element signature="e#1628#2588#0" expanded="false" />
-                <element signature="e#2644#3677#0" expanded="false" />
-                <element signature="e#3720#4837#0" expanded="false" />
-                <element signature="e#4893#5632#0" expanded="false" />
-                <element signature="e#5684#6103#0" expanded="false" />
-                <element signature="e#6151#6682#0" expanded="false" />
-                <element signature="e#6738#7156#0" expanded="false" />
-                <element signature="e#7211#7722#0" expanded="false" />
-                <marker date="1478895897475" expanded="true" signature="234:17041" ph="..." />
-                <marker date="1478895897475" expanded="true" signature="7757:16053" ph="..." />
+                <element signature="e#853#1589#0" expanded="false" />
+                <element signature="e#1632#2592#0" expanded="false" />
+                <element signature="e#2648#3681#0" expanded="false" />
+                <element signature="e#3724#4841#0" expanded="false" />
+                <element signature="e#4897#5636#0" expanded="false" />
+                <element signature="e#5688#6107#0" expanded="false" />
+                <element signature="e#6155#6686#0" expanded="false" />
+                <element signature="e#6742#7160#0" expanded="false" />
+                <element signature="e#7215#7726#0" expanded="false" />
+                <marker date="1478902128591" expanded="true" signature="234:17046" ph="..." />
+                <marker date="1478902128591" expanded="true" signature="7761:16058" ph="..." />
               </folding>
             </state>
           </provider>
@@ -88,11 +86,19 @@
       <file leaf-file-name="RunExperiment.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/RunExperiment.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="435">
-              <caret line="29" column="26" selection-start-line="29" selection-start-column="26" selection-end-line="29" selection-end-column="26" />
-              <folding>
-                <element signature="e#0#9#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="135">
+              <caret line="9" column="31" selection-start-line="9" selection-start-column="31" selection-end-line="9" selection-end-column="31" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="analyzeWavFile.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/analyzeWavFile.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="375">
+              <caret line="36" column="0" selection-start-line="36" selection-start-column="0" selection-end-line="36" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -100,8 +106,8 @@
       <file leaf-file-name="KerasClassifiers.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="221">
-              <caret line="843" column="0" selection-start-line="843" selection-start-column="0" selection-end-line="843" selection-end-column="0" />
+            <state relative-caret-position="5505">
+              <caret line="393" column="4" selection-start-line="393" selection-start-column="4" selection-end-line="393" selection-end-column="4" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -109,14 +115,22 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="WaveletTransformLayer.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="WaveletTransformLayer.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1323">
-              <caret line="196" column="26" selection-start-line="196" selection-start-column="26" selection-end-line="196" selection-end-column="26" />
-              <folding>
-                <marker date="1478896912323" expanded="true" signature="9852:13247" ph="..." />
-              </folding>
+            <state relative-caret-position="150">
+              <caret line="17" column="35" selection-start-line="17" selection-start-column="35" selection-end-line="17" selection-end-column="35" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="KalmanFilter.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/KalmanFilter.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="6690">
+              <caret line="461" column="14" selection-start-line="461" selection-start-column="14" selection-end-line="461" selection-end-column="14" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -156,19 +170,19 @@
         <option value="$PROJECT_DIR$/kerashelper.py" />
         <option value="$PROJECT_DIR$/makeTestTrainingData.py" />
         <option value="$PROJECT_DIR$/visualizeTrainingData.py" />
-        <option value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/KalmanFilter.py" />
         <option value="$PROJECT_DIR$/makeTHoRhf.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/rbm.py" />
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/CreateUtils.py" />
-        <option value="$PROJECT_DIR$/analyzeWavFile.py" />
         <option value="$PROJECT_DIR$/theanohelper.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py" />
-        <option value="$PROJECT_DIR$/CreateDataset.py" />
         <option value="$PROJECT_DIR$/CreateFeature.py" />
-        <option value="$PROJECT_DIR$/CreateClassifierConfig.py" />
-        <option value="$PROJECT_DIR$/RunExperiment.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" />
+        <option value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/KalmanFilter.py" />
+        <option value="$PROJECT_DIR$/CreateDataset.py" />
+        <option value="$PROJECT_DIR$/RunExperiment.py" />
+        <option value="$PROJECT_DIR$/CreateClassifierConfig.py" />
+        <option value="$PROJECT_DIR$/analyzeWavFile.py" />
       </list>
     </option>
   </component>
@@ -243,7 +257,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -296,7 +310,7 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -310,7 +324,7 @@
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.WaveletTransformLayer">
+  <component name="RunManager" selected="Python.analyzeWavFile">
     <configuration default="false" name="CreateDataset" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -347,24 +361,6 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="CreateFeature" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="VLFNavigation" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/CreateFeature.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
     <configuration default="false" name="CreateClassifierConfig" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -383,7 +379,7 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="WaveletTransformLayer" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="KalmanFilter" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -396,7 +392,25 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="VLFNavigation" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/KalmanFilter.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="analyzeWavFile" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="VLFNavigation" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/analyzeWavFile.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -612,17 +626,17 @@
     <list size="5">
       <item index="0" class="java.lang.String" itemvalue="Python.CreateDataset" />
       <item index="1" class="java.lang.String" itemvalue="Python.RunExperiment" />
-      <item index="2" class="java.lang.String" itemvalue="Python.CreateFeature" />
-      <item index="3" class="java.lang.String" itemvalue="Python.CreateClassifierConfig" />
-      <item index="4" class="java.lang.String" itemvalue="Python.WaveletTransformLayer" />
+      <item index="2" class="java.lang.String" itemvalue="Python.CreateClassifierConfig" />
+      <item index="3" class="java.lang.String" itemvalue="Python.KalmanFilter" />
+      <item index="4" class="java.lang.String" itemvalue="Python.analyzeWavFile" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.WaveletTransformLayer" />
+        <item index="0" class="java.lang.String" itemvalue="Python.analyzeWavFile" />
         <item index="1" class="java.lang.String" itemvalue="Python.RunExperiment" />
         <item index="2" class="java.lang.String" itemvalue="Python.CreateClassifierConfig" />
         <item index="3" class="java.lang.String" itemvalue="Python.CreateDataset" />
-        <item index="4" class="java.lang.String" itemvalue="Python.CreateFeature" />
+        <item index="4" class="java.lang.String" itemvalue="Python.KalmanFilter" />
       </list>
     </recent_temporary>
   </component>
@@ -654,7 +668,14 @@
       <option name="project" value="LOCAL" />
       <updated>1478895335291</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Wavelet Datasets and Features">
+      <created>1478898326150</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1478898326150</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TodoView">
@@ -670,7 +691,7 @@
     <frame x="65" y="24" width="1855" height="1056" extended-state="6" />
     <editor active="false" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25815368" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.26091763" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
@@ -744,7 +765,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Inital Dump of Code files" />
     <MESSAGE value="Added output for input shape function" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added output for input shape function" />
+    <MESSAGE value="Wavelet Datasets and Features" />
+    <option name="LAST_COMMIT_MESSAGE" value="Wavelet Datasets and Features" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -757,6 +779,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
           <caret line="17" column="18" selection-start-line="17" selection-start-column="18" selection-end-line="17" selection-end-column="18" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -788,6 +811,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="7125">
           <caret line="490" column="4" selection-start-line="490" selection-start-column="4" selection-end-line="490" selection-end-column="4" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -802,9 +826,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="225">
           <caret line="28" column="0" selection-start-line="28" selection-start-column="0" selection-end-line="28" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -812,9 +834,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2745">
           <caret line="190" column="26" selection-start-line="190" selection-start-column="26" selection-end-line="190" selection-end-column="26" />
-          <folding>
-            <marker date="1478896912323" expanded="true" signature="9852:13247" ph="..." />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -829,6 +849,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
           <caret line="17" column="18" selection-start-line="17" selection-start-column="18" selection-end-line="17" selection-end-column="18" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -940,13 +961,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/KalmanFilter.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="7125">
-          <caret line="490" column="4" selection-start-line="490" selection-start-column="4" selection-end-line="490" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/deeplearningfiles/rbm.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="8280">
@@ -967,9 +981,6 @@
           <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
         </state>
       </provider>
-      <provider editor-type-id="MarkdownFxPreviewEditor">
-        <state />
-      </provider>
       <provider selected="true" editor-type-id="split-provider[text-editor;MarkdownPreviewEditor]">
         <state split_layout="FIRST">
           <first_editor relative-caret-position="15">
@@ -977,6 +988,9 @@
           </first_editor>
           <second_editor />
         </state>
+      </provider>
+      <provider editor-type-id="MarkdownFxPreviewEditor">
+        <state />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/makeTHoRhf.py">
@@ -1011,14 +1025,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="176">
           <caret line="201" column="0" selection-start-line="201" selection-start-column="0" selection-end-line="201" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/analyzeWavFile.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="213">
-          <caret line="98" column="91" selection-start-line="98" selection-start-column="91" selection-end-line="98" selection-end-column="91" />
         </state>
       </provider>
     </entry>
@@ -1068,76 +1074,87 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="176">
           <caret line="376" column="0" selection-start-line="376" selection-start-column="0" selection-end-line="376" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/CreateFeature.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="174">
+        <state relative-caret-position="16005">
           <caret line="1102" column="55" selection-start-line="1102" selection-start-column="55" selection-end-line="1102" selection-end-column="55" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="17" column="35" selection-start-line="17" selection-start-column="35" selection-end-line="17" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="5505">
+          <caret line="393" column="4" selection-start-line="393" selection-start-column="4" selection-end-line="393" selection-end-column="4" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/KalmanFilter.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="6690">
+          <caret line="461" column="14" selection-start-line="461" selection-start-column="14" selection-end-line="461" selection-end-column="14" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/CreateDataset.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="173">
-          <caret line="939" column="30" selection-start-line="939" selection-start-column="30" selection-end-line="939" selection-end-column="30" />
+        <state relative-caret-position="13920">
+          <caret line="947" column="53" selection-start-line="947" selection-start-column="32" selection-end-line="947" selection-end-column="53" />
           <folding>
-            <element signature="e#51058#51078#0" expanded="false" />
-            <element signature="e#55854#55874#0" expanded="false" />
+            <element signature="e#51066#51086#0" expanded="false" />
+            <element signature="e#55849#55869#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/CreateClassifierConfig.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="15" column="95" selection-start-line="15" selection-start-column="25" selection-end-line="15" selection-end-column="95" />
+        <state relative-caret-position="1200">
+          <caret line="312" column="35" selection-start-line="312" selection-start-column="35" selection-end-line="312" selection-end-column="35" />
           <folding>
-            <element signature="e#849#1585#0" expanded="false" />
-            <element signature="e#1628#2588#0" expanded="false" />
-            <element signature="e#2644#3677#0" expanded="false" />
-            <element signature="e#3720#4837#0" expanded="false" />
-            <element signature="e#4893#5632#0" expanded="false" />
-            <element signature="e#5684#6103#0" expanded="false" />
-            <element signature="e#6151#6682#0" expanded="false" />
-            <element signature="e#6738#7156#0" expanded="false" />
-            <element signature="e#7211#7722#0" expanded="false" />
-            <marker date="1478895897475" expanded="true" signature="234:17041" ph="..." />
-            <marker date="1478895897475" expanded="true" signature="7757:16053" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="843" column="0" selection-start-line="843" selection-start-column="0" selection-end-line="843" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
+            <element signature="e#853#1589#0" expanded="false" />
+            <element signature="e#1632#2592#0" expanded="false" />
+            <element signature="e#2648#3681#0" expanded="false" />
+            <element signature="e#3724#4841#0" expanded="false" />
+            <element signature="e#4897#5636#0" expanded="false" />
+            <element signature="e#5688#6107#0" expanded="false" />
+            <element signature="e#6155#6686#0" expanded="false" />
+            <element signature="e#6742#7160#0" expanded="false" />
+            <element signature="e#7215#7726#0" expanded="false" />
+            <marker date="1478902128591" expanded="true" signature="234:17046" ph="..." />
+            <marker date="1478902128591" expanded="true" signature="7761:16058" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/RunExperiment.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="435">
-          <caret line="29" column="26" selection-start-line="29" selection-start-column="26" selection-end-line="29" selection-end-column="26" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="135">
+          <caret line="9" column="31" selection-start-line="9" selection-start-column="31" selection-end-line="9" selection-end-column="31" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py">
+    <entry file="file://$PROJECT_DIR$/analyzeWavFile.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1323">
-          <caret line="196" column="26" selection-start-line="196" selection-start-column="26" selection-end-line="196" selection-end-column="26" />
-          <folding>
-            <marker date="1478896912323" expanded="true" signature="9852:13247" ph="..." />
-          </folding>
+        <state relative-caret-position="375">
+          <caret line="36" column="0" selection-start-line="36" selection-start-column="0" selection-end-line="36" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>

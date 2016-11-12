@@ -13,7 +13,7 @@ if __name__ == '__main__':
     overwriteConfigFile = True
 
     classifierType = 'LSTM'
-    classifierSetName = 'ClassificationAllClasses1LPlus1MLPStatefulWaveletAutoBatchRlrRMSPropTD'
+    classifierSetName = 'RegressionAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrPWeightRMSPropTD'
     modelStoreFolder = os.path.join(rawDataFolder, "Processed Data Models", classifierType, classifierSetName)
 
     # classes are 0 indexed except when printed as a label!!!
@@ -239,14 +239,14 @@ if __name__ == '__main__':
             'rngSeed': rngSeed,
         }
     elif classifierType == 'LSTM':
-        classifierGoal = 'classification'
+        classifierGoal = 'regression'
         # LSTM
-        lstm_layers_sizes = [100]
-        dropout_W = 0.0
-        dropout_U = 0.0
+        lstm_layers_sizes = [500, 500]
+        dropout_W = 0.5
+        dropout_U = 0.5
         dropout_LSTM = 0.0
-        W_regularizer_l1_LSTM = 0.0
-        U_regularizer_l1_LSTM = 0.0
+        W_regularizer_l1_LSTM = 0.0001
+        U_regularizer_l1_LSTM = 0.0001
         b_regularizer_l1_LSTM = 0.0
         W_regularizer_l2_LSTM = 0.0
         U_regularizer_l2_LSTM = 0.0
@@ -258,14 +258,14 @@ if __name__ == '__main__':
         trainLSTM = True
 
         # MLP
-        hidden_layers_sizes = [100]
+        hidden_layers_sizes = [500, 500]
         hidden_activations = 'tanh'
-        dropout_Hidden = 0.0
-        W_regularizer_l1_hidden = 0.0
+        dropout_Hidden = 0.5
+        W_regularizer_l1_hidden = 0.0001
         b_regularizer_l1_hidden = 0.0
         W_regularizer_l2_hidden = 0.0
         b_regularizer_l2_hidden = 0.0
-        finalActivationType = 'softmax'
+        finalActivationType = 'linear'
         trainMLP = True
 
         # Model
@@ -310,7 +310,7 @@ if __name__ == '__main__':
         matrixIsDiscrete = {'plantMatrices': False, 'QMatrix': False}
 
         # Wavelet Layer
-        useWaveletTransform = True
+        useWaveletTransform = False
         waveletBanks = 100
         maxWindowSize = 10000
         kValues = None
@@ -330,17 +330,17 @@ if __name__ == '__main__':
         rlrCooldown = 10
         rlrEpsilon = 1e-4
 
-        loadPreviousModelWeightsForTraining = False
+        loadPreviousModelWeightsForTraining = True
         loadWeightsFilePath = os.path.join(rawDataFolder,
                                            'Data Experiments',
                                            'PatchShortTallAllFreq',
-                                           'bikeneighborhoodSequenceOneFileNormCTDM',
+                                           'bikeneighborhoodPackFileNormCTDM',
                                            'LSTM',
-                                           'RegressionAllClasses2LPlus2MLPStatefulAutoBatchDropRlrRMSPropTD2',
-                                           'best_modelWeights.h5')
-        lossType = 'categorical_crossentropy'  # ['mse', 'categorical_crossentropy', 'falsePositiveRate']
+                                           'RegressionAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD',
+                                           'last_modelWeights.h5')
+        lossType = 'mse'  # ['mse', 'categorical_crossentropy', 'falsePositiveRate']
         # ['root_mean_squared_error_unscaled', 'categorical_accuracy', 'falsePositiveRate']
-        metrics = ['categorical_accuracy']
+        metrics = ['root_mean_squared_error_unscaled']
         optimizerType = 'rmsprop'
 
         # rmsprop specific
