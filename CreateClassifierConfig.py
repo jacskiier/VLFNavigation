@@ -13,7 +13,7 @@ if __name__ == '__main__':
     overwriteConfigFile = True
 
     classifierType = 'LSTM'
-    classifierSetName = 'RegressionAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrPWeightRMSPropTD'
+    classifierSetName = 'ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrPWeightRMSPropTD'
     modelStoreFolder = os.path.join(rawDataFolder, "Processed Data Models", classifierType, classifierSetName)
 
     # classes are 0 indexed except when printed as a label!!!
@@ -239,7 +239,7 @@ if __name__ == '__main__':
             'rngSeed': rngSeed,
         }
     elif classifierType == 'LSTM':
-        classifierGoal = 'regression'
+        classifierGoal = 'classification'
         # LSTM
         lstm_layers_sizes = [500, 500]
         dropout_W = 0.5
@@ -334,13 +334,13 @@ if __name__ == '__main__':
         loadWeightsFilePath = os.path.join(rawDataFolder,
                                            'Data Experiments',
                                            'PatchShortTallAllFreq',
-                                           'bikeneighborhoodPackFileNormCTDM',
+                                           'bikeneighborhoodPackFileNormParticleTDM',
                                            'LSTM',
-                                           'RegressionAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD',
-                                           'last_modelWeights.h5')
-        lossType = 'mse'  # ['mse', 'categorical_crossentropy', 'falsePositiveRate']
+                                           'ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD',
+                                           'best_modelWeights.h5')
+        lossType = 'categorical_crossentropy'  # ['mse', 'categorical_crossentropy', 'falsePositiveRate']
         # ['root_mean_squared_error_unscaled', 'categorical_accuracy', 'falsePositiveRate']
-        metrics = ['root_mean_squared_error_unscaled']
+        metrics = ['categorical_accuracy']
         optimizerType = 'rmsprop'
 
         # rmsprop specific

@@ -2,21 +2,129 @@ import os
 import re
 import gzip
 import cPickle
+import yaml
+
+import numpy as np
+
 import theano
 import theano.tensor as T
-import numpy as np
+
 import matplotlib.pylab as plt
 import matplotlib.cm as cm
-from sklearn.preprocessing import normalize
-import yaml
-from scipy.stats import gaussian_kde
-import pandas as pd
-import StringIO
 import matplotlib
 import matplotlib.patches
 import matplotlib.collections
 
+from sklearn.preprocessing import normalize
+
+from scipy.stats import gaussian_kde
+from scipy.spatial import Voronoi
+
+import pandas as pd
+import StringIO
 from tqdm import tqdm
+
+
+# from https://gist.github.com/pv/8036995
+def voronoi_finite_polygons_2d(vor, radius=None):
+    """
+    Reconstruct infinite voronoi regions in a 2D diagram to finite
+    regions.
+
+    Parameters
+    ----------
+    vor : Voronoi
+        Input diagram
+    radius : float, optional
+        Distance to 'points at infinity'.
+
+    Returns
+    -------
+    regions : list of tuples
+        Indices of vertices in each revised Voronoi regions.
+    vertices : list of tuples
+        Coordinates for revised Voronoi vertices. Same as coordinates
+        of input vertices, with 'points at infinity' appended to the
+        end.
+
+    """
+
+    if vor.points.shape[1] != 2:
+        raise ValueError("Requires 2D input")
+
+    new_regions = []
+    new_vertices = vor.vertices.tolist()
+
+    center = vor.points.mean(axis=0)
+    if radius is None:
+        radius = vor.points.ptp().max()
+
+    # Construct a map containing all ridges for a given point
+    all_ridges = {}
+    for (p1, p2), (v1, v2) in zip(vor.ridge_points, vor.ridge_vertices):
+        all_ridges.setdefault(p1, []).append((p2, v1, v2))
+        all_ridges.setdefault(p2, []).append((p1, v1, v2))
+
+    # Reconstruct infinite regions
+    for p1, region in enumerate(vor.point_region):
+        vertices = vor.regions[region]
+
+        if all(v >= 0 for v in vertices):
+            # finite region
+            new_regions.append(vertices)
+            continue
+
+        # reconstruct a non-finite region
+        ridges = all_ridges[p1]
+        new_region = [v for v in vertices if v >= 0]
+
+        for p2, v1, v2 in ridges:
+            if v2 < 0:
+                v1, v2 = v2, v1
+            if v1 >= 0:
+                # finite ridge: already in the region
+                continue
+
+            # Compute the missing endpoint of an infinite ridge
+
+            t = vor.points[p2] - vor.points[p1]  # tangent
+            t /= np.linalg.norm(t)
+            n = np.array([-t[1], t[0]])  # normal
+
+            midpoint = vor.points[[p1, p2]].mean(axis=0)
+            direction = np.sign(np.dot(midpoint - center, n)) * n
+            far_point = vor.vertices[v2] + direction * radius
+
+            new_region.append(len(new_vertices))
+            new_vertices.append(far_point.tolist())
+
+        # sort region counterclockwise
+        vs = np.asarray([new_vertices[v] for v in new_region])
+        c = vs.mean(axis=0)
+        angles = np.arctan2(vs[:, 1] - c[1], vs[:, 0] - c[0])
+        new_region = np.array(new_region)[np.argsort(angles)]
+
+        # finish
+        new_regions.append(new_region.tolist())
+
+    return new_regions, np.asarray(new_vertices)
+
+
+def plotVeroni(ax, regions, vertices, colorScaleNumbers):
+    polygons = []
+    for polygonIndex in range(len(regions)):
+        region = regions[polygonIndex]
+        polygon = vertices[region]
+        thisPatch = matplotlib.patches.Polygon(polygon)
+        polygons.append(thisPatch)
+
+    colorMap = cm.get_cmap('coolwarm')
+    p = matplotlib.collections.PatchCollection(patches=polygons, cmap=colorMap)
+    p.set_array(colorScaleNumbers)
+    ax.add_collection(p)
+    plt.xlabel('East (m)')
+    plt.ylabel('North (m)')
+    plt.title("Counts and True Positive percentage for each grid location")
 
 
 def load_data(datasetFileName,
@@ -545,6 +653,7 @@ def plotThresholds(predicted_class,
     if plotLabels:
         plt.figure(5)
         ax = plt.gca()
+
         classLabelsRaw = []
         for classLabel in classLabels:
             classLabelsRaw.append(classLabel.split(' ')[0])
@@ -552,42 +661,82 @@ def plotThresholds(predicted_class,
         outputString = '\n'.join(classLabelsRaw)
         outputLabelsAsArray = np.genfromtxt(StringIO.StringIO(outputString), delimiter=',')
 
-        diffArray = np.diff(np.sort(outputLabelsAsArray[:, 0]))
-        gridSizeX = np.min(diffArray[diffArray > 0])
-        diffArray = np.diff(np.sort(outputLabelsAsArray[:, 1]))
-        gridSizeY = np.min(diffArray[diffArray > 0])
-        gridSize = (gridSizeX, gridSizeY)
+        useVoroni = True
+        if useVoroni:
+            polygons = []
+            vor = Voronoi(points=outputLabelsAsArray)
+            regions, vertices = voronoi_finite_polygons_2d(vor)
+            vertices = np.hstack((vertices[:, 1][:, None], vertices[:, 0][:, None]))
+            for polygonIndex in range(outputLabelsAsArray.shape[0]):
+                region = regions[polygonIndex]
+                polygon = vertices[region]
+                xMid = outputLabelsAsArray[polygonIndex][1]
+                yMid = outputLabelsAsArray[polygonIndex][0]
 
-        rects = []
-        for outputLabelIndex in range(outputLabelsAsArray.shape[0]):
-            outputLabelsAsNumbers = outputLabelsAsArray[outputLabelIndex, :]
-            acc = accuracyPerClass[outputLabelIndex]
-            totalCountsThisClass = totalCountsPerClass[outputLabelIndex]
-            xMid = outputLabelsAsNumbers[1]
-            yMid = outputLabelsAsNumbers[0]
+                acc = accuracyPerClass[polygonIndex]
+                totalCountsThisClass = totalCountsPerClass[polygonIndex]
+                thisPatch = matplotlib.patches.Polygon(polygon)
+                polygons.append(thisPatch)
 
-            thisPatch = matplotlib.patches.Rectangle((xMid - gridSize[1] / 2.0, yMid - gridSize[0] / 2.0),
-                                                     gridSize[1],
-                                                     gridSize[0])
-            rects.append(thisPatch)
-            plt.text(x=xMid - gridSize[1] / 2.0,
-                     y=yMid,
-                     s="{countsThisClass} \n{tpRateThisClass:2.2%}".format(tpRateThisClass=acc,
-                                                                           countsThisClass=totalCountsThisClass),
-                     size=12,
-                     zorder=2,
-                     color='k')
+                # plt.text(x=xMid,
+                #          y=yMid,
+                #          s="{countsThisClass} \n{tpRateThisClass:2.2%}".format(tpRateThisClass=acc,
+                #                                                                countsThisClass=totalCountsThisClass),
+                #          size=12,
+                #          zorder=2,
+                #          color='k')
 
-        colorMap = cm.get_cmap('coolwarm')
-        p = matplotlib.collections.PatchCollection(patches=rects, cmap=colorMap)
-        p.set_array(accuracyPerClass)
-        ax.add_collection(p)
-        plt.xlim([np.min(outputLabelsAsArray[:, 1]) - gridSize[1], np.max(outputLabelsAsArray[:, 1]) + gridSize[1]])
-        plt.ylim([np.min(outputLabelsAsArray[:, 0]) - gridSize[0], np.max(outputLabelsAsArray[:, 0]) + gridSize[0]])
-        plt.xlabel('East (m)')
-        plt.ylabel('North (m)')
-        plt.title("Counts and True Positive percentage for each grid location")
-        plt.savefig(os.path.join(statisticsStoreFolder, "labelsplot"))
+            colorMap = cm.get_cmap('coolwarm')
+            p = matplotlib.collections.PatchCollection(patches=polygons, cmap=colorMap)
+            p.set_array(accuracyPerClass)
+            ax.add_collection(p)
+            edgeBuffer = 100
+            plt.scatter(outputLabelsAsArray[:, 1], outputLabelsAsArray[:, 0], marker='*')
+            # plt.xlim([np.min(outputLabelsAsArray[:, 1]) - edgeBuffer, np.max(outputLabelsAsArray[:, 1]) + edgeBuffer])
+            # plt.ylim([np.min(outputLabelsAsArray[:, 0]) - edgeBuffer, np.max(outputLabelsAsArray[:, 0]) + edgeBuffer])
+            plt.xlim(vor.min_bound[0] - edgeBuffer, vor.max_bound[0] + edgeBuffer)
+            plt.ylim(vor.min_bound[1] - edgeBuffer, vor.max_bound[1] + edgeBuffer)
+            plt.xlabel('East (m)')
+            plt.ylabel('North (m)')
+            plt.title("Counts and True Positive percentage for each grid location")
+            plt.savefig(os.path.join(statisticsStoreFolder, "labelsplot"))
+        else:
+            diffArray = np.diff(np.sort(outputLabelsAsArray[:, 0]))
+            gridSizeX = np.min(diffArray[diffArray > 0])
+            diffArray = np.diff(np.sort(outputLabelsAsArray[:, 1]))
+            gridSizeY = np.min(diffArray[diffArray > 0])
+            gridSize = (gridSizeX, gridSizeY)
+
+            rects = []
+            for outputLabelIndex in range(outputLabelsAsArray.shape[0]):
+                outputLabelsAsNumbers = outputLabelsAsArray[outputLabelIndex, :]
+                acc = accuracyPerClass[outputLabelIndex]
+                totalCountsThisClass = totalCountsPerClass[outputLabelIndex]
+                xMid = outputLabelsAsNumbers[1]
+                yMid = outputLabelsAsNumbers[0]
+
+                thisPatch = matplotlib.patches.Rectangle((xMid - gridSize[1] / 2.0, yMid - gridSize[0] / 2.0),
+                                                         gridSize[1],
+                                                         gridSize[0])
+                rects.append(thisPatch)
+                plt.text(x=xMid - gridSize[1] / 2.0,
+                         y=yMid,
+                         s="{countsThisClass} \n{tpRateThisClass:2.2%}".format(tpRateThisClass=acc,
+                                                                               countsThisClass=totalCountsThisClass),
+                         size=12,
+                         zorder=2,
+                         color='k')
+
+            colorMap = cm.get_cmap('coolwarm')
+            p = matplotlib.collections.PatchCollection(patches=rects, cmap=colorMap)
+            p.set_array(accuracyPerClass)
+            ax.add_collection(p)
+            plt.xlim([np.min(outputLabelsAsArray[:, 1]) - gridSize[1], np.max(outputLabelsAsArray[:, 1]) + gridSize[1]])
+            plt.ylim([np.min(outputLabelsAsArray[:, 0]) - gridSize[0], np.max(outputLabelsAsArray[:, 0]) + gridSize[0]])
+            plt.xlabel('East (m)')
+            plt.ylabel('North (m)')
+            plt.title("Counts and True Positive percentage for each grid location")
+            plt.savefig(os.path.join(statisticsStoreFolder, "labelsplot"))
 
     thresholdString = """Set {setName}
 No threshold

@@ -16,9 +16,9 @@ import CreateUtils
 rawDataFolder = CreateUtils.getRawDataFolder()
 
 featureSetNameMain = 'PatchShortTallAllFreq'
-datasetNameMain = ['bikeneighborhoodPackFileNormCTDM']
+datasetNameMain = ['bikeneighborhoodPackFileNormParticleTDM']
 classifierTypeMain = ['LSTM']
-classifierSetNameMain = ['RegressionAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrPWeightRMSPropTD']
+classifierSetNameMain = ['ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD']
 datasetNameTestMain = ''  # for right now you only get one
 
 # per run variables
@@ -99,7 +99,7 @@ def runExperiment(featureSetName, datasetName, classifierType, classifierSetName
         statisticsStoreFolder = os.path.join(experimentsFolder, datasetNameTest)
     else:
         datasetTestParameters = datasetParameters
-        statisticsStoreFolder = experimentsFolder
+        statisticsStoreFolder = os.path.join(experimentsFolder, datasetName)
     if not os.path.exists(statisticsStoreFolder):
         os.makedirs(statisticsStoreFolder)
 
@@ -115,9 +115,8 @@ def runExperiment(featureSetName, datasetName, classifierType, classifierSetName
     shutil.copyfile(featureConfigFileName, os.path.join(experimentsFolder, os.path.basename(featureConfigFileName)))
     shutil.copyfile(datasetConfigFileName, os.path.join(experimentsFolder, os.path.basename(datasetConfigFileName)))
     shutil.copyfile(modelConfigFileName, os.path.join(experimentsFolder, os.path.basename(modelConfigFileName)))
-    if statisticsStoreFolder != experimentsFolder:
-        shutil.copyfile(datasetTestConfigFileName,
-                        os.path.join(statisticsStoreFolder, os.path.basename(datasetTestConfigFileName)))
+    shutil.copyfile(datasetTestConfigFileName, os.path.join(statisticsStoreFolder, os.path.basename(datasetTestConfigFileName)))
+
     # Start Experiment
     if modelParameters['classifierType'] == 'LogisticRegression':
         logistic_sgd.sgd_optimization_parameterized(featureParameters, datasetParameters, modelParameters,

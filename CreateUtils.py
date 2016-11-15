@@ -10,10 +10,11 @@ featureMethodNamesRebuildValid = ['Patch', 'Covariance', 'MFCC', 'FFT', 'RawAmpl
 statOrderNames = ['mean', 'variance', 'standard deviation', 'skewness', 'kurtosis']
 
 # Dataset Statics
-yValueTypes = ['file', 'gpsD', 'time', 'gpsC', 'gpsPolar']
-yValueGPSTypes = ['gpsD', 'gpsC', 'gpsPolar']
-yValueDiscreteTypes = ['file', 'gpsD', 'time']
+yValueTypes = ['file', 'gpsD', 'time', 'gpsC', 'gpsPolar', 'particle']
+yValueGPSTypes = ['gpsD', 'gpsC', 'gpsPolar', 'particle']
+yValueDiscreteTypes = ['file', 'gpsD', 'time', 'particle']
 yValueContinuousTypes = ['gpsC', 'gpsPolar']
+assert len(set(yValueContinuousTypes + yValueDiscreteTypes)) == len(yValueTypes), "Not all sets accounted for in yValueTypes"
 
 # Classifier Statics
 classifierTypes = ['LogisticRegression', 'MLP', 'ConvolutionalMLP', 'DBN', 'RandomForest', 'ADABoost']

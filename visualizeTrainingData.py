@@ -29,28 +29,26 @@ from sklearn import metrics
 from sklearn.cluster import MiniBatchKMeans
 from sklearn import decomposition
 
+from scipy.spatial import Voronoi
+
+import CreateUtils
 import ClassificationUtils
 import RegressionUtils
 import CreateDataset
-
-plt.rcParams[
-    'animation.ffmpeg_path'] = 'E:\\Program Files\\ffmpeg\\ffmpeg-20160512-git-cd244fa-win64-static\\bin\\ffmpeg.exe'
+from KerasClassifiers import getPredictedClasses_Values_TrueClasses_Labels
+from ClassificationUtils import voronoi_finite_polygons_2d
+from ClassificationUtils import plotVeroni
 
 if os.name == 'nt':
-    rawDataFolder = os.path.join("E:\\", "Users", "Joey", "Documents",
-                                 "Virtual Box Shared Folder")  # VLF signals raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\DataFolder\\" # 3 Axis VLF Antenna signals raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\mnist raw data folder\\" # MNIST raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\test raw data folder\\" # Test raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\parse NHL\\"
-elif os.name == 'posix':
-    rawDataFolder = os.path.join("/media", "sena", "Greed Island", "Users", "Joey", "Documents",
-                                 "Virtual Box Shared Folder")  # VLF signals raw data folder
-else:
-    raise ValueError("Bad OS")
+    plt.rcParams['animation.ffmpeg_path'] = 'E:\\Program Files\\ffmpeg\\ffmpeg-20160512-git-cd244fa-win64-static\\bin\\ffmpeg.exe'
+# elif os.name == 'posix':
+#     plt.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'
+
+
+rawDataFolder = CreateUtils.getRawDataFolder()
 
 featureSetName = 'PatchShortTallAllFreq'
-datasetName = "bikeneighborhoodPackFileNormDTDMG50"
+datasetName = "bikeneighborhoodPackFileNormParticleTDM"
 
 whichSet = 1
 whichSetName = ['train', 'valid', 'test'][whichSet]
@@ -64,10 +62,14 @@ makeAnimation = False
 makeYScatterPlot = False
 makeYScatterPlotColorOnY = False
 showPathPerRowOfPackagedFile = False
-gpsGrid = True
+gpsGrid = False
 
 # Calculate Stats
-calculatex_t0andP_t0 = True
+calculatex_t0andP_t0 = False
+kMeansOnRegressionY = False
+
+# Prediction Visuals
+videoClassProbability = True
 
 # transforms of X or Y
 makeDBSCAN = False
@@ -101,13 +103,13 @@ else:
                                datasetParameters['datasetName'] + '.pkl.gz')
 
 if datasetParameters['yValueType'] != 'gpsC':
-    datasets, inputs, outputs, max_batch_size = ClassificationUtils.load_data(datasetFile,
-                                                                              rogueClasses=(),
-                                                                              makeSharedData=False)
+    datasets, inputs, numParticles, max_batch_size = ClassificationUtils.load_data(datasetFile,
+                                                                                   rogueClasses=(),
+                                                                                   makeSharedData=False)
 else:
-    datasets, inputs, outputs, max_batch_size = RegressionUtils.load_data(datasetFile,
-                                                                          rogueClasses=(),
-                                                                          makeSharedData=False)
+    datasets, inputs, numParticles, max_batch_size = RegressionUtils.load_data(datasetFile,
+                                                                               rogueClasses=(),
+                                                                               makeSharedData=False)
 outputLabels, outputLabelsRaw = ClassificationUtils.getLabelsForDataset(processedDataFolderMain, datasetFile,
                                                                         includeRawLabels=True)
 
@@ -398,7 +400,6 @@ if gpsGrid:
         outputLabelsAsArray = np.genfromtxt(StringIO.StringIO(outputString), delimiter=',')
         hist, bin_edges = np.histogram(indexOfNewLabels, bins=len(currentLabelList))
     else:
-
         outputString = '\n'.join(outputLabelsRaw)
         outputLabelsAsArray = np.genfromtxt(StringIO.StringIO(outputString), delimiter=',')
         hist, bin_edges = np.histogram(yWorking, bins=len(outputLabelsRaw))
@@ -456,6 +457,123 @@ if calculatex_t0andP_t0:
     print (x_t0)
     print ("P_t0")
     print (P_t0)
+
+if kMeansOnRegressionY:
+    assert yValueType == 'gpsC', "can't do regression on Y with non gpsC"
+    yWorking = y
+
+    yWorking = yWorking / yScaleFactor - yBias
+    numParticles = 100
+    batch_size = 100
+    random_state = 1
+    mbk = MiniBatchKMeans(n_clusters=numParticles,
+                          max_no_improvement=10,
+                          batch_size=batch_size,
+                          init='k-means++',
+                          n_init=10,
+                          compute_labels=True,
+                          random_state=random_state,
+                          verbose=1)
+
+    mbk.fit(yWorking)
+    mbk_means_labels = mbk.labels_
+    mbk_means_cluster_centers = mbk.cluster_centers_
+    mbk_means_labels_unique = np.unique(mbk_means_labels)
+
+    plt.figure()
+    colors = plt.cm.get_cmap("spectral")(np.linspace(0, 1, numParticles))
+
+    for k, col in zip(range(numParticles), colors):
+        my_members = mbk_means_labels == k
+        cluster_center = mbk_means_cluster_centers[k]
+        plt.scatter(yWorking[my_members, 1], yWorking[my_members, 0], color=col, marker='.')
+        plt.scatter(cluster_center[1], cluster_center[0], color=col, marker="*", s=300, edgecolors=['k'])
+    plt.axis('equal')
+    plt.title('MiniBatchKMeans')
+    saveCenters = True
+    if saveCenters:
+        filePath = os.path.join(rawDataFolder, "Imagery", datasetName + "RegressionYkMeansClusters.csv")
+        np.savetxt(filePath, mbk_means_cluster_centers, fmt='%6.2f', delimiter=',', header="North, East")
+    plt.show()
+
+########################
+# Prediction Visuals
+########################
+if videoClassProbability:
+    classifierType = "LSTM"
+    classifierSetName = "ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD"
+    experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureSetName, datasetName, classifierType,
+                                     classifierSetName)
+    valueMethod = 0
+    modelStoreNameType = 'best'
+    modelDataFolder = os.path.join(rawDataFolder, "Processed Data Models", classifierType, classifierSetName)
+    modelConfigFileName = os.path.join(modelDataFolder, "model set parameters.yaml")
+    with open(modelConfigFileName, 'r') as myConfigFile:
+        classifierParameters = yaml.load(myConfigFile)
+
+    tupleOutputTemp = getPredictedClasses_Values_TrueClasses_Labels(datasetFileName=datasetFile,
+                                                                    experimentStoreFolder=experimentsFolder,
+                                                                    valueMethod=valueMethod,
+                                                                    whichSetArg=whichSet,
+                                                                    datasetParameters=datasetParameters,
+                                                                    classifierParameters=classifierParameters,
+                                                                    modelStoreNameType=modelStoreNameType,
+                                                                    runByShape=True,
+                                                                    returnClassProbabilities=True)
+    (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster, predicted_probabilities) = tupleOutputTemp
+    whichRuns = [0, 1, 2]
+
+    outputString = '\n'.join(outputLabelsRaw)
+    outputLabelsAsArray = np.genfromtxt(StringIO.StringIO(outputString), delimiter=',')
+    totalTimesteps = predicted_probabilities.shape[1]
+
+    dobywhat = 'fpsandtotaltime'
+    if dobywhat == 'totaltimeandskip':
+        totalTimeInSeconds = 60
+        skipTimesteps = 50
+
+        totalTimestepsToDo = totalTimesteps / skipTimesteps
+        fps = max(totalTimestepsToDo / totalTimeInSeconds, 1)
+    elif dobywhat == 'fpsandtotaltime':
+        totalTimeInSeconds = 60
+        fps = 30
+
+        totalTimestepsToDo = fps * totalTimeInSeconds
+        skipTimesteps = totalTimesteps / totalTimestepsToDo
+    else:
+        raise ValueError("pick a do by what that is valid")
+
+    print ("fps {fps}, total time steps {totalTimesteps}".format(fps=fps, totalTimesteps=predicted_probabilities.shape[1]))
+    print ("Total timesteps to do {totalTimestepsToDo} skip timesteps {skipTimesteps}".format(totalTimestepsToDo=totalTimestepsToDo,
+                                                                                              skipTimesteps=skipTimesteps))
+    writer = animation.FFMpegWriter(fps=fps)
+    for whichRun in whichRuns:
+        fig = plt.figure()
+        fileName = "ProbabilityVideo_{datasetName}_{whichSetName}_run{run}_fps{fps}.mp4".format(fps=fps, whichSetName=whichSetName, run=whichRun,
+                                                                                                datasetName=datasetName)
+        videoSavePath = os.path.join(rawDataFolder, "Imagery", fileName)
+        dpi = 100
+        with writer.saving(fig, videoSavePath, 100):
+            ax = plt.gca()
+            vor = Voronoi(points=outputLabelsAsArray)
+            regions, vertices = voronoi_finite_polygons_2d(vor)
+            vertices = np.hstack((vertices[:, 1][:, None], vertices[:, 0][:, None]))
+            for timestep in tqdm(range(0, totalTimesteps, skipTimesteps), desc="Video Frame Loop"):
+                thisStepProbabilities = predicted_probabilities[whichRun, timestep, :]
+                plotVeroni(ax, regions, vertices, thisStepProbabilities)
+                edgeBuffer = 100
+                plt.scatter(outputLabelsAsArray[:, 1], outputLabelsAsArray[:, 0], marker='*')
+                # plt.xlim([np.min(outputLabelsAsArray[:, 1]) - edgeBuffer, np.max(outputLabelsAsArray[:, 1]) + edgeBuffer])
+                # plt.ylim([np.min(outputLabelsAsArray[:, 0]) - edgeBuffer, np.max(outputLabelsAsArray[:, 0]) + edgeBuffer])
+                plt.xlim(vor.min_bound[1] - edgeBuffer, vor.max_bound[1] + edgeBuffer)
+                plt.ylim(vor.min_bound[0] - edgeBuffer, vor.max_bound[0] + edgeBuffer)
+                plt.scatter(outputLabelsAsArray[:, 1], outputLabelsAsArray[:, 0], marker='*', c='r')
+                plt.scatter(outputLabelsAsArray[int(true_class_master[whichRun, timestep, 0]), 1],
+                            outputLabelsAsArray[int(true_class_master[whichRun, timestep, 0]), 0],
+                            marker='*',
+                            s=300,
+                            c='g')
+                writer.grab_frame()
 
 ########################
 # X or Y Transformations
@@ -531,7 +649,7 @@ if makeDBSCAN:
 if makeMiniBatchKMeans:
     print ("Doing KMeans")
     batch_size = min(45, max_batch_size)
-    mbk = MiniBatchKMeans(init='k-means++', n_clusters=outputs, batch_size=batch_size,
+    mbk = MiniBatchKMeans(init='k-means++', n_clusters=numParticles, batch_size=batch_size,
                           n_init=10, max_no_improvement=10, verbose=0)
     t0 = time.time()
     mbk.fit(X)
@@ -544,8 +662,8 @@ if makeMiniBatchKMeans:
 
     # MiniBatchKMeans
     ax = fig.add_subplot(1, 3, 2)
-    colors = plt.cm.get_cmap("spectral")(np.linspace(0, 1, outputs))
-    for k, col in zip(range(outputs), colors):
+    colors = plt.cm.get_cmap("spectral")(np.linspace(0, 1, numParticles))
+    for k, col in zip(range(numParticles), colors):
         my_members = mbk_means_labels == k
         cluster_center = mbk_means_cluster_centers[k]
         ax.plot(X[my_members, 0], X[my_members, 1], 'w',
@@ -637,11 +755,11 @@ if makePCAAnalysis:
     plt.show()
 
 if clusterScatterKMeans:
-    outputs = 2
+    numParticles = 2
     print ("Doing KMeans")
 
     batch_size = min(45, max_batch_size)
-    mbk = MiniBatchKMeans(init='k-means++', n_clusters=outputs, batch_size=batch_size,
+    mbk = MiniBatchKMeans(init='k-means++', n_clusters=numParticles, batch_size=batch_size,
                           n_init=10, max_no_improvement=10, verbose=0)
     t0 = time.time()
     mbk.fit(X)
@@ -652,9 +770,9 @@ if clusterScatterKMeans:
 
     plt.figure()
     # MiniBatchKMeans
-    colors = plt.cm.get_cmap("spectral")(np.linspace(0, 1, outputs))
-    print("Found {0} output clusters".format(outputs))
-    for k, col in zip(range(outputs), colors):
+    colors = plt.cm.get_cmap("spectral")(np.linspace(0, 1, numParticles))
+    print("Found {0} output clusters".format(numParticles))
+    for k, col in zip(range(numParticles), colors):
         my_members = mbk_means_labels == k
         cluster_center = mbk_means_cluster_centers[k]
         plt.scatter(y[my_members, 1], y[my_members, 0], color=col, marker='.')

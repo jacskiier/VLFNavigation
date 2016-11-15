@@ -306,7 +306,9 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
                                                   whichSetArg=2,
                                                   datasetParameters=None,
                                                   classifierParameters=None,
-                                                  modelStoreNameType="best"):
+                                                  modelStoreNameType="best",
+                                                  runByShape=False,
+                                                  returnClassProbabilities=False):
     modelStoreFilePathFullTemp = os.path.join(experimentStoreFolder, 'model.json'.format(modelStoreNameType))
     if not os.path.exists(modelStoreFilePathFullTemp):
         modelStoreFilePathFullTemp = os.path.join(experimentStoreFolder, 'best_model.json'.format(modelStoreNameType))
@@ -371,6 +373,7 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
         predicted_probabilities.shape[0] * predicted_probabilities.shape[1], predicted_probabilities.shape[2]))
 
     trueValues = np.reshape(trueValues, (trueValues.shape[0] * trueValues.shape[1], trueValues.shape[2]))
+    # trueValues = totalSamples x output data dim
 
     processedDataFolder = os.path.dirname(datasetFileName)
     classLabels = ClassificationUtils.getLabelsForDataset(processedDataFolder, datasetFileName)
@@ -388,7 +391,38 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
         predicted_probabilitiesSorted = np.fliplr(np.sort(predicted_probabilities, axis=1))
         predictedValues = predicted_probabilitiesSorted[:, 0] - predicted_probabilitiesSorted[:, 1]
 
-    return predicted_class, predictedValues, trueValues, classLabels
+    if runByShape and stateful:
+        kerasRowMultiplier = datasetParameters['kerasRowMultiplier']
+        totalyColumns = datasetParameters['totalyColumns']
+
+        predictedValues = np.reshape(predictedValues, newshape=(batch_size * kerasRowMultiplier, timesteps * totalyColumns))
+
+        predictedValues = np.reshape(predictedValues,
+                                     newshape=(batch_size, predictedValues.shape[0] / batch_size, predictedValues.shape[1]),
+                                     order='F')
+        predictedValues = np.reshape(predictedValues,
+                                     newshape=(batch_size, predictedValues.shape[1] * timesteps, predictedValues.shape[2] / timesteps))
+
+        # trueValues.shape = (batch_size * kerasRowMultiplier * timesteps x totalColumnsY
+        trueValues = np.reshape(trueValues, newshape=(batch_size * kerasRowMultiplier, timesteps * totalyColumns))
+        # true_values.shape = (run count in timestep x timestep data dim)
+        trueValues = np.reshape(trueValues, newshape=(batch_size, trueValues.shape[0] / batch_size, trueValues.shape[1]), order='F')
+        # true_values.shape = (run x slice of run x timestep data dim)
+        trueValues = np.reshape(trueValues, newshape=(batch_size, trueValues.shape[1] * timesteps, trueValues.shape[2] / timesteps))
+
+        predicted_class = np.reshape(predicted_class, newshape=(batch_size * kerasRowMultiplier, timesteps * 1))
+        predicted_class = np.reshape(predicted_class, newshape=(batch_size, kerasRowMultiplier, timesteps * 1), order='F')
+        predicted_class = np.reshape(predicted_class, newshape=(batch_size, kerasRowMultiplier * timesteps, 1))
+
+        predicted_probabilities = np.reshape(predicted_probabilities, newshape=(batch_size * kerasRowMultiplier, timesteps * outputs))
+        predicted_probabilities = np.reshape(predicted_probabilities, newshape=(batch_size, kerasRowMultiplier, timesteps * outputs), order='F')
+        predicted_probabilities = np.reshape(predicted_probabilities, newshape=(batch_size, kerasRowMultiplier * timesteps, outputs))
+
+    if returnClassProbabilities is False:
+        returnTuple = (predicted_class, predictedValues, trueValues, classLabels)
+    else:
+        returnTuple = (predicted_class, predictedValues, trueValues, classLabels, predicted_probabilities)
+    return returnTuple
 
 
 def getPred_Values_True_Labels(datasetFileName='mnist.pkl.gz', experimentStoreFolder='', whichSetArg=2,
@@ -605,7 +639,8 @@ def makeStatisticsForModel(experimentsFolder, statisticStoreFolder, featureParam
                                           statisticsStoreFolder=statisticStoreFolder)
     else:
         thresholdSet = 1
-        plotLabels = datasetParameters['yValueType'] == 'gpsD' and useLabels
+        yValueType = datasetParameters['yValueType']
+        plotLabels = (yValueType == 'gpsD' or yValueType == 'particle') and useLabels
         # Grab the validation set in order to calculate EER thresholds
         tupleOutputTemp = getPredictedClasses_Values_TrueClasses_Labels(datasetFileName=datasetFile,
                                                                         experimentStoreFolder=experimentsFolder,

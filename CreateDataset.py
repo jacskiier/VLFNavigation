@@ -8,6 +8,8 @@ import matplotlib.pylab as plt
 
 from sklearn import decomposition
 
+from scipy.spatial.distance import cdist
+
 import yaml
 import pandas as pd
 from tqdm import tqdm
@@ -250,6 +252,8 @@ def getXYTempAndLabelsFromFile(featureStorePath, datasetParameters, imageShape, 
         fYTemp = CoordinateTransforms.EcefToLocalLevel(localLevelOriginInECEF, ecefCoords)
         if not includeAltitude:
             fYTemp = fYTemp[:, 0:2]
+
+        # yValueType specific
         if yValueType == 'gpsPolar':
             fYTemp[:, 0] = np.sqrt(
                 np.multiply(fYTemp[:, 0], fYTemp[:, 0]) + np.multiply(fYTemp[:, 1], fYTemp[:, 1]))
@@ -257,6 +261,13 @@ def getXYTempAndLabelsFromFile(featureStorePath, datasetParameters, imageShape, 
         if yValueType == 'gpsD':
             # force the Y output to be a number of a grid location
             fYTemp = deterineYValuesGridByGPSArrayInLocalLevelCoords(fYTemp, gridSize)
+        if yValueType == 'particle':
+            particleFilePath = datasetParameters['y value parameters']['particleFilePath']
+            # the file should be in North x East with the same local level coord
+            particleArray = np.genfromtxt(particleFilePath, delimiter=',', skip_header=1)
+            distArray = cdist(fYTemp, particleArray, metric='euclidean')
+            fYTemp = np.argmin(distArray, axis=1)
+            fYTemp = particleArray[fYTemp, :]
     elif yValueType == 'time':
         fYTemp = metadataFull['ElapsedSeconds']
     elif yValueType == 'file':
@@ -1015,6 +1026,9 @@ def mainRun():
     # localLevelOriginInECEF = [506052.051626,-4882162.055080,4059778.630410] # AFIT
     localLevelOriginInECEF = [507278.89822834, -4884824.02376298, 4056425.76820216]  # Neighborhood Center
 
+    # particle variables
+    particleFilePath = os.path.join(rawDataFolder, "Imagery", "bikeneighborhoodPackFileNormCTDMNoKerasRegressionYkMeansClusters.csv")
+
     # metadata features
     useMetadata = True
     metadataList = ['CadenceBike', 'CrankRevolutions', 'SpeedInstant', 'WheelRevolutions', 'DayPercent']
@@ -1131,13 +1145,13 @@ def mainRun():
     # allBaseFileNames = ["bikeneighborhood"]
     # yValueType = 'gpsC'
 
-    datasetName = 'bikeneighborhoodPackFileNormCTDM'
+    datasetName = 'bikeneighborhoodPackFileNormParticleTDM'
     allBaseFileNames = ["bikeneighborhood"]
-    yValueType = 'gpsC'
+    yValueType = 'particle'
     onlyFileNumbers = {"bikeneighborhood": []}
-    removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 26]}
+    removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]}
     defaultSetName = "train"
-    fileNamesNumbersToSets = [("valid", "bikeneighborhood", [12, 14, 16, 18, 20, 22, 24]), ('test', "bikeneighborhood", [8])]
+    fileNamesNumbersToSets = [("valid", "bikeneighborhood", [12, 14, 16, 18, 20, 22, 24, 26, 28]), ('test', "bikeneighborhood", [8])]
 
     # datasetName = 'bikeneighborhoodFilePackageCTDM'
     # allBaseFileNames = ["bikeneighborhood"]
@@ -1166,12 +1180,6 @@ def mainRun():
         'removeFileNumbers': removeFileNumbers,
         'onlyFileNumbers': onlyFileNumbers,
         'y value parameters': {
-            'y value by gps Parameters': {
-                'includeAltitude': includeAltitude,
-                'decimalPrecision': decimalPrecision,
-                'gridSize': gridSize,
-                'localLevelOriginInECEF': localLevelOriginInECEF
-            },
             'yScaleFactor': yScaleFactor,
             'yBias': yBias,
             'yNormalized': yNormalized,
@@ -1239,6 +1247,17 @@ def mainRun():
             'metadataShape': metadataShape
         }
         datasetParametersToDump.update(metadataDict)
+    if yValueType == 'particle':
+        datasetParametersToDump['y value parameters'].update({'particleFilePath': particleFilePath})
+    if yValueType in CreateUtils.yValueGPSTypes:
+        yValueByGPS_parameters_dict = {'y value by gps Parameters': {
+            'includeAltitude': includeAltitude,
+            'decimalPrecision': decimalPrecision,
+            'gridSize': gridSize,
+            'localLevelOriginInECEF': localLevelOriginInECEF
+        }}
+        datasetParametersToDump['y value parameters'].update(yValueByGPS_parameters_dict)
+
     # endregion
 
     if (not os.path.exists(datasetConfigFileName)) or overwriteConfigFile:
