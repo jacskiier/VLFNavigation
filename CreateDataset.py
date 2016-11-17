@@ -1015,7 +1015,7 @@ def mainRun():
     # y scale factor for continuous sets
     yScaleFactor = 1.0
     yBias = 0.0
-    yNormalized = True
+    yNormalized = False
 
     # yvalue by gps variables
     includeAltitude = False
@@ -1145,11 +1145,11 @@ def mainRun():
     # allBaseFileNames = ["bikeneighborhood"]
     # yValueType = 'gpsC'
 
-    datasetName = 'bikeneighborhoodPackFileNormParticleTDM'
+    datasetName = 'bikeneighborhoodPackFileCTDM'
     allBaseFileNames = ["bikeneighborhood"]
-    yValueType = 'particle'
+    yValueType = 'gpsC'
     onlyFileNumbers = {"bikeneighborhood": []}
-    removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]}
+    removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 29]}
     defaultSetName = "train"
     fileNamesNumbersToSets = [("valid", "bikeneighborhood", [12, 14, 16, 18, 20, 22, 24, 26, 28]), ('test', "bikeneighborhood", [8])]
 

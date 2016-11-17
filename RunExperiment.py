@@ -16,10 +16,10 @@ import CreateUtils
 rawDataFolder = CreateUtils.getRawDataFolder()
 
 featureSetNameMain = 'PatchShortTallAllFreq'
-datasetNameMain = ['bikeneighborhoodPackFileNormParticleTDM']
+datasetNameMain = ['bikeneighborhoodPackFileCTDM']
 classifierTypeMain = ['LSTM']
-classifierSetNameMain = ['ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD']
-datasetNameTestMain = ''  # for right now you only get one
+classifierSetNameMain = ['RegressionAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrPWeightAppendRMSPropTD']
+datasetNameStatsMain = ''  # for right now you only get one
 
 # per run variables
 forceRefreshFeatures = False
@@ -64,7 +64,7 @@ def getParameters(rawDataFolderArg, featureSetName, datasetName, classifierType,
 
 def runExperiment(featureSetName, datasetName, classifierType, classifierSetName, whichSet=1,
                   showFiguresArg=(False, False),
-                  datasetNameTest=None,
+                  datasetNameStats=None,
                   modelStoreNameTypeArg="best"):
     print("Running Experiment on {featureSetName}, {datasetName}, {classifierType}, {classifierSetName}".format(
         featureSetName=featureSetName, datasetName=datasetName, classifierType=classifierType,
@@ -90,15 +90,16 @@ def runExperiment(featureSetName, datasetName, classifierType, classifierSetName
     if not os.path.exists(experimentsFolder):
         os.makedirs(experimentsFolder)
 
-    datasetTestConfigFileName = ''
-    if datasetNameTest is not None and datasetNameTest != '':
-        processedDataTestFolder = os.path.join(rawDataFolder, "Processed Data Datasets", datasetNameTest)
-        datasetTestConfigFileName = os.path.join(processedDataTestFolder, "dataset parameters.yaml")
-        with open(datasetTestConfigFileName, 'r') as myConfigFile:
-            datasetTestParameters = yaml.load(myConfigFile)
-        statisticsStoreFolder = os.path.join(experimentsFolder, datasetNameTest)
+    datasetStatsConfigFileName = ''
+    if datasetNameStats is not None and datasetNameStats != '':
+        processedDataTestFolder = os.path.join(rawDataFolder, "Processed Data Datasets", datasetNameStats)
+        datasetStatsConfigFileName = os.path.join(processedDataTestFolder, "dataset parameters.yaml")
+        with open(datasetStatsConfigFileName, 'r') as myConfigFile:
+            datasetStatsParameters = yaml.load(myConfigFile)
+        statisticsStoreFolder = os.path.join(experimentsFolder, datasetNameStats)
     else:
-        datasetTestParameters = datasetParameters
+        datasetStatsParameters = datasetParameters
+        datasetStatsConfigFileName = datasetConfigFileName
         statisticsStoreFolder = os.path.join(experimentsFolder, datasetName)
     if not os.path.exists(statisticsStoreFolder):
         os.makedirs(statisticsStoreFolder)
@@ -106,16 +107,18 @@ def runExperiment(featureSetName, datasetName, classifierType, classifierSetName
     if featureParameters['feature parameters']['featureMethod'] in CreateUtils.featureMethodNamesRebuildValid:
         removeFileNumbers = datasetParameters['removeFileNumbers'] if 'removeFileNumbers' in datasetParameters else {}
         onlyFileNumbers = datasetParameters['onlyFileNumbers'] if 'onlyFileNumbers' in datasetParameters else {}
-        CreateFeature.buildFeatures(featureParameters, forceRefreshFeatures=forceRefreshFeatures,
-                              allBaseFileNames=datasetParameters['allBaseFileNames'],
-                              removeFileNumbers=removeFileNumbers, onlyFileNumbers=onlyFileNumbers)
+        CreateFeature.buildFeatures(featureParameters,
+                                    forceRefreshFeatures=forceRefreshFeatures,
+                                    allBaseFileNames=datasetParameters['allBaseFileNames'],
+                                    removeFileNumbers=removeFileNumbers,
+                                    onlyFileNumbers=onlyFileNumbers)
         CreateDataset.buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=forceRefreshDataset)
 
     # Copy over config files
     shutil.copyfile(featureConfigFileName, os.path.join(experimentsFolder, os.path.basename(featureConfigFileName)))
     shutil.copyfile(datasetConfigFileName, os.path.join(experimentsFolder, os.path.basename(datasetConfigFileName)))
     shutil.copyfile(modelConfigFileName, os.path.join(experimentsFolder, os.path.basename(modelConfigFileName)))
-    shutil.copyfile(datasetTestConfigFileName, os.path.join(statisticsStoreFolder, os.path.basename(datasetTestConfigFileName)))
+    shutil.copyfile(datasetStatsConfigFileName, os.path.join(statisticsStoreFolder, os.path.basename(datasetStatsConfigFileName)))
 
     # Start Experiment
     if modelParameters['classifierType'] == 'LogisticRegression':
@@ -147,23 +150,23 @@ def runExperiment(featureSetName, datasetName, classifierType, classifierSetName
     if not os.path.exists(os.path.join(experimentsFolder, 'results.yaml')) or forceRefreshStats:
         if modelParameters['classifierType'] in CreateUtils.sklearnensembleTypes:
             SkleanEnsembleRegressors.makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters,
-                                                            datasetTestParameters, modelParameters, whichSet=whichSet,
+                                                            datasetStatsParameters, modelParameters, whichSet=whichSet,
                                                             showFigures=showFiguresArg[0],
                                                             useLabels=useLabels)
         elif modelParameters['classifierType'] in CreateUtils.kerasTypes:
             KerasClassifiers.makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters,
-                                                    datasetTestParameters, modelParameters, whichSet=whichSet,
+                                                    datasetStatsParameters, modelParameters, whichSet=whichSet,
                                                     showFigures=showFiguresArg[0],
                                                     useLabels=useLabels, modelStoreNameType=modelStoreNameTypeArg)
         else:
             classifierGoal = modelParameters['classifierGoal'] if 'classifierGoal' in modelParameters else None
             if classifierGoal == 'classification' or classifierGoal is None:
                 logistic_sgd.makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters,
-                                                    datasetTestParameters, modelParameters, whichSet=whichSet,
+                                                    datasetStatsParameters, modelParameters, whichSet=whichSet,
                                                     showFigures=showFiguresArg[0], useLabels=useLabels)
             elif classifierGoal == 'regression':
                 linearRegression.makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters,
-                                                        datasetTestParameters, modelParameters, whichSet=whichSet,
+                                                        datasetStatsParameters, modelParameters, whichSet=whichSet,
                                                         showFigures=showFiguresArg[0], useLabels=useLabels)
             else:
                 raise ValueError("This classifier goal {0} not supported".format(classifierGoal))
@@ -213,5 +216,5 @@ if __name__ == '__main__':
                         classifierSetNameMain]
                 for classifierSet in classifierSets:
                     runExperiment(featureSet, dataset, classifierTypeIterator, classifierSet, whichSet=whichSetMaster,
-                                  showFiguresArg=(showFigures, showKerasFigure), datasetNameTest=datasetNameTestMain,
+                                  showFiguresArg=(showFigures, showKerasFigure), datasetNameStats=datasetNameStatsMain,
                                   modelStoreNameTypeArg=modelStoreNameType)

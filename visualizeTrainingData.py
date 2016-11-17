@@ -48,7 +48,7 @@ if os.name == 'nt':
 rawDataFolder = CreateUtils.getRawDataFolder()
 
 featureSetName = 'PatchShortTallAllFreq'
-datasetName = "bikeneighborhoodPackFileNormParticleTDM"
+datasetName = "bikeneighborhoodPackFileCTDM"
 
 whichSet = 1
 whichSetName = ['train', 'valid', 'test'][whichSet]
@@ -65,11 +65,12 @@ showPathPerRowOfPackagedFile = False
 gpsGrid = False
 
 # Calculate Stats
-calculatex_t0andP_t0 = False
+calculatex_t0andP_t0 = True
 kMeansOnRegressionY = False
 
 # Prediction Visuals
-videoClassProbability = True
+videoClassProbability = False
+weightedPosition = False
 
 # transforms of X or Y
 makeDBSCAN = False
@@ -103,13 +104,13 @@ else:
                                datasetParameters['datasetName'] + '.pkl.gz')
 
 if datasetParameters['yValueType'] != 'gpsC':
-    datasets, inputs, numParticles, max_batch_size = ClassificationUtils.load_data(datasetFile,
-                                                                                   rogueClasses=(),
-                                                                                   makeSharedData=False)
+    datasets, inputs, outputs, max_batch_size = ClassificationUtils.load_data(datasetFile,
+                                                                              rogueClasses=(),
+                                                                              makeSharedData=False)
 else:
-    datasets, inputs, numParticles, max_batch_size = RegressionUtils.load_data(datasetFile,
-                                                                               rogueClasses=(),
-                                                                               makeSharedData=False)
+    datasets, inputs, outputs, max_batch_size = RegressionUtils.load_data(datasetFile,
+                                                                          rogueClasses=(),
+                                                                          makeSharedData=False)
 outputLabels, outputLabelsRaw = ClassificationUtils.getLabelsForDataset(processedDataFolderMain, datasetFile,
                                                                         includeRawLabels=True)
 
@@ -463,10 +464,10 @@ if kMeansOnRegressionY:
     yWorking = y
 
     yWorking = yWorking / yScaleFactor - yBias
-    numParticles = 100
+    outputs = 100
     batch_size = 100
     random_state = 1
-    mbk = MiniBatchKMeans(n_clusters=numParticles,
+    mbk = MiniBatchKMeans(n_clusters=outputs,
                           max_no_improvement=10,
                           batch_size=batch_size,
                           init='k-means++',
@@ -481,25 +482,28 @@ if kMeansOnRegressionY:
     mbk_means_labels_unique = np.unique(mbk_means_labels)
 
     plt.figure()
-    colors = plt.cm.get_cmap("spectral")(np.linspace(0, 1, numParticles))
+    colors = plt.cm.get_cmap("spectral")(np.linspace(0, 1, outputs))
 
-    for k, col in zip(range(numParticles), colors):
+    for k, col in zip(range(outputs), colors):
         my_members = mbk_means_labels == k
         cluster_center = mbk_means_cluster_centers[k]
         plt.scatter(yWorking[my_members, 1], yWorking[my_members, 0], color=col, marker='.')
         plt.scatter(cluster_center[1], cluster_center[0], color=col, marker="*", s=300, edgecolors=['k'])
     plt.axis('equal')
     plt.title('MiniBatchKMeans')
-    saveCenters = True
+    saveCenters = False
     if saveCenters:
         filePath = os.path.join(rawDataFolder, "Imagery", datasetName + "RegressionYkMeansClusters.csv")
         np.savetxt(filePath, mbk_means_cluster_centers, fmt='%6.2f', delimiter=',', header="North, East")
     plt.show()
 
+
 ########################
 # Prediction Visuals
 ########################
-if videoClassProbability:
+
+
+def getPredictedStuff():
     classifierType = "LSTM"
     classifierSetName = "ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD"
     experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureSetName, datasetName, classifierType,
@@ -520,7 +524,12 @@ if videoClassProbability:
                                                                     modelStoreNameType=modelStoreNameType,
                                                                     runByShape=True,
                                                                     returnClassProbabilities=True)
-    (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster, predicted_probabilities) = tupleOutputTemp
+    return tupleOutputTemp + (classifierParameters,)
+
+
+if videoClassProbability:
+    (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster, predicted_probabilities,
+     classifierParameters) = getPredictedStuff()
     whichRuns = [0, 1, 2]
 
     outputString = '\n'.join(outputLabelsRaw)
@@ -574,6 +583,60 @@ if videoClassProbability:
                             s=300,
                             c='g')
                 writer.grab_frame()
+
+if weightedPosition:
+    (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster, predicted_probabilities,
+     classifierParameters) = getPredictedStuff()
+    whichRuns = range(9)
+
+    outputString = '\n'.join(outputLabelsRaw)
+    outputLabelsAsArray = np.genfromtxt(StringIO.StringIO(outputString), delimiter=',')
+    totalTimesteps = predicted_probabilities.shape[1]
+
+    saveCenters = True
+    if saveCenters:
+        filePath = os.path.join(rawDataFolder, "Imagery", datasetName + "particleLocationsFromDataset.csv")
+        np.savetxt(filePath, outputLabelsAsArray, fmt='%6.2f', delimiter=',', header="North, East")
+
+    trueDatasetName = "bikeneighborhoodPackFileCTDM"
+    datasetFileTrue = os.path.join(rawDataFolder, "Processed Data Datasets", trueDatasetName, featureParameters['featureSetName'] + '.hf')
+    datasetsTrue, inputsTrue, outputsTrue, max_batch_sizeTrue = RegressionUtils.load_data(datasetFileTrue,
+                                                                                          rogueClasses=(),
+                                                                                          makeSharedData=False)
+    # assume the sets have the same parameters besides the output
+    kerasRowMultiplier = datasetParameters['kerasRowMultiplier']
+    totalyColumns = datasetParameters['totalyColumns']
+    timesteps = datasetParameters['timestepsPerKerasBatchRow']
+    batch_size = min(classifierParameters['batch_size'], max_batch_size)
+    batch_size = min(classifierParameters['batch_size'], max_batch_size)
+    stateful = classifierParameters['stateful'] if 'stateful' in classifierParameters else False
+    if stateful:
+        packagedRowsPerSetDict = datasetParameters['packagedRowsPerSetDict']
+        packagedRows = packagedRowsPerSetDict[whichSetName]
+        auto_stateful_batch = classifierParameters[
+            'auto_stateful_batch'] if 'auto_stateful_batch' in classifierParameters else False
+        if auto_stateful_batch:
+            batch_size = packagedRows
+        else:
+            assert batch_size == packagedRows, \
+                "You chose stateful but your batch size didn't match the files in the training set"
+
+    yTrue = datasetsTrue[whichSet][1]
+    outputsTrue = int(outputsTrue / timesteps)
+    yTrue = np.reshape(yTrue, newshape=(batch_size * kerasRowMultiplier, timesteps * outputsTrue))
+    yTrue = np.reshape(yTrue, newshape=(batch_size, kerasRowMultiplier, timesteps * outputsTrue), order='F')
+    yTrue = np.reshape(yTrue, newshape=(batch_size, kerasRowMultiplier * timesteps, outputsTrue))
+
+    for whichRun in whichRuns:
+        predProbs = predicted_probabilities[whichRun, :, :]
+        predLocations = np.dot(predProbs, outputLabelsAsArray)
+        rmse = np.sqrt(np.mean(np.square(predLocations - yTrue[whichRun, :, :])))
+        print ("rmse is {0}".format(rmse))
+
+        plt.figure()
+        plt.scatter(predLocations[:, 1], predLocations[:, 0], c='b', marker='.', edgecolors='b')
+        plt.scatter(yTrue[whichRun, :, 1], yTrue[whichRun, :, 0], c='g', marker='.', edgecolors='g')
+    plt.show()
 
 ########################
 # X or Y Transformations
@@ -649,7 +712,7 @@ if makeDBSCAN:
 if makeMiniBatchKMeans:
     print ("Doing KMeans")
     batch_size = min(45, max_batch_size)
-    mbk = MiniBatchKMeans(init='k-means++', n_clusters=numParticles, batch_size=batch_size,
+    mbk = MiniBatchKMeans(init='k-means++', n_clusters=outputs, batch_size=batch_size,
                           n_init=10, max_no_improvement=10, verbose=0)
     t0 = time.time()
     mbk.fit(X)
@@ -662,8 +725,8 @@ if makeMiniBatchKMeans:
 
     # MiniBatchKMeans
     ax = fig.add_subplot(1, 3, 2)
-    colors = plt.cm.get_cmap("spectral")(np.linspace(0, 1, numParticles))
-    for k, col in zip(range(numParticles), colors):
+    colors = plt.cm.get_cmap("spectral")(np.linspace(0, 1, outputs))
+    for k, col in zip(range(outputs), colors):
         my_members = mbk_means_labels == k
         cluster_center = mbk_means_cluster_centers[k]
         ax.plot(X[my_members, 0], X[my_members, 1], 'w',
@@ -755,11 +818,11 @@ if makePCAAnalysis:
     plt.show()
 
 if clusterScatterKMeans:
-    numParticles = 2
+    outputs = 2
     print ("Doing KMeans")
 
     batch_size = min(45, max_batch_size)
-    mbk = MiniBatchKMeans(init='k-means++', n_clusters=numParticles, batch_size=batch_size,
+    mbk = MiniBatchKMeans(init='k-means++', n_clusters=outputs, batch_size=batch_size,
                           n_init=10, max_no_improvement=10, verbose=0)
     t0 = time.time()
     mbk.fit(X)
@@ -770,9 +833,9 @@ if clusterScatterKMeans:
 
     plt.figure()
     # MiniBatchKMeans
-    colors = plt.cm.get_cmap("spectral")(np.linspace(0, 1, numParticles))
-    print("Found {0} output clusters".format(numParticles))
-    for k, col in zip(range(numParticles), colors):
+    colors = plt.cm.get_cmap("spectral")(np.linspace(0, 1, outputs))
+    print("Found {0} output clusters".format(outputs))
+    for k, col in zip(range(outputs), colors):
         my_members = mbk_means_labels == k
         cluster_center = mbk_means_cluster_centers[k]
         plt.scatter(y[my_members, 1], y[my_members, 0], color=col, marker='.')

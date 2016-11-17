@@ -514,6 +514,8 @@ def getPred_Values_True_Labels(datasetFileName='mnist.pkl.gz', experimentStoreFo
             predicted_y_values = np.reshape(predicted_y_values, newShape)
             true_values = np.reshape(true_values, newShape)
         else:
+            kerasRowMultiplier = datasetParameters['kerasRowMultiplier']
+            totalyColumns = datasetParameters['totalyColumns']
             # xer = predicted_y_values[0::batch_size, :, 0].flatten()
             # yer = predicted_y_values[0::batch_size, :, 1].flatten()
             # # plt.plot(yer, xer, marker=None, c='b')
@@ -540,16 +542,15 @@ def getPred_Values_True_Labels(datasetFileName='mnist.pkl.gz', experimentStoreFo
             # plt.xlim([0, 1])
             # plt.show()
 
+            # true_values.shape = (run count in timestep x timestep x data dim)
+            true_values = np.reshape(true_values, newshape=(batch_size * kerasRowMultiplier, timesteps * totalyColumns))
             # true_values.shape = (run count in timestep x timestep data dim)
             true_values = np.reshape(true_values,
                                      newshape=(batch_size, true_values.shape[0] / batch_size, true_values.shape[1]),
                                      order='F')
-
             # true_values.shape = (run x slice of run x timestep data dim)
             true_values = np.reshape(true_values,
-                                     newshape=(
-                                         batch_size, true_values.shape[1] * timesteps,
-                                         true_values.shape[2] / timesteps))
+                                     newshape=(batch_size, true_values.shape[1] * timesteps, true_values.shape[2] / timesteps))
             # true_values.shape =  (run x timesteps x data dim)
 
     processedDataFolder = os.path.dirname(datasetFileName)
@@ -749,8 +750,8 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
                                      datasetParameters['datasetName'],
                                      classifierParameters['classifierType'], classifierParameters['classifierSetName'])
 
-    modelStoreWeightsFilePathFullTemp = os.path.join(experimentsFolder, 'best_modelWeights.h5')
-    if not os.path.exists(modelStoreWeightsFilePathFullTemp) or forceRebuildModel:
+    modelStoreWeightsBestFilePathFullTemp = os.path.join(experimentsFolder, 'best_modelWeights.h5')
+    if not os.path.exists(modelStoreWeightsBestFilePathFullTemp) or forceRebuildModel:
         makeSequences = datasetParameters['makeSequences'] if 'makeSequences' in datasetParameters else False
         alternateRowsForKeras = datasetParameters[
             'alternateRowsForKeras'] if 'alternateRowsForKeras' in datasetParameters else False
@@ -763,8 +764,8 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
         else:
             timesteps = 0
             makeSequencesForX = False
-        useTimeDistributedOutput = classifierParameters[
-            'useTimeDistributedOutput'] if 'useTimeDistributedOutput' in classifierParameters else False
+        useTimeDistributedOutput = classifierParameters['useTimeDistributedOutput'] if 'useTimeDistributedOutput' in classifierParameters else False
+        onlyBuildModel = classifierParameters['onlyBuildModel'] if 'onlyBuildModel' in classifierParameters else False
 
         if classifierParameters['classifierGoal'] == 'regression':
             (datasets,
@@ -814,6 +815,9 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
         trainMLP = classifierParameters['trainMLP'] if 'trainMLP' in classifierParameters else True
 
         useKalman = classifierParameters['useKalman'] if 'useKalman' in classifierParameters else False
+
+        useAppendMLPLayers = classifierParameters['useAppendMLPLayers'] if 'useAppendMLPLayers' in classifierParameters else False
+        appendExpectedInput = classifierParameters['appendExpectedInput'] if 'appendExpectedInput' in classifierParameters else 1
 
         activations = getListParameterAndPadLength('activations', lstm_layers_sizes, classifierParameters)
         inner_activations = getListParameterAndPadLength('inner_activations', lstm_layers_sizes, classifierParameters)
@@ -913,30 +917,31 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
             thisDenseLayer = Dense(hidden_layers_sizes[hiddenIndex],
                                    W_regularizer=W_regularizer_hidden,
                                    b_regularizer=b_regularizer_hidden,
+                                   activation=hidden_activations[hiddenIndex],
                                    trainable=trainMLP,
-                                   name="Dense Layer {0}".format(layerIndex))
+                                   name="Dense Layer {0} {1}".format(layerIndex, hidden_activations[hiddenIndex]))
             if useTimeDistributedOutput:
-                thisDenseLayer = TimeDistributed(thisDenseLayer)
+                thisDenseLayer = TimeDistributed(thisDenseLayer, name="TD {0}".format(thisDenseLayer.name))
             model.add(thisDenseLayer)
-            model.add(Activation(hidden_activations[hiddenIndex],
-                                 name="{0} Layer {1}".format(hidden_activations[hiddenIndex], layerIndex)))
             if (dropout_Hidden[hiddenIndex]) > 0:
                 model.add(Dropout(dropout_Hidden[hiddenIndex], name="Dropout Layer {0}".format(layerIndex)))
 
-        finalOutputDataDimension = y_train.shape[1] if useTimeDistributedOutput is False else y_train.shape[2]
+        if useAppendMLPLayers:
+            finalOutputDataDimension = appendExpectedInput
+        else:
+            finalOutputDataDimension = y_train.shape[1] if useTimeDistributedOutput is False else y_train.shape[2]
         lastDenseLayer = Dense(finalOutputDataDimension,
                                trainable=trainMLP,
                                name="Dense Layer Output")
         if useTimeDistributedOutput:
-            lastDenseLayer = TimeDistributed(lastDenseLayer)
+            lastDenseLayer = TimeDistributed(lastDenseLayer, name="TD {0}".format(lastDenseLayer.name))
         model.add(lastDenseLayer)
         model.add(Activation(finalActivationType, name="{0} Layer Output".format(finalActivationType)))
 
         loadPreviousModelWeightsForTraining = classifierParameters['loadPreviousModelWeightsForTraining'] \
             if 'loadPreviousModelWeightsForTraining' in classifierParameters else False
         if loadPreviousModelWeightsForTraining:
-            loadWeightsFilePath = classifierParameters[
-                'loadWeightsFilePath'] if 'loadWeightsFilePath' in classifierParameters else ''
+            loadWeightsFilePath = classifierParameters['loadWeightsFilePath'] if 'loadWeightsFilePath' in classifierParameters else ''
             if loadWeightsFilePath == '':
                 loadWeightsFilePath = os.path.join(experimentsFolder, 'best_modelWeights.h5')
             previousWeightsPath = loadWeightsFilePath
@@ -967,10 +972,38 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
             if os.path.exists(previousWeightsPath):
                 print ("Loading previous weights \n{0}".format(previousWeightsPath))
                 model.load_weights(previousWeightsPath)
-                shutil.copyfile(previousWeightsPath,
-                                os.path.join(experimentsFolder, os.path.basename('loaded_modelWeights.h5')))
+                shutil.copyfile(previousWeightsPath, os.path.join(experimentsFolder, os.path.basename('loaded_modelWeights.h5')))
             else:
                 raise ValueError("The previous weights file does not exist \n{0}".format(previousWeightsPath))
+
+        if useAppendMLPLayers:
+            append_layers_sizes = classifierParameters['append_layers_sizes']
+            append_activations = getListParameterAndPadLength('append_activations', append_layers_sizes, classifierParameters)
+            dropout_Append = getListParameterAndPadLength('dropout_append', append_layers_sizes, classifierParameters)
+            appendWeightsFile = getListParameterAndPadLength('appendWeightsFile', append_layers_sizes, classifierParameters, default=None)
+            trainAppend = classifierParameters['trainAppend']
+
+            totalLayersSoFar = 1 + len(lstm_layers_sizes) + len(hidden_layers_sizes)
+            for layerIndex in range(totalLayersSoFar, totalLayersSoFar + len(append_layers_sizes)):
+                appendIndex = layerIndex - totalLayersSoFar
+
+                if appendWeightsFile[appendIndex] is not None:
+                    thisWeights = np.genfromtxt(appendWeightsFile[appendIndex], delimiter=',', skip_header=1)
+                    thisBiases = np.zeros((thisWeights.shape[1]))
+                    thisWeightsList = [thisWeights, thisBiases]
+                else:
+                    thisWeightsList = None
+
+                thisDenseLayer = Dense(append_layers_sizes[appendIndex],
+                                       trainable=trainAppend,
+                                       weights=thisWeightsList,
+                                       activation=append_activations[appendIndex],
+                                       name="Append Dense Layer {0} {1}".format(layerIndex, append_activations[appendIndex]))
+                if useTimeDistributedOutput:
+                    thisDenseLayer = TimeDistributed(thisDenseLayer, name="TD {0}".format(thisDenseLayer.name))
+                model.add(thisDenseLayer)
+                if (dropout_Append[appendIndex]) > 0:
+                    model.add(Dropout(dropout_Append[appendIndex], name="Dropout Layer {0}".format(layerIndex)))
 
         if useKalman:
             trainMatrices = classifierParameters['trainMatrices'] if 'trainMatrices' in classifierParameters else None
@@ -995,7 +1028,7 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
                                             trainMatrices=trainMatrices,
                                             name="Kalman Layer")
             if useTimeDistributedOutput:
-                kalmanLayer = TimeDistributed(kalmanLayer, name="Kalman TD")
+                kalmanLayer = TimeDistributed(kalmanLayer, name="TD {0}".format(kalmanLayer.name))
             model.add(kalmanLayer)
         # else:
         #     (x_t0, P_t0, phi, B, C, D, Q, H, R) = [None, ] * 9
@@ -1019,14 +1052,14 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
         # Callbacks
         myCallbacks = []
         # Best Val_loss model
-        modelStoreWeightsFilePathFullTemp = os.path.join(experimentsFolder, 'best_modelWeights.h5')
-        checkpointerBest = keras.callbacks.ModelCheckpoint(filepath=modelStoreWeightsFilePathFullTemp,
+        modelStoreWeightsBestFilePathFullTemp = os.path.join(experimentsFolder, 'best_modelWeights.h5')
+        checkpointerBest = keras.callbacks.ModelCheckpoint(filepath=modelStoreWeightsBestFilePathFullTemp,
                                                            verbose=1,
                                                            save_best_only=True)
         myCallbacks.append(checkpointerBest)
         # Best Loss model
-        modelStoreWeightsLastFilePathFullTemp = os.path.join(experimentsFolder, 'bestLoss_modelWeights.h5')
-        checkpointerBestLoss = keras.callbacks.ModelCheckpoint(filepath=modelStoreWeightsLastFilePathFullTemp,
+        modelStoreWeightsBestLossFilePathFullTemp = os.path.join(experimentsFolder, 'bestLoss_modelWeights.h5')
+        checkpointerBestLoss = keras.callbacks.ModelCheckpoint(filepath=modelStoreWeightsBestLossFilePathFullTemp,
                                                                verbose=0,
                                                                save_best_only=True,
                                                                monitor='loss')
@@ -1054,14 +1087,19 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
                                             mode='auto',
                                             epsilon=rlrEpsilon, cooldown=rlrCooldown)
             myCallbacks.append(rlrCallback)
-        try:
-            model.fit(X_train, y_train,
-                      batch_size=batch_size,
-                      nb_epoch=n_epochs,
-                      validation_data=(X_valid, y_valid),
-                      callbacks=myCallbacks)
-        except KeyboardInterrupt:
-            print ("User stopped training")
+        if not onlyBuildModel:
+            try:
+                model.fit(X_train, y_train,
+                          batch_size=batch_size,
+                          nb_epoch=n_epochs,
+                          validation_data=(X_valid, y_valid),
+                          callbacks=myCallbacks)
+            except KeyboardInterrupt:
+                print ("\nUser stopped training")
+        else:
+            model.save_weights(modelStoreWeightsBestFilePathFullTemp, overwrite=True)
+            model.save_weights(modelStoreWeightsBestLossFilePathFullTemp, overwrite=True)
+            model.save_weights(modelStoreWeightsLastFilePathFullTemp, overwrite=True)
 
         score = model.evaluate(X_test, y_test, batch_size=batch_size)
         print("The final test score is {0}".format(score))

@@ -11,7 +11,11 @@ import re
 import pandas as pd
 
 
-def load_data(datasetFileName, rogueClasses=(), makeSharedData=True, makeSequenceForX=False, makeSequenceForY=False,
+def load_data(datasetFileName,
+              rogueClasses=(),
+              makeSharedData=True,
+              makeSequenceForX=False,
+              makeSequenceForY=False,
               timesteps=0):
     """ Loads the dataset
 
@@ -143,7 +147,8 @@ def load_data(datasetFileName, rogueClasses=(), makeSharedData=True, makeSequenc
         valid_set_x, valid_set_y = valid_set
         train_set_x, train_set_y = train_set
 
-    rval = [(train_set_x, train_set_y), (valid_set_x, valid_set_y),
+    rval = [(train_set_x, train_set_y),
+            (valid_set_x, valid_set_y),
             (test_set_x, test_set_y)]
 
     inputFeatures = test_set[0].shape[1]

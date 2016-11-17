@@ -13,7 +13,7 @@ if __name__ == '__main__':
     overwriteConfigFile = True
 
     classifierType = 'LSTM'
-    classifierSetName = 'ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrPWeightRMSPropTD'
+    classifierSetName = 'RegressionAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrPWeightAppendRMSPropTD'
     modelStoreFolder = os.path.join(rawDataFolder, "Processed Data Models", classifierType, classifierSetName)
 
     # classes are 0 indexed except when printed as a label!!!
@@ -239,7 +239,15 @@ if __name__ == '__main__':
             'rngSeed': rngSeed,
         }
     elif classifierType == 'LSTM':
-        classifierGoal = 'classification'
+        classifierGoal = 'regression'
+
+        # Wavelet Layer
+        useWaveletTransform = False
+        waveletBanks = 100
+        maxWindowSize = 10000
+        kValues = None
+        sigmaValues = None
+
         # LSTM
         lstm_layers_sizes = [500, 500]
         dropout_W = 0.5
@@ -265,11 +273,31 @@ if __name__ == '__main__':
         b_regularizer_l1_hidden = 0.0
         W_regularizer_l2_hidden = 0.0
         b_regularizer_l2_hidden = 0.0
-        finalActivationType = 'linear'
+        finalActivationType = 'softmax'
         trainMLP = True
 
         # Model
         useTimeDistributedOutput = True
+        onlyBuildModel = False
+
+        # this will only load the previous weights for the hidden and lstm layers
+        loadPreviousModelWeightsForTraining = True
+        loadWeightsFilePath = os.path.join(rawDataFolder,
+                                           'Data Experiments',
+                                           'PatchShortTallAllFreq',
+                                           'bikeneighborhoodPackFileNormParticleTDM',
+                                           'LSTM',
+                                           'ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD',
+                                           'best_modelWeights.h5')
+
+        # Append MLP Layers
+        useAppendMLPLayers = True
+        appendExpectedInput = 100
+        append_layers_sizes = [2]
+        append_activations = 'linear'
+        dropout_Append = 0.0
+        appendWeightsFile = os.path.join(rawDataFolder, "Imagery", "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
+        trainAppend = True
 
         # Kalman Layer
         useKalman = False
@@ -309,13 +337,6 @@ if __name__ == '__main__':
                          'DMatrix': False, 'QMatrix': True, 'HMatrix': False, 'RMatrix': False}
         matrixIsDiscrete = {'plantMatrices': False, 'QMatrix': False}
 
-        # Wavelet Layer
-        useWaveletTransform = False
-        waveletBanks = 100
-        maxWindowSize = 10000
-        kValues = None
-        sigmaValues = None
-
         # Training
         learning_rate = 0.001
         epsilon = 1e-8
@@ -330,17 +351,9 @@ if __name__ == '__main__':
         rlrCooldown = 10
         rlrEpsilon = 1e-4
 
-        loadPreviousModelWeightsForTraining = True
-        loadWeightsFilePath = os.path.join(rawDataFolder,
-                                           'Data Experiments',
-                                           'PatchShortTallAllFreq',
-                                           'bikeneighborhoodPackFileNormParticleTDM',
-                                           'LSTM',
-                                           'ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD',
-                                           'best_modelWeights.h5')
-        lossType = 'categorical_crossentropy'  # ['mse', 'categorical_crossentropy', 'falsePositiveRate']
-        # ['root_mean_squared_error_unscaled', 'categorical_accuracy', 'falsePositiveRate']
-        metrics = ['categorical_accuracy']
+        lossType = 'mse'  # ['mse', 'categorical_crossentropy', 'falsePositiveRate']
+        # ['root_mean_squared_error', 'root_mean_squared_error_unscaled', 'categorical_accuracy', 'falsePositiveRate']
+        metrics = ['root_mean_squared_error']
         optimizerType = 'rmsprop'
 
         # rmsprop specific
@@ -374,6 +387,7 @@ if __name__ == '__main__':
             'trainLSTM': trainLSTM,
 
             'useTimeDistributedOutput': useTimeDistributedOutput,
+            'onlyBuildModel':onlyBuildModel,
 
             'learning_rate': learning_rate,
             'n_epochs': n_epochs,
@@ -435,6 +449,17 @@ if __name__ == '__main__':
                 'maxWindowSize': maxWindowSize,
             }
             configDict.update(waveletDict)
+        if useAppendMLPLayers:
+            appendDict = {
+                'useAppendMLPLayers': useAppendMLPLayers,
+                'appendExpectedInput': appendExpectedInput,
+                'append_layers_sizes': append_layers_sizes,
+                'append_activations': append_activations,
+                'dropout_Append': dropout_Append,
+                'appendWeightsFile': appendWeightsFile,
+                'trainAppend': trainAppend,
+            }
+            configDict.update(appendDict)
         if reduceLearningRate:
             rlrDict = {
                 'reduceLearningRate': reduceLearningRate,

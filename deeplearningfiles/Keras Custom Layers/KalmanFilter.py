@@ -435,18 +435,7 @@ def getDiscreteSystem(Farg, Barg, Carg, Darg, Garg, Qarg, dtArg, matrixIsDiscret
     return phiArg, BdArg, CdArg, DdArg, QdArg
 
 
-if os.name == 'nt':
-    rawDataFolder = os.path.join("E:\\", "Users", "Joey", "Documents",
-                                 "Virtual Box Shared Folder")  # VLF signals raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\DataFolder\\" # 3 Axis VLF Antenna signals raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\mnist raw data folder\\" # MNIST raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\test raw data folder\\" # Test raw data folder
-    # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\parse NHL\\"
-elif os.name == 'posix':
-    rawDataFolder = os.path.join("/media", "sena", "Greed Island", "Users", "Joey", "Documents",
-                                 "Virtual Box Shared Folder")  # VLF signals raw data folder
-else:
-    raise ValueError("bas OS")
+rawDataFolder = CreateUtils.getRawDataFolder()
 
 
 def hard_sigmoid(x, leftZero=-2.5, rightOne=2.5, top=1, bottom=0):
@@ -466,11 +455,11 @@ def runMain():
     makeUpData = False
 
     featureSetName = 'PatchShortTallAllFreq'
-    datasetName = 'bikeneighborhoodPackFileNormCTDM'
+    datasetName = 'bikeneighborhoodPackFileCTDM'
     classifierType = 'LSTM'
-    classifierSetName = 'RegressionAllClasses2LPlus2MLPStatefulAutoBatchDropRlrPWeight3RMSPropTD'
-    modelStoreNameType = "bestLoss"
-    whichSetArg = 0
+    classifierSetName = 'RegressionAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrPWeightAppendRMSPropTD'
+    modelStoreNameType = "best"
+    whichSetArg = 1
     whichSetName = ['train', 'valid', 'test'][whichSetArg]
     (featureParameters,
      datasetParameters,
@@ -506,19 +495,22 @@ def runMain():
         nm = 2
         no = 2
         ni = 1
-        sigma2_Plant = 0.0005
+        sigma2_Plant = 50.0  # 0.0005 for scaled
         sigma2_Meas = 10.0
-        sigma_Initial = np.sqrt([5.25895608e-05, 0.001, 2.62760649e-05, 0.001])
-        x_t0 = np.array([0.34633574, 0, 0.97964813, 0])
-        P_t0 = np.diag(np.square(sigma_Initial)).astype(np.float32)
+        # sigma_Initial = np.sqrt([5.25895608e-05, 0.001, 2.62760649e-05, 0.001]) # for scaled
+        sigma_Initial = np.sqrt([29.28, 0.001, 44.0714, 0.001])  # for unscaled
+        # x_t0 = np.array([0.34633574, 0, 0.97964813, 0]) # for scaled
+        x_t0 = np.array([-236.8281407, 0, 529.49460917, 0])  # for unscaled
+        P_t0 = np.diag(np.square(sigma_Initial)).astype(np.float32)  # for scaled
         # F = np.array([[0, 1, 0, 0],
         #               [0, 0, 0, 0],
         #               [0, 0, 0, 1],
         #               [0, 0, 0, 0], ], dtype=np.float32)  # ns x ns
+        timeConstant = 30.0
         F = np.array([[0, 1, 0, 0],
                       [0, 0, 0, 0],
                       [0, 0, 0, 1],
-                      [0, 0, 0, 0], ], dtype=np.float32) / 5.0  # ns x ns
+                      [0, 0, 0, 0], ], dtype=np.float32) / timeConstant  # ns x ns
 
         # n, n_dot, e, e_dot
         B = np.zeros((ns, ni), dtype=np.float32)  # ns x ni
@@ -531,12 +523,12 @@ def runMain():
                       [0, 1]], dtype=np.float32)  # ns x noisy states
         # QMatrix
         # [4.97102499e+00   9.99999997e-07   4.96971178e+00   9.99999997e-07]
-        # RMatrix
-        # [4.97038889  4.96807003]
         Q = np.diag([sigma2_Plant, sigma2_Plant])  # noisy states x noisy states
         # Q = np.array([4.97102499e-04, 4.96971178e-04])
         H = np.array([[1, 0, 0, 0],
                       [0, 0, 1, 0]])  # nm x ns
+        # RMatrix
+        # [4.97038889  4.96807003]
         # R = np.array([[1, 0],
         #               [0, 1]], dtype=np.float32) * sigma2_Meas  # nm x nm
         # R = np.array([4.97038889e-04, 4.96807003e-04])  # nm x nm
@@ -547,6 +539,8 @@ def runMain():
                       [0.00048661, 0.0005926]], dtype=np.float32)  # validation set
         R = np.array([[0.01477426, 0.00034284],
                       [0.00034284, 0.00011283]], dtype=np.float32)  # validation set 2
+        R = np.array([[3859.75275899, 23.14408443],
+                      [23.14408443, 2837.68240295]], dtype=np.float32)  # validation set unscaled
         matrixIsDiscrete = {}
     elif system == 2:
         sigma2_Plant = 10.0 ** 2
@@ -636,11 +630,8 @@ def runMain():
 
         trueStates[:, 0, :] = x_t0
         for timeStep in range(1, timeSteps):
-            trueStates[:, timeStep, velocityList] = trueStates[:, timeStep - 1, velocityList] + np.random.randn(
-                batch_size,
-                len(
-                    velocityList)) * np.sqrt(
-                sigma2_Plant)
+            thisRandom = np.random.randn(batch_size, len(velocityList)) * np.sqrt(sigma2_Plant)
+            trueStates[:, timeStep, velocityList] = trueStates[:, timeStep - 1, velocityList] + thisRandom
             trueStates[:, timeStep, positionList] = trueStates[:, timeStep - 1, positionList] + trueStates[:, timeStep,
                                                                                                 velocityList] * dt
             # x[:, timeStep, 4] = x[:, timeStep - 1, 4] + x[:, timeStep, 1] * dt
@@ -775,9 +766,10 @@ def runMain():
     doErrorPlots = True
     for (xEstTemp, xEstStdTemp, residualTemp, STemp) in dataArray:
         for thisBatch in range(totalPlots):
-            rmse = np.sqrt(
-                np.mean(np.square(xEstTemp[thisBatch, :, positionList] - trueStates[thisBatch, :, positionList])))
+            rmse = np.sqrt(np.mean(np.square(xEstTemp[thisBatch, :, positionList] - trueStates[thisBatch, :, positionList])))
             print("RMSE Unscaled {0}".format(rmse))
+            rmseMeas = np.sqrt(np.mean(np.square(noisyMeasurements[thisBatch, :, :] - np.transpose(trueStates[thisBatch, :, positionList]))))
+            print("RMSE of meas {0}".format(rmseMeas))
             plt.figure(1)
             plt.plot(trueStates[thisBatch, :, positionList[1]], trueStates[thisBatch, :, positionList[0]], color='g')
             plt.plot(xEstTemp[thisBatch, :, positionList[1]], xEstTemp[thisBatch, :, positionList[0]], color='b')
@@ -802,7 +794,7 @@ def runMain():
                              color='b')
                     plt.plot(xEstStdTemp[thisBatch, :, thisPlotState], color='r', linestyle='-')
                     plt.plot(-xEstStdTemp[thisBatch, :, thisPlotState], color='r', linestyle='-')
-                    plt.ylim([-0.2, 0.2])
+                    plt.ylim(np.array([-0.2, 0.2]) * 1000)
 
                 else:
                     plt.plot(trueStates[thisBatch, :, thisPlotState], color='g')
