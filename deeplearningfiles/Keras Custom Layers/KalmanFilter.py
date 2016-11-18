@@ -3,13 +3,15 @@ import os
 import keras.backend as K
 import keras.callbacks
 import keras.constraints
+from keras.engine.topology import Layer
+
 import matplotlib.pylab as plt
 import numpy as np
 import scipy.signal
 import theano
 import theano.tensor as T
 import tqdm
-from keras.engine.topology import Layer
+
 
 import KerasClassifiers
 import RunExperiment
