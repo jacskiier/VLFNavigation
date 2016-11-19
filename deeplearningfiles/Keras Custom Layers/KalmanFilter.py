@@ -31,6 +31,7 @@ class KalmanFilterLayer(Layer):
         self.diagonalQ = (len(Q.shape) == 2 and (Q.shape[0] == 1 or Q.shape[1] == 1)) or len(Q.shape) == 1
         self.diagonalR = (len(R.shape) == 2 and (R.shape[0] == 1 or R.shape[1] == 1)) or len(R.shape) == 1
         self.updates = []
+        self.stateful = True
 
         self.initDict = {
             'statesX': statesXInitArg,  # bs, ns
@@ -123,8 +124,49 @@ class KalmanFilterLayer(Layer):
         self.input_dim = input_shape[1]
         self.batch_size = input_shape[0]
         self.ns = self.getNumberOfStates()
-        ns = self.ns
         self.ni = self.getNumberOfInputs()
+
+        self.reset_states()
+
+        self.non_trainable_weights = []
+        if self.trainMatrices is None:
+            self.non_trainable_weights = [self.states, self.P, self.phi, self.B, self.C, self.D, self.Q, self.H, self.R]
+        else:
+            for (weightName, trainWeight) in self.trainMatrices.iteritems():
+                if not trainWeight:
+                    self.non_trainable_weights.append(self.weightsDict[weightName])
+
+        self.trainable_weights = []
+        if self.trainMatrices is not None:
+            for (weightName, weightInitValue) in self.initDict.iteritems():
+                if self.trainMatrices[weightName]:
+                    self.weightsDict[weightName] = K.variable(weightInitValue, name=weightName)
+                    self.trainable_weights.append(self.weightsDict[weightName])
+
+        self.states = self.weightsDict['statesX']
+        self.P = self.weightsDict['PMatrix']
+        self.phi = self.weightsDict['phiMatrix']
+        self.B = self.weightsDict['BMatrix']
+        self.C = self.weightsDict['CMatrix']
+        self.D = self.weightsDict['DMatrix']
+        self.Q = self.weightsDict['QMatrix']
+        self.H = self.weightsDict['HMatrix']
+        self.R = self.weightsDict['RMatrix']
+
+        if self.diagonalQ:
+            self.constraints[self.Q] = keras.constraints.nonneg()
+        else:
+            self.constraints[self.Q] = CovarianceMatrixConstraint()
+        if self.diagonalR:
+            self.constraints[self.R] = keras.constraints.nonneg()
+        else:
+            self.constraints[self.R] = CovarianceMatrixConstraint()
+
+    def reset_states(self):
+        assert self.stateful, 'Layer must be stateful.'
+
+        # this assumes you build before reset_states
+        ns = self.ns
         ni = self.ni
         no = self.output_dim
         nm = self.input_dim
@@ -169,42 +211,11 @@ class KalmanFilterLayer(Layer):
                 finalInit = PInit
             else:
                 finalInit = initValue
-            self.weightsDict[weightName] = K.variable(finalInit, name=weightName)
+            if weightName in self.weightsDict:
+                K.set_value(self.weightsDict[weightName], finalInit)
+            else:
+                self.weightsDict[weightName] = K.variable(finalInit, name=weightName)
             self.doSizeAsserts(weightName, finalInit)
-
-        self.non_trainable_weights = []
-        if self.trainMatrices is None:
-            self.non_trainable_weights = [self.states, self.P, self.phi, self.B, self.C, self.D, self.Q, self.H, self.R]
-        else:
-            for (weightName, trainWeight) in self.trainMatrices.iteritems():
-                if not trainWeight:
-                    self.non_trainable_weights.append(self.weightsDict[weightName])
-
-        self.trainable_weights = []
-        if self.trainMatrices is not None:
-            for (weightName, weightInitValue) in self.initDict.iteritems():
-                if self.trainMatrices[weightName]:
-                    self.weightsDict[weightName] = K.variable(weightInitValue, name=weightName)
-                    self.trainable_weights.append(self.weightsDict[weightName])
-
-        self.states = self.weightsDict['statesX']
-        self.P = self.weightsDict['PMatrix']
-        self.phi = self.weightsDict['phiMatrix']
-        self.B = self.weightsDict['BMatrix']
-        self.C = self.weightsDict['CMatrix']
-        self.D = self.weightsDict['DMatrix']
-        self.Q = self.weightsDict['QMatrix']
-        self.H = self.weightsDict['HMatrix']
-        self.R = self.weightsDict['RMatrix']
-
-        if self.diagonalQ:
-            self.constraints[self.Q] = keras.constraints.nonneg()
-        else:
-            self.constraints[self.Q] = CovarianceMatrixConstraint()
-        if self.diagonalR:
-            self.constraints[self.R] = keras.constraints.nonneg()
-        else:
-            self.constraints[self.R] = CovarianceMatrixConstraint()
 
     def call(self, z, mask=None):
         # z = bs x nm
