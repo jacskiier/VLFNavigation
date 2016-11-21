@@ -13,7 +13,7 @@ if __name__ == '__main__':
     overwriteConfigFile = True
 
     classifierType = 'LSTM'
-    classifierSetName = 'RegressionAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrPWeightAppendRMSPropTD'
+    classifierSetName = 'ClassificationAllClasses2LPlus2MLPStatefulWaveletAutoBatchDropReg2RlrRMSPropTD'
     modelStoreFolder = os.path.join(rawDataFolder, "Processed Data Models", classifierType, classifierSetName)
 
     # classes are 0 indexed except when printed as a label!!!
@@ -239,12 +239,12 @@ if __name__ == '__main__':
             'rngSeed': rngSeed,
         }
     elif classifierType == 'LSTM':
-        classifierGoal = 'regression'
+        classifierGoal = 'classification'
 
         # Wavelet Layer
-        useWaveletTransform = False
+        useWaveletTransform = True
         waveletBanks = 100
-        maxWindowSize = 10000
+        maxWindowSize = 4410
         kValues = None
         sigmaValues = None
 
@@ -281,7 +281,7 @@ if __name__ == '__main__':
         onlyBuildModel = False
 
         # this will only load the previous weights for the hidden and lstm layers
-        loadPreviousModelWeightsForTraining = True
+        loadPreviousModelWeightsForTraining = False
         loadWeightsFilePath = os.path.join(rawDataFolder,
                                            'Data Experiments',
                                            'PatchShortTallAllFreq',
@@ -291,7 +291,7 @@ if __name__ == '__main__':
                                            'best_modelWeights.h5')
 
         # Append MLP Layers
-        useAppendMLPLayers = True
+        useAppendMLPLayers = False
         appendExpectedInput = 100
         append_layers_sizes = [2]
         append_activations = 'linear'
@@ -351,9 +351,9 @@ if __name__ == '__main__':
         rlrCooldown = 10
         rlrEpsilon = 1e-4
 
-        lossType = 'mse'  # ['mse', 'categorical_crossentropy', 'falsePositiveRate']
+        lossType = 'categorical_crossentropy'  # ['mse', 'categorical_crossentropy', 'falsePositiveRate']
         # ['root_mean_squared_error', 'root_mean_squared_error_unscaled', 'categorical_accuracy', 'falsePositiveRate']
-        metrics = ['root_mean_squared_error']
+        metrics = ['categorical_accuracy']
         optimizerType = 'rmsprop'
 
         # rmsprop specific

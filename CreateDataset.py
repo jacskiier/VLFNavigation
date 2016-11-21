@@ -948,7 +948,7 @@ def mainRun():
     # Run Parameters   ############
     runNow = True
     forceRefreshFeatures = False
-    overwriteConfigFile = True
+    overwriteConfigFile = False
     forceRefreshDataset = True
     rebuildFromConfig = True
     rebuildAllFromConfig = False
@@ -1145,7 +1145,7 @@ def mainRun():
     # allBaseFileNames = ["bikeneighborhood"]
     # yValueType = 'gpsC'
 
-    datasetName = 'bikeneighborhoodPackFileCTDM'
+    datasetName = 'bikeneighborhoodRawAmplitudePackFile'
     allBaseFileNames = ["bikeneighborhood"]
     yValueType = 'gpsC'
     onlyFileNumbers = {"bikeneighborhood": []}

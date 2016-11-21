@@ -876,9 +876,10 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
                                                  maxWindowSize=maxWindowSize,
                                                  kValues=kValues,
                                                  sigmaValues=sigmaValues,
+                                                 useConvolution=False,  # without this it does way too much computation
                                                  name="Wavelet Layer")
             model.add(waveletLayer)
-            # I am padding out the input_channel dimension to be 1
+            # I am padding out the input_channel dimension to be 1 because I only have one input channel
             (X_train, X_valid, X_test) = (X_train[:, :, None, :], X_valid[:, :, None, :], X_test[:, :, None, :])
 
         for layerIndex in range(1, 1 + len(lstm_layers_sizes)):

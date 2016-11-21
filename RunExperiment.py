@@ -15,10 +15,10 @@ import CreateUtils
 
 rawDataFolder = CreateUtils.getRawDataFolder()
 
-featureSetNameMain = 'PatchShortTallAllFreq'
-datasetNameMain = ['bikeneighborhoodPackFileCTDM']
+featureSetNameMain = 'RawAmplitude'
+datasetNameMain = ['bikeneighborhoodRawAmplitudePackFile']
 classifierTypeMain = ['LSTM']
-classifierSetNameMain = ['RegressionAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrPWeightAppendRMSPropTD']
+classifierSetNameMain = ['ClassificationAllClasses2LPlus2MLPStatefulWaveletAutoBatchDropReg2RlrRMSPropTD']
 datasetNameStatsMain = ''  # for right now you only get one
 
 # per run variables
