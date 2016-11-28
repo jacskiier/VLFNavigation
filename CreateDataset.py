@@ -948,7 +948,7 @@ def mainRun():
     # Run Parameters   ############
     runNow = True
     forceRefreshFeatures = False
-    overwriteConfigFile = False
+    overwriteConfigFile = True
     forceRefreshDataset = True
     rebuildFromConfig = True
     rebuildAllFromConfig = False
@@ -956,7 +956,7 @@ def mainRun():
     removeFileNumbers = {}
     onlyFileNumbers = {}
     removeFeatureSetNames = []
-    onlyThisFeatureSetNames = ['PatchShortTallAllFreq']
+    onlyThisFeatureSetNames = ['FFTWindowDefault']
     showFigures = True
 
     # Parameters Begin ############
@@ -994,12 +994,12 @@ def mainRun():
     allSetsSameRows = True
     # keras packaging
     alternateRowsForKeras = True
-    timestepsPerKerasBatchRow = 1000
+    timestepsPerKerasBatchRow = 100
     assert not (not allSetsSameRows and alternateRowsForKeras), \
         "You must keep all sets same rows for keras packging to work in keras"
 
     # filter features
-    filterPCA = True
+    filterPCA = False
     filterFitSets = ["train"]  # names of the sets you want to use to filter
     filterPCAn_components = None
     filterPCAwhiten = True
@@ -1027,10 +1027,10 @@ def mainRun():
     localLevelOriginInECEF = [507278.89822834, -4884824.02376298, 4056425.76820216]  # Neighborhood Center
 
     # particle variables
-    particleFilePath = os.path.join(rawDataFolder, "Imagery", "bikeneighborhoodPackFileNormCTDMNoKerasRegressionYkMeansClusters.csv")
+    particleFilePath = os.path.join(rawDataFolder, "Imagery", "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
 
     # metadata features
-    useMetadata = True
+    useMetadata = False
     metadataList = ['CadenceBike', 'CrankRevolutions', 'SpeedInstant', 'WheelRevolutions', 'DayPercent']
     metadataShape = (len(metadataList),)
 
@@ -1145,9 +1145,9 @@ def mainRun():
     # allBaseFileNames = ["bikeneighborhood"]
     # yValueType = 'gpsC'
 
-    datasetName = 'bikeneighborhoodRawAmplitudePackFile'
+    datasetName = 'bikeneighborhoodPackFileParticle'
     allBaseFileNames = ["bikeneighborhood"]
-    yValueType = 'gpsC'
+    yValueType = 'particle'
     onlyFileNumbers = {"bikeneighborhood": []}
     removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 29]}
     defaultSetName = "train"

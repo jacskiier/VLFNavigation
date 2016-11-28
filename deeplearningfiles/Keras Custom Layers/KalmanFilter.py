@@ -12,16 +12,26 @@ import theano
 import theano.tensor as T
 import tqdm
 
-
 import KerasClassifiers
 import RunExperiment
 import CreateUtils
 
 
 class KalmanFilterLayer(Layer):
-    def __init__(self, output_dim, statesXInitArg=None, PInitArg=None, phi=None, B=None, C=None, D=None, Q=None, H=None,
+    def __init__(self,
+                 output_dim=None,
+                 statesXInitArg=None,
+                 PInitArg=None,
+                 phi=None,
+                 B=None,
+                 C=None,
+                 D=None,
+                 Q=None,
+                 H=None,
                  R=None,
-                 trainMatrices=None, **kwargs):
+                 trainMatrices=None,
+                 **kwargs):
+        assert output_dim is not None, "there must be an output_dim"
         self.output_dim = output_dim
         self.input_dim = None
         self.batch_size = None
@@ -59,6 +69,22 @@ class KalmanFilterLayer(Layer):
         self.S = None
 
         super(KalmanFilterLayer, self).__init__(**kwargs)
+
+    def get_config(self):
+        config = {'output_dim': self.output_dim,
+                  'statesXInitArg': self.initDict['statesXInitArg'],
+                  'PInitArg': self.initDict['PInitArg'],
+                  'phi': self.initDict['phiMatrix'],
+                  'B': self.initDict['BMatrix'],
+                  'C': self.initDict['CMatrix'],
+                  'D': self.initDict['DMatrix'],
+                  'Q': self.initDict['QMatrix'],
+                  'H': self.initDict['HMatrix'],
+                  'R': self.initDict['RMatrix'],
+                  'trainMatrices': self.trainMatrices,
+                  'input_dim': self.input_dim}
+        base_config = super(KalmanFilterLayer, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
     def doSizeAsserts(self, weightName, initValue):
         if weightName == 'statesX':

@@ -16,14 +16,17 @@ import theano.tensor as T
 
 
 class WaveletTransformLayer(Layer):
-    def __init__(self, output_dim,
-                 maxWindowSize,
+    def __init__(self,
+                 output_dim=None,
+                 maxWindowSize=None,
                  kValues=None,
                  sigmaValues=None,
                  minSigmasPerWindow=None,
                  minCyclesPerOneSigma=None,
                  useConvolution=False,
                  **kwargs):
+        assert output_dim is not None, "There must be an output_dim"
+        assert maxWindowSize is not None, "There must be a window size"
         self.output_dim = output_dim
         self.input_dim = None
         self.timesteps = None
@@ -71,6 +74,20 @@ class WaveletTransformLayer(Layer):
         ret = input_shape[0], input_shape[1], input_shape[2] * self.output_dim
         # bs x timesteps x output_channels * output_dim
         return ret
+
+    def get_config(self):
+        config = {'output_dim': self.output_dim,
+                  'timesteps': self.timesteps,
+                  'input_channels': self.input_channels,
+                  'batch_size': self.batch_size,
+                  'useConvolution': self.useConvolution,
+                  'kValues': self.initDict['kValues'],
+                  'sigmaValues': self.initDict['sigmaValues'],
+                  'minSigmasPerWindow': self.initDict['minSigmasPerWindow'],
+                  'minCyclesPerOneSigma': self.initDict['minCyclesPerOneSigma'],
+                  'input_dim': self.input_dim}
+        base_config = super(WaveletTransformLayer, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
     def build(self, input_shape):
         # input_shape = (bs x timesteps x input_channels x input_dim)
@@ -257,7 +274,7 @@ class WaveletTransformLayer(Layer):
         return powerOut
 
 
-if __name__ == '__main__':
+def runMain():
     plt.close('all')
     signalLength = 44100 * 60 * 30
     input_channelsMain = 3
@@ -338,3 +355,7 @@ if __name__ == '__main__':
         plt.semilogy(powerOutMain[batchToShow, :, outputChannelToShow, output_dimToShow])
         plt.ylim([np.min(powerOutMain), np.max(powerOutMain)])
     plt.show()
+
+
+if __name__ == '__main__':
+    runMain()

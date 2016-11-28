@@ -315,7 +315,7 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
 
     with open(modelStoreFilePathFullTemp, 'r') as modelStoreFile:
         json_string = modelStoreFile.read()
-    model = model_from_json(json_string, custom_objects={"KalmanFilterLayer": KalmanFilterLayer})
+    model = model_from_json(json_string, custom_objects={"KalmanFilterLayer": KalmanFilterLayer,"WaveletTransformLayer":WaveletTransformLayer})
 
     modelStoreWeightsFilePathFullTemp = os.path.join(experimentStoreFolder,
                                                      '{0}_modelWeights.h5'.format(modelStoreNameType))
@@ -349,6 +349,8 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
     if whichSetArg > 2 or whichSetArg < 0:
         raise ValueError("Invalid which set number {0}".format(whichSetArg))
     X_test = datasets[whichSetArg][0]
+    if classifierParameters['useWaveletTransform']:
+        X_test = X_test[:, :, None, :]
     set_X = X_test
     trueValues = datasets[whichSetArg][1]
 
@@ -1084,7 +1086,10 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
             rlrPatience = classifierParameters['rlrPatience'] if 'rlrPatience' in classifierParameters else 10
             rlrCooldown = classifierParameters['rlrCooldown'] if 'rlrCooldown' in classifierParameters else 0
             rlrEpsilon = classifierParameters['rlrEpsilon'] if 'rlrEpsilon' in classifierParameters else 1e-4
-            rlrCallback = ReduceLROnPlateau(monitor=rlrMonitor, factor=rlrFactor, patience=rlrPatience, verbose=1,
+            rlrCallback = ReduceLROnPlateau(monitor=rlrMonitor,
+                                            factor=rlrFactor,
+                                            patience=rlrPatience,
+                                            verbose=1,
                                             mode='auto',
                                             epsilon=rlrEpsilon, cooldown=rlrCooldown)
             myCallbacks.append(rlrCallback)
@@ -1094,7 +1099,8 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
                           batch_size=batch_size,
                           nb_epoch=n_epochs,
                           validation_data=(X_valid, y_valid),
-                          callbacks=myCallbacks)
+                          callbacks=myCallbacks,
+                          verbose=2)
             except KeyboardInterrupt:
                 print ("\nUser stopped training")
         else:

@@ -15,16 +15,16 @@ import CreateUtils
 
 rawDataFolder = CreateUtils.getRawDataFolder()
 
-featureSetNameMain = 'RawAmplitude'
-datasetNameMain = ['bikeneighborhoodRawAmplitudePackFile']
+featureSetNameMain = 'FFTWindowDefault'
+datasetNameMain = ['bikeneighborhoodPackFileParticle']
 classifierTypeMain = ['LSTM']
-classifierSetNameMain = ['ClassificationAllClasses2LPlus2MLPStatefulWaveletAutoBatchDropReg2RlrRMSPropTD']
+classifierSetNameMain = ['ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD']
 datasetNameStatsMain = ''  # for right now you only get one
 
 # per run variables
 forceRefreshFeatures = False
 forceRefreshDataset = False
-forceRefreshModel = True
+forceRefreshModel = False
 forceRefreshStats = True
 
 removeFeatureSetNames = []

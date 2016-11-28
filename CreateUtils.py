@@ -4,8 +4,8 @@ import numpy as np
 
 # Feature Statics
 signalSources = ['Loop Antenna with iPhone 4', '3-Axis Dipole With SRI Receiver']
-featureMethodNames = ['Patch', 'Covariance', 'MFCC', 'FFT', 'RawAmplitude' 'MNIST', 'Test', 'THoR']
-featureMethodNamesRebuildValid = ['Patch', 'Covariance', 'MFCC', 'FFT', 'RawAmplitude']
+featureMethodNames = ['Patch', 'Covariance', 'MFCC', 'FFT', 'FFTWindow', 'RawAmplitude' 'MNIST', 'Test', 'THoR']
+featureMethodNamesRebuildValid = ['Patch', 'Covariance', 'MFCC', 'FFT', 'FFTWindow', 'RawAmplitude']
 # Patch Specific
 statOrderNames = ['mean', 'variance', 'standard deviation', 'skewness', 'kurtosis']
 

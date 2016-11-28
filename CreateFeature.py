@@ -324,7 +324,10 @@ def collectPatchFFTFeaturesFromWAVFile(filePatherArg, fftPowerArg=10, windowTime
     return fXsubArg
 
 
-def collectFFTFeaturesFromWAVFile(filePatherArg, fftPowerArg=10, showFiguresArg=False, burstMethod=None,
+def collectFFTFeaturesFromWAVFile(filePatherArg,
+                                  fftPowerArg=10,
+                                  showFiguresArg=False,
+                                  burstMethod=None,
                                   windowFreqBoundsArg=(0, 6000)):
     (Pxx, freqs, bins) = getFFTFromDataFile(filePatherArg, showFiguresArg, fftPowerArg)
     if burstMethod:
@@ -333,6 +336,42 @@ def collectFFTFeaturesFromWAVFile(filePatherArg, fftPowerArg=10, showFiguresArg=
                        find_nearestIndex(freqs, windowFreqBoundsArg[1])]
     fXsubArg = numpy.transpose(Pxx[windowFreqIndex[0]:windowFreqIndex[1], :])
     gc.collect()  # hopefully this gets rid of the variables I just turned to None
+    return fXsubArg
+
+
+def collectFFTWindowFeaturesFromWAVFile(filePatherArg,
+                                        windowTimeLength,
+                                        maxTime=None,
+                                        windowFreqBoundsArg=(0, 6000)):
+    # read the raw data from the file
+    (actualDataY, samplingRate) = readDataFile(filePatherArg)
+
+    # pick off the time I want
+    if maxTime is not None:
+        actualDataY = actualDataY[:int(maxTime * samplingRate)]
+
+    # window out the data
+    samplesPerWindow = int(windowTimeLength * float(samplingRate))
+    samplesInFinal = int(samplesPerWindow * np.floor(actualDataY.shape[0] / samplesPerWindow))
+    actualDataY = np.reshape(actualDataY[:samplesInFinal], (int(actualDataY.shape[0] / samplesPerWindow), samplesPerWindow))
+    # actualDataY.shape = (number_of_windows x samples_per_window)
+
+    # perform the FFT on each window
+    fXsubArg = np.fft.fft(actualDataY, axis=1)
+
+    # the frequencies in the FFT that was just performed
+    freqs = np.fft.fftfreq(samplesPerWindow, 1.0 / samplingRate)
+
+    # get the indices of the lower and upper frequency
+    windowFreqIndex = [find_nearestIndex(freqs, windowFreqBoundsArg[0]),
+                       find_nearestIndex(freqs, windowFreqBoundsArg[1])]
+
+    # pick off only the frequencies between the bounds
+    fXsubArg = fXsubArg[:, windowFreqIndex[0]:windowFreqIndex[1]]
+
+    # get the magnitude of the complex signals
+    fXsubArg = np.abs(fXsubArg)
+
     return fXsubArg
 
 
@@ -780,9 +819,14 @@ def buildFeatures(featureParameters, forceRefreshFeatures=False, showFigures=Fal
                                                               showFiguresArg=showFigures,
                                                               burstMethod=burstMethod,
                                                               windowFreqBoundsArg=windowFreqBounds)
+                    elif featureMethod == 'FFTWindow':
+                        fXsub = collectFFTWindowFeaturesFromWAVFile(filePather,
+                                                                    windowTimeLength=windowTimeLength,
+                                                                    maxTime=maxTime,
+                                                                    windowFreqBoundsArg=windowFreqBounds)
                     elif featureMethod == "RawAmplitude":
                         fXsub = collectRawAmplitudeFromWAVFile(filePather,
-                                                               windowTimeLength,
+                                                               windowTimeLength=windowTimeLength,
                                                                poolingSize=poolingSize,
                                                                poolingType=poolingType,
                                                                maxTime=maxTime)
@@ -832,8 +876,8 @@ def runMain():
     removeFeatureSetNames = []
     maxFiles = 100
 
-    featureSetName = 'RawAmplitude'
-    featureMethod = 'RawAmplitude'
+    featureSetName = 'FFTWindowDefault'
+    featureMethod = 'FFTWindow'
     signalSource = 'Loop Antenna With iPhone 4'
     # signalSource = '3-Axis Dipole With SRI Receiver'
     samplingRate = None
@@ -997,7 +1041,7 @@ def runMain():
             # x matrix parameters
             fftPower = 10
             burstMethod = False
-            windowFreqBounds = [0, 22500]  # the start and stop frequencies in Hz
+            windowFreqBounds = [0, 22050]  # the start and stop frequencies in Hz
 
             # Determine the frequencies for this run so I can make the output shape for this frequency
             freqs = np.fft.fftfreq(2 ** fftPower, 1.0 / samplingRate)
@@ -1026,6 +1070,38 @@ def runMain():
                 'imageShape': imageShape,
                 'imageShapeOrder': imageShapeOrder,
             }
+        elif featureMethod == 'FFTWindow':
+            # x matrix parameters
+            burstMethod = False
+            windowFreqBounds = [0, 22050]  # the start and stop frequencies in Hz
+
+            samplesPerWindow = int(samplingRate / 10.0)
+            windowTimeLength = samplesPerWindow / float(samplingRate)
+
+            # Determine the frequencies for this run so I can make the output shape for this frequency
+            freqs = np.fft.fftfreq(samplesPerWindow, 1.0 / samplingRate)
+
+            windowFreqIndex = [find_nearestIndex(freqs, windowFreqBounds[0]),
+                               find_nearestIndex(freqs, windowFreqBounds[1])]
+
+            imageShape = (int(windowFreqIndex[1] - windowFreqIndex[0]),)
+            imageShapeOrder = (0,)
+
+            featureParametersDefault = {
+                'featureSetName': featureSetName,
+                'signalSource': signalSource,
+                'rawDataFolder': rawDataFolder,
+                'featureDataFolder': featureDataFolder,
+                'feature parameters': {
+                    'samplesPerWindow': samplesPerWindow,
+                    'featureMethod': featureMethod,
+                    'windowTimeLength': windowTimeLength,
+                    'burstMethod': burstMethod,
+                    'windowFreqBounds': windowFreqBounds,
+                },
+                'imageShape': imageShape,
+                'imageShapeOrder': imageShapeOrder,
+            }
         elif featureMethod == 'RawAmplitude':
             poolingSize = 1
             poolingType = None
@@ -1035,7 +1111,7 @@ def runMain():
             samplesPerWindow = int(samplingRate / 10.0)
             windowTimeLength = samplesPerWindow / float(samplingRate * poolingSize)
 
-            maxTime = 5 * 60  # in seconds
+            maxTime = 60 * 5  # in seconds
 
             imageShape = (samplesPerWindow,)
             imageShapeOrder = (0,)
@@ -1056,6 +1132,7 @@ def runMain():
                 'imageShape': imageShape,
                 'imageShapeOrder': imageShapeOrder,
             }
+
         elif featureMethod == 'MNIST':
             imageShapeOrder = (0, 1, 2)
             imageShape = (1, 28, 28)
