@@ -174,6 +174,7 @@ class TeacherForcingModel(Model):
 
         # build our one timestep model
         self.oneTimestepModel = None
+        self.oneTimestepModelCompileKwargs = None
         self.buildOneTimestepModel()
 
         super(TeacherForcingModel, self).__init__(input=[TFTL.left_branch.input, TFTL.right_branch.input], output=[output], **kwargs)
@@ -194,54 +195,126 @@ class TeacherForcingModel(Model):
         output = TFOL(originalOutTensor)
         self.oneTimestepModel = Model(input=[TFTL.left_branch.input, TFTL.right_branch.input], output=[output])
 
-    def setOneTimestepModelWeights(self):
-        # set the weights of this model to the new one timestep model
-        weights = self.get_weights()
-        self.oneTimestepModel.set_weights(weights=weights)
+    def compile(self, **kwargs):
+        self.oneTimestepModelCompileKwargs = kwargs
+        super(TeacherForcingModel, self).compile(**kwargs)
 
-    def evaluate(self, x, y, batch_size=32, verbose=1, sample_weight=None):
+    def fit(self, x, y, batch_size=32, y_0=None, **kwargs):
+        if not isinstance(x, (list, tuple)):
+            x = [x]
+        if self.makeTimeDistributed is False:
+            y_train_last = np.zeros_like(y)
+            y_train_last[1:] = y[:-1]
+            if y_0 is not None:
+                y_train_last[:, 0] = y_0
+        else:
+            # get numbers for reshaping
+            time_steps = x[0].shape[1]
+            final_output_dim = y.shape[-1]
+            kerasRowMultiplier = x[0].shape[0] / batch_size
+
+            # reshape the output to not have keras row batches
+            y_reshaped = np.reshape(y, (batch_size, kerasRowMultiplier, time_steps, final_output_dim), order='F')
+            y_reshaped = np.reshape(y_reshaped, (batch_size, time_steps * kerasRowMultiplier, final_output_dim), order='C')
+
+            # shift the output and assign to y_train_last
+            y_train_last = np.zeros_like(y_reshaped)
+            y_train_last[:, 1:] = y_reshaped[:, :-1]
+            if y_0 is not None:
+                y_train_last[:, 0] = y_0
+
+            # reshape shifted output to the original shape
+            y_train_last = np.reshape(y_train_last, (batch_size, kerasRowMultiplier, time_steps, final_output_dim), order='C')
+            y_train_last = np.reshape(y_train_last, (batch_size * kerasRowMultiplier, time_steps, final_output_dim), order='F')
+
+        super(TeacherForcingModel, self).fit(x=x + [y_train_last], y=y, batch_size=batch_size, **kwargs)
+
+    def evaluate(self, x, y, batch_size=32, **kwargs):
+        # y_last was for testing only
+        y_last = None
+        if not isinstance(x, (list, tuple)):
+            x = [x]
         if self.makeTimeDistributed is False:
             batch_size = 1
-            return super(TeacherForcingModel, self).evaluate(x=x, y=y, batch_size=batch_size, verbose=verbose)
+            yShape = (x[0].shape[0], self.final_output_dim)
+            if y_last is None:
+                y_last = np.zeros(yShape)
+            return super(TeacherForcingModel, self).evaluate(x=x + [y_last], y=y, batch_size=batch_size, **kwargs)
         else:
-            kerasRowMultiplier = x.shape[0] / batch_size
-            time_steps = x.shape[1]
+            kerasRowMultiplier = x[0].shape[0] / batch_size
+            time_steps = x[0].shape[1]
             yShape = (batch_size, 1, self.final_output_dim)
+            if y_last is None:
+                y_last = np.zeros(yShape)
 
-            self.setOneTimestepModelWeights()
-            predictions = np.zeros((batch_size * kerasRowMultiplier, time_steps, self.final_output_dim))
+            # set the weights of this model to the new one timestep model
+            weights = self.get_weights()
+            self.oneTimestepModel.set_weights(weights=weights)
+            assert self.oneTimestepModelCompileKwargs is not None, "You must compile this model first"
+            self.oneTimestepModel.compile(**self.oneTimestepModelCompileKwargs)
+
+            if 'metrics' in self.oneTimestepModelCompileKwargs:
+                evalOutputs = 1 + len(self.oneTimestepModelCompileKwargs['metrics'])
+            else:
+                evalOutputs = 1
+            evaluations = np.zeros((batch_size * kerasRowMultiplier, time_steps, evalOutputs))
             for k in range(kerasRowMultiplier):
                 for i in range(time_steps):
                     batchSlice = slice(k * batch_size, (k + 1) * batch_size)
-                    predictions[batchSlice, i:i + 1, :] = self.oneTimestepModel.evaluate(
-                        x=[x[batchSlice, i:i + 1, :], np.zeros(yShape)],
-                        y=y,
+                    # since input is forced to list we need to slice up each input individually
+                    xSlicedUpList = []
+                    for inputX in x:
+                        xSlicedUpList += [inputX[batchSlice, i:i + 1, :]]
+                    # make prediction
+                    evaluations[batchSlice, i:i + 1, :] = self.oneTimestepModel.evaluate(
+                        x=xSlicedUpList + [y_last],
+                        y=y[batchSlice, i:i + 1, :],
                         batch_size=batch_size,
-                        verbose=0)
-            return predictions
+                        **kwargs)
+            return np.sum(evaluations, axis=(0, 1))
 
-    def predict(self, x, batch_size=32, verbose=0):
+    def predict(self, x, batch_size=32, **kwargs):
+        # y_last was for testing only
+        y_last = None
+        if not isinstance(x, (list, tuple)):
+            x = [x]
         if self.makeTimeDistributed is False:
             batch_size = 1
-            return super(TeacherForcingModel, self).predict(x, batch_size=batch_size, verbose=verbose)
+            yShape = (x[0].shape[0], self.final_output_dim)
+            if y_last is None:
+                y_last = np.zeros(yShape)
+            return super(TeacherForcingModel, self).predict(x=x + [y_last], batch_size=batch_size, **kwargs)
         else:
-            kerasRowMultiplier = x.shape[0] / batch_size
-            time_steps = x.shape[1]
+            kerasRowMultiplier = x[0].shape[0] / batch_size
+            time_steps = x[0].shape[1]
             yShape = (batch_size, 1, self.final_output_dim)
+            if y_last is None:
+                y_last = np.zeros(yShape)
 
-            self.setOneTimestepModelWeights()
+            # set the weights of this model to the new one timestep model
+            weights = self.get_weights()
+            self.oneTimestepModel.set_weights(weights=weights)
             predictions = np.zeros((batch_size * kerasRowMultiplier, time_steps, self.final_output_dim))
             for k in range(kerasRowMultiplier):
                 for i in range(time_steps):
                     batchSlice = slice(k * batch_size, (k + 1) * batch_size)
+                    # since input is forced to list we need to slice up each input individually
+                    xSlicedUpList = []
+                    for inputX in x:
+                        xSlicedUpList += [inputX[batchSlice, i:i + 1, :]]
                     predictions[batchSlice, i:i + 1, :] = self.oneTimestepModel.predict(
-                        x=[x[batchSlice, i:i + 1, :], np.zeros(yShape)],
+                        x=xSlicedUpList + [y_last],
                         batch_size=batch_size,
-                        verbose=0)
+                        **kwargs)
             return predictions
 
+    def reset_states(self):
+        if self.oneTimestepModel is not None:
+            self.oneTimestepModel.reset_states()
+        super(TeacherForcingModel, self).reset_states()
 
-def runMain():
+
+def testClass():
     input_dim = 10
     n_samples = 300
     final_output_dim = 2
@@ -252,8 +325,10 @@ def runMain():
     np.random.seed(0)
     x_train = np.random.random((n_samples, input_dim))
     y_train = np.repeat(np.arange(1, n_samples + 1)[:, None], final_output_dim, axis=1)
-    y_train_last = np.zeros_like(y_train)
-    y_train_last[1:] = y_train[:-1]
+
+    # # make true last outputs
+    # y_train_last = np.zeros_like(y_train)
+    # y_train_last[1:] = y_train[:-1]
 
     # make actual layers of ANN in original model
     original_model = Sequential(name="Original Model")
@@ -268,26 +343,32 @@ def runMain():
                         loss='mse',
                         metrics=['mse'])
 
-    showModel(final_model)
+    # showModel(final_model)
 
     # train our model using the actual last values
-    final_model.fit([x_train, y_train_last], y_train, nb_epoch=n_epochs, batch_size=batch_size, verbose=2)
+    final_model.fit(x=x_train, y=y_train, nb_epoch=n_epochs, batch_size=batch_size, verbose=2)
+    # final_model.fit(x=[x_train, y_train_last], y=y_train, nb_epoch=n_epochs, batch_size=batch_size, verbose=2)
 
-    # we must reset the state before doing anything else
+    # reset model state for evaluations or predictions
     final_model.reset_states()
-    # get our score when we use the estimated outputs and feed in the true last which it should ignore
-    scoreCheating = final_model.evaluate([x_train, y_train_last], y_train, batch_size=batch_size, verbose=2)
-    print("\nThe final cheat score is {0}".format(scoreCheating))
-
-    final_model.reset_states()
-    score = final_model.evaluate([x_train, np.zeros_like(y_train_last)], y_train, batch_size=batch_size, verbose=2)
+    # let this one make up zeros for the true last output
+    score = final_model.evaluate(x=x_train, y=y_train, batch_size=batch_size, verbose=2)
+    # score = final_model.evaluate(x=[x_train, np.zeros_like(y_train_last)], y=y_train, batch_size=batch_size, verbose=2)
     print("\nThe final real score is {0}".format(score))
+    assert score[0] < 500, "Something is wrong the score should be lower"
 
-    assert np.all(np.isclose(score, scoreCheating)), "The ANN used the true last values and it shouldn't"
+    # # Assert our model can evaluate using its own estimate and doesn't cheat
+    # # we must reset the state before doing anything else
+    # final_model.reset_states()
+    # scoreCheating = final_model.evaluate(x=x_train, y=y_train, y_last=y_train_last, batch_size=batch_size, verbose=2)
+    # # scoreCheating = final_model.evaluate(x=[x_train, y_train_last], y=y_train, batch_size=batch_size, verbose=2)
+    # print("\nThe final cheat score is {0}".format(scoreCheating))
+    # assert np.all(np.isclose(score, scoreCheating)), "The ANN used the true last values and it shouldn't"
 
     # check our actual predictions
     final_model.reset_states()
-    predictions = final_model.predict([x_train, np.zeros_like(y_train_last)], batch_size=batch_size, verbose=2)
+    predictions = final_model.predict(x=x_train, batch_size=batch_size, verbose=2)
+    # predictions = final_model.predict(x=[x_train, np.zeros_like(y_train_last)], batch_size=batch_size, verbose=2)
     samplesToShow = 10
     print("\nThe predictions \n{0}".format(predictions[:samplesToShow]))
     print("\nThe truth \n{0}".format(y_train[:samplesToShow]))
@@ -349,8 +430,13 @@ def testTimeDistributed():
     # showModel(final_model)
 
     # train our model using the actual last values
-    final_model.fit([x_train, y_train_last], y_train, nb_epoch=n_epochs, batch_size=batch_size, verbose=2)
+    final_model.fit(x=x_train, y=y_train, nb_epoch=n_epochs, batch_size=batch_size, verbose=2)
 
+    final_model.reset_states()
+    score = final_model.evaluate(x=x_train, y=y_train, batch_size=batch_size, verbose=2)
+    print("Score is {0}".format(score))
+
+    final_model.reset_states()
     # predictions = predictOneByOne(model=final_model, x=x_train, batch_size=batch_size, final_output_dim=final_output_dim)
     predictions = final_model.predict(x=x_train, batch_size=batch_size, verbose=2)
 
@@ -379,5 +465,5 @@ def testTimeDistributed():
 
 
 if __name__ == '__main__':
-    # runMain()
+    testClass()
     testTimeDistributed()
