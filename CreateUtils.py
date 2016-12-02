@@ -8,6 +8,8 @@ featureMethodNames = ['Patch', 'Covariance', 'MFCC', 'FFT', 'FFTWindow', 'RawAmp
 featureMethodNamesRebuildValid = ['Patch', 'Covariance', 'MFCC', 'FFT', 'FFTWindow', 'RawAmplitude']
 # Patch Specific
 statOrderNames = ['mean', 'variance', 'standard deviation', 'skewness', 'kurtosis']
+# FFT Window Specific
+all_frequencyStats = ['power', 'in_phase_amplitude', 'out_of_phase_amplitude', 'angle', 'relative_angle']
 
 # Dataset Statics
 yValueTypes = ['file', 'gpsD', 'time', 'gpsC', 'gpsPolar', 'particle']
@@ -248,3 +250,11 @@ def getRawDataFolder():
     else:
         raise ValueError("This OS is not allowed")
     return rawDataFolder
+
+
+def sizeof_fmt(num, suffix='B'):
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)

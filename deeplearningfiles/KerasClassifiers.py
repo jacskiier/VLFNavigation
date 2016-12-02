@@ -315,7 +315,7 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
 
     with open(modelStoreFilePathFullTemp, 'r') as modelStoreFile:
         json_string = modelStoreFile.read()
-    model = model_from_json(json_string, custom_objects={"KalmanFilterLayer": KalmanFilterLayer,"WaveletTransformLayer":WaveletTransformLayer})
+    model = model_from_json(json_string, custom_objects={"KalmanFilterLayer": KalmanFilterLayer, "WaveletTransformLayer": WaveletTransformLayer})
 
     modelStoreWeightsFilePathFullTemp = os.path.join(experimentStoreFolder,
                                                      '{0}_modelWeights.h5'.format(modelStoreNameType))
@@ -349,7 +349,7 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
     if whichSetArg > 2 or whichSetArg < 0:
         raise ValueError("Invalid which set number {0}".format(whichSetArg))
     X_test = datasets[whichSetArg][0]
-    if classifierParameters['useWaveletTransform']:
+    if 'useWaveletTransform' in classifierParameters and classifierParameters['useWaveletTransform'] is True:
         X_test = X_test[:, :, None, :]
     set_X = X_test
     trueValues = datasets[whichSetArg][1]
@@ -368,7 +368,7 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
             assert batch_size == packagedRows, \
                 "You chose stateful but your batch size didn't match the files in the training set"
     print("Making Prediction Classes")
-    predicted_probabilities = model.predict_proba(set_X, batch_size=batch_size)
+    predicted_probabilities = model.predict_proba(set_X, batch_size=batch_size, verbose=2)
     print("Predictions over")
     # reshape predicted_probabilities to be rows and indices
     predicted_probabilities = np.reshape(predicted_probabilities, (
@@ -1108,5 +1108,5 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
             model.save_weights(modelStoreWeightsBestLossFilePathFullTemp, overwrite=True)
             model.save_weights(modelStoreWeightsLastFilePathFullTemp, overwrite=True)
 
-        score = model.evaluate(X_test, y_test, batch_size=batch_size)
+        score = model.evaluate(X_test, y_test, batch_size=batch_size, verbose=2)
         print("The final test score is {0}".format(score))

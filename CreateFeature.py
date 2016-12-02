@@ -342,7 +342,9 @@ def collectFFTFeaturesFromWAVFile(filePatherArg,
 def collectFFTWindowFeaturesFromWAVFile(filePatherArg,
                                         windowTimeLength,
                                         maxTime=None,
-                                        windowFreqBoundsArg=(0, 6000)):
+                                        windowFreqBoundsArg=(0, 6000),
+                                        frequencyStats=('power',),
+                                        referenceFrequency=60):
     # read the raw data from the file
     (actualDataY, samplingRate) = readDataFile(filePatherArg)
 
@@ -369,8 +371,23 @@ def collectFFTWindowFeaturesFromWAVFile(filePatherArg,
     # pick off only the frequencies between the bounds
     fXsubArg = fXsubArg[:, windowFreqIndex[0]:windowFreqIndex[1]]
 
-    # get the magnitude of the complex signals
-    fXsubArg = np.abs(fXsubArg)
+    fXsubArgs = []
+    for frequencyStat in frequencyStats:
+        if frequencyStat == 'power':
+            fXsubArgs += [np.abs(fXsubArg)]
+        if frequencyStat == 'in_phase_amplitude':
+            fXsubArgs += [np.real(fXsubArg)]
+        if frequencyStat == 'out_of_phase_amplitude':
+            fXsubArgs += [np.imag(fXsubArg)]
+        if frequencyStat == 'angle':
+            fXsubArgs += [np.angle(fXsubArg, deg=False)]
+        if frequencyStat == 'relative_angle':
+            referenceFrequencyIndex = find_nearestIndex(freqs, referenceFrequency)
+            angles = np.angle(fXsubArg, deg=False)
+            angles = angles - angles[:, referenceFrequencyIndex][:, None]
+            fXsubArgs += [angles]
+
+    fXsubArg = np.hstack(tuple(fXsubArgs))
 
     return fXsubArg
 
@@ -748,12 +765,18 @@ def buildFeatures(featureParameters, forceRefreshFeatures=False, showFigures=Fal
         if 'normalizeStats' in featureParameters['feature parameters'] else None
 
     # MFCC specific parameters
-    winstep = featureParameters['feature parameters']['winstep'] if 'winstep' in featureParameters[
-        'feature parameters'] else None
-    numcep = featureParameters['feature parameters']['numcep'] if 'numcep' in featureParameters[
-        'feature parameters'] else None
-    nfilt = featureParameters['feature parameters']['nfilt'] if 'nfilt' in featureParameters[
-        'feature parameters'] else None
+    winstep = featureParameters['feature parameters']['winstep'] \
+        if 'winstep' in featureParameters['feature parameters'] else None
+    numcep = featureParameters['feature parameters']['numcep'] \
+        if 'numcep' in featureParameters['feature parameters'] else None
+    nfilt = featureParameters['feature parameters']['nfilt'] \
+        if 'nfilt' in featureParameters['feature parameters'] else None
+
+    # fft window specific
+    frequencyStats = featureParameters['feature parameters']['frequencyStats'] \
+        if 'frequencyStats' in featureParameters['feature parameters'] else ['power']
+    referenceFrequency = featureParameters['feature parameters']['referenceFrequency'] \
+        if 'referenceFrequency' in featureParameters['feature parameters'] else 60
 
     # RAW amplitude specific
     poolingSize = featureParameters['feature parameters']['poolingSize'] if 'poolingSize' in featureParameters[
@@ -823,7 +846,9 @@ def buildFeatures(featureParameters, forceRefreshFeatures=False, showFigures=Fal
                         fXsub = collectFFTWindowFeaturesFromWAVFile(filePather,
                                                                     windowTimeLength=windowTimeLength,
                                                                     maxTime=maxTime,
-                                                                    windowFreqBoundsArg=windowFreqBounds)
+                                                                    windowFreqBoundsArg=windowFreqBounds,
+                                                                    frequencyStats=frequencyStats,
+                                                                    referenceFrequency=referenceFrequency)
                     elif featureMethod == "RawAmplitude":
                         fXsub = collectRawAmplitudeFromWAVFile(filePather,
                                                                windowTimeLength=windowTimeLength,
@@ -876,7 +901,7 @@ def runMain():
     removeFeatureSetNames = []
     maxFiles = 100
 
-    featureSetName = 'FFTWindowDefault'
+    featureSetName = 'FFTWindowLowFreq'
     featureMethod = 'FFTWindow'
     signalSource = 'Loop Antenna With iPhone 4'
     # signalSource = '3-Axis Dipole With SRI Receiver'
@@ -1073,7 +1098,7 @@ def runMain():
         elif featureMethod == 'FFTWindow':
             # x matrix parameters
             burstMethod = False
-            windowFreqBounds = [0, 22050]  # the start and stop frequencies in Hz
+            windowFreqBounds = [0, 11025]  # the start and stop frequencies in Hz
 
             samplesPerWindow = int(samplingRate / 10.0)
             windowTimeLength = samplesPerWindow / float(samplingRate)
@@ -1084,7 +1109,10 @@ def runMain():
             windowFreqIndex = [find_nearestIndex(freqs, windowFreqBounds[0]),
                                find_nearestIndex(freqs, windowFreqBounds[1])]
 
-            imageShape = (int(windowFreqIndex[1] - windowFreqIndex[0]),)
+            frequencyStats = ['power']
+            referenceFrequency = 60
+
+            imageShape = (int(windowFreqIndex[1] - windowFreqIndex[0]) * len(frequencyStats),)
             imageShapeOrder = (0,)
 
             featureParametersDefault = {
@@ -1098,10 +1126,13 @@ def runMain():
                     'windowTimeLength': windowTimeLength,
                     'burstMethod': burstMethod,
                     'windowFreqBounds': windowFreqBounds,
+                    'frequencyStats': frequencyStats,
                 },
                 'imageShape': imageShape,
                 'imageShapeOrder': imageShapeOrder,
             }
+            if 'relative_angle' in frequencyStats:
+                featureParametersDefault['feature parameters']['referenceFrequency'] = referenceFrequency
         elif featureMethod == 'RawAmplitude':
             poolingSize = 1
             poolingType = None

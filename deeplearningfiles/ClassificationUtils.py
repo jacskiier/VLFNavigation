@@ -12,6 +12,7 @@ import theano.tensor as T
 import matplotlib.pylab as plt
 import matplotlib.cm as cm
 import matplotlib
+import matplotlib.colors
 import matplotlib.patches
 import matplotlib.collections
 
@@ -119,7 +120,7 @@ def plotVeroni(ax, regions, vertices, colorScaleNumbers):
         polygons.append(thisPatch)
 
     colorMap = cm.get_cmap('coolwarm')
-    p = matplotlib.collections.PatchCollection(patches=polygons, cmap=colorMap)
+    p = matplotlib.collections.PatchCollection(patches=polygons, cmap=colorMap, norm=matplotlib.colors.NoNorm)
     p.set_array(colorScaleNumbers)
     ax.add_collection(p)
     plt.xlabel('East (m)')
@@ -687,15 +688,15 @@ def plotThresholds(predicted_class,
                 #          color='k')
 
             colorMap = cm.get_cmap('coolwarm')
-            p = matplotlib.collections.PatchCollection(patches=polygons, cmap=colorMap)
+            p = matplotlib.collections.PatchCollection(patches=polygons, cmap=colorMap, norm=matplotlib.colors.NoNorm())
             p.set_array(accuracyPerClass)
             ax.add_collection(p)
             edgeBuffer = 100
             plt.scatter(outputLabelsAsArray[:, 1], outputLabelsAsArray[:, 0], marker='*')
             # plt.xlim([np.min(outputLabelsAsArray[:, 1]) - edgeBuffer, np.max(outputLabelsAsArray[:, 1]) + edgeBuffer])
             # plt.ylim([np.min(outputLabelsAsArray[:, 0]) - edgeBuffer, np.max(outputLabelsAsArray[:, 0]) + edgeBuffer])
-            plt.xlim(vor.min_bound[0] - edgeBuffer, vor.max_bound[0] + edgeBuffer)
-            plt.ylim(vor.min_bound[1] - edgeBuffer, vor.max_bound[1] + edgeBuffer)
+            plt.xlim(vor.min_bound[1] - edgeBuffer, vor.max_bound[1] + edgeBuffer)
+            plt.ylim(vor.min_bound[0] - edgeBuffer, vor.max_bound[0] + edgeBuffer)
             plt.xlabel('East (m)')
             plt.ylabel('North (m)')
             plt.title("Counts and True Positive percentage for each grid location")

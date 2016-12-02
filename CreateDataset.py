@@ -301,14 +301,44 @@ def getXYTempAndLabelsFromFile(featureStorePath, datasetParameters, imageShape, 
         rowPackagingMetadata, rowPackagingMetadataFinal = getIndexOfLabels(dataArray, rowPackagingMetadataFinal)
         rowPackagingMetadata = rowPackagingMetadata[:, None]
     elif rowPackagingStyle == 'gpsD':
+        # pull out variables for packing
         gridSizePackage = datasetParameters['gridSizePackage'] if 'gridSizePackage' in datasetParameters else (1, 1, 1)
+
+        # calculate the coordinate positions
         gpsCoords = metadataFull[['LatitudeiPhone', 'LongitudeiPhone', 'AltitudeiPhone']].as_matrix()
         # turn Lat Lon into radians from degrees
         gpsCoords[:, 0:2] = gpsCoords[:, 0:2] * np.pi / 180.0
         ecefCoords = CoordinateTransforms.LlhToEcef(gpsCoords)
         localLevelCoords = CoordinateTransforms.EcefToLocalLevel(localLevelOriginInECEF, ecefCoords)
         localLevelCoords = localLevelCoords[:, 0:2]
+
+        # make them discrete to a grid
         newGridCoordinates = deterineYValuesGridByGPSArrayInLocalLevelCoords(localLevelCoords, gridSizePackage)
+
+        # turn the positions into class indices
+        rowPackagingMetadata, rowPackagingMetadataFinal = getIndexOfLabels(newGridCoordinates,
+                                                                           rowPackagingMetadataFinal)
+        rowPackagingMetadata = rowPackagingMetadata[:, None]
+    elif rowPackagingStyle == 'particle':
+        # pull out variables for packing
+        particlePackFilePath = datasetParameters['particlePackFilePath']
+        # the file should be in North x East with the same local level coord
+        particleArray = np.genfromtxt(particlePackFilePath, delimiter=',', skip_header=1)
+
+        # calculate the coordinate positions
+        gpsCoords = metadataFull[['LatitudeiPhone', 'LongitudeiPhone', 'AltitudeiPhone']].as_matrix()
+        # turn Lat Lon into radians from degrees
+        gpsCoords[:, 0:2] = gpsCoords[:, 0:2] * np.pi / 180.0
+        ecefCoords = CoordinateTransforms.LlhToEcef(gpsCoords)
+        localLevelCoords = CoordinateTransforms.EcefToLocalLevel(localLevelOriginInECEF, ecefCoords)
+        localLevelCoords = localLevelCoords[:, 0:2]
+
+        # make coords discrete to particles
+        distArray = cdist(localLevelCoords, particleArray, metric='euclidean')
+        newGridCoordinates = np.argmin(distArray, axis=1)
+        newGridCoordinates = particleArray[newGridCoordinates, :]
+
+        # turn the positions into class indices
         rowPackagingMetadata, rowPackagingMetadataFinal = getIndexOfLabels(newGridCoordinates,
                                                                            rowPackagingMetadataFinal)
         rowPackagingMetadata = rowPackagingMetadata[:, None]
@@ -700,7 +730,7 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
 
         allIncludedFiles = []
         timer.tic("Get sizes of files")
-        for baseFileName in allBaseFileNames:
+        for baseFileName in tqdm(allBaseFileNames):
             files = np.array([f2 for f2 in sorted(os.listdir(rawDataFolder)) if
                               re.match(re.escape(baseFileName) + r'\d*\.(wav|hf)', f2)])
             files = CreateUtils.filterFilesByFileNumber(files, baseFileName, removeFileNumbers=removeFileNumbers,
@@ -849,6 +879,11 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
         outputString = '\n'.join(['\t{setName}: {rows}'.format(setName=setName, rows=rows) for setName, rows in trueRowsPerSetDict.iteritems()])
         print("True Rows Per Set\n{0}".format(outputString))
         print("Keras Row Multiplier: {kerasRowMultiplier}".format(kerasRowMultiplier=kerasRowMultiplier))
+        bytesPerBatchX = packagedRowsPerSetDict['train'] * np.prod(setDict['train'][0].shape) / setDict['train'][0].shape[0] * 4
+        bytesPerBatchY = packagedRowsPerSetDict['train'] * np.prod(setDict['train'][1].shape) / setDict['train'][1].shape[0] * 4
+        print("Bytes per batch:\nX: {0} \nY: {1} \nTotal: {2}".format(CreateUtils.sizeof_fmt(bytesPerBatchX),
+                                                                      CreateUtils.sizeof_fmt(bytesPerBatchY),
+                                                                      CreateUtils.sizeof_fmt(bytesPerBatchX + bytesPerBatchY)))
         timer.tic("Save datasets and labels")
         with pd.HDFStore(datasetFile, 'w') as datasetStore:
             for setName, setValue in setDict.iteritems():
@@ -956,7 +991,7 @@ def mainRun():
     removeFileNumbers = {}
     onlyFileNumbers = {}
     removeFeatureSetNames = []
-    onlyThisFeatureSetNames = ['FFTWindowDefault']
+    onlyThisFeatureSetNames = ['FFTWindowLowFreq']
     showFigures = True
 
     # Parameters Begin ############
@@ -984,14 +1019,16 @@ def mainRun():
         "you can't have both repeatSequenceBeginningAtEnd and repeatSequenceEndingAtEnd"
 
     # Packaging
-    rowPackagingStyle = 'BaseFileNameWithNumber'  # None, 'BaseFileNameWithNumber', 'gpsD'
+    rowPackagingStyle = 'particle'  # None, 'BaseFileNameWithNumber', 'gpsD', 'particle'
     padRowPackageWithZeros = True
     repeatRowPackageBeginningAtEnd = False
     repeatRowPackageEndingAtEnd = True
     assert not (repeatRowPackageBeginningAtEnd and repeatRowPackageEndingAtEnd), \
         "you can't have both repeatRowPackageBeginningAtEnd and repeatRowPackageEndingAtEnd"
-    gridSizePackage = (100, 100, 1000)
     allSetsSameRows = True
+    # packing parameters based on type of pack
+    gridSizePackage = (100, 100, 1000)
+    particlePackFilePath = os.path.join(rawDataFolder, "Imagery", "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
     # keras packaging
     alternateRowsForKeras = True
     timestepsPerKerasBatchRow = 100
@@ -999,7 +1036,7 @@ def mainRun():
         "You must keep all sets same rows for keras packging to work in keras"
 
     # filter features
-    filterPCA = False
+    filterPCA = True
     filterFitSets = ["train"]  # names of the sets you want to use to filter
     filterPCAn_components = None
     filterPCAwhiten = True
@@ -1030,7 +1067,7 @@ def mainRun():
     particleFilePath = os.path.join(rawDataFolder, "Imagery", "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
 
     # metadata features
-    useMetadata = False
+    useMetadata = True
     metadataList = ['CadenceBike', 'CrankRevolutions', 'SpeedInstant', 'WheelRevolutions', 'DayPercent']
     metadataShape = (len(metadataList),)
 
@@ -1145,7 +1182,7 @@ def mainRun():
     # allBaseFileNames = ["bikeneighborhood"]
     # yValueType = 'gpsC'
 
-    datasetName = 'bikeneighborhoodPackFileParticle'
+    datasetName = 'bikeneighborhoodPackParticleNormParticleM'
     allBaseFileNames = ["bikeneighborhood"]
     yValueType = 'particle'
     onlyFileNumbers = {"bikeneighborhood": []}
@@ -1224,6 +1261,8 @@ def mainRun():
         }
         if rowPackagingStyle == 'gpsD':
             packageDict.update({'gridSizePackage': gridSizePackage})
+        if rowPackagingStyle == 'particle':
+            packageDict.update({'particlePackFilePath': particlePackFilePath})
         if alternateRowsForKeras:
             kerasDict = {
                 'alternateRowsForKeras': alternateRowsForKeras,

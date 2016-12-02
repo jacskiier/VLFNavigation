@@ -15,11 +15,11 @@ import CreateUtils
 
 rawDataFolder = CreateUtils.getRawDataFolder()
 
-featureSetNameMain = 'FFTWindowDefault'
-datasetNameMain = ['bikeneighborhoodPackFileParticle']
+featureSetNameMain = 'FFTWindowLowFreq'
+datasetNameMain = ['bikeneighborhoodPackParticleNormParticleM']
 classifierTypeMain = ['LSTM']
 classifierSetNameMain = ['ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD']
-datasetNameStatsMain = ''  # for right now you only get one
+datasetNameStatsMain = 'bikeneighborhoodPackFileNormParticleM'  # for right now you only get one
 
 # per run variables
 forceRefreshFeatures = False

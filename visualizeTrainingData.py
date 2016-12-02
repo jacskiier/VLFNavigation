@@ -65,12 +65,12 @@ showPathPerRowOfPackagedFile = False
 gpsGrid = False
 
 # Calculate Stats
-calculatex_t0andP_t0 = True
+calculatex_t0andP_t0 = False
 kMeansOnRegressionY = False
 
 # Prediction Visuals
 videoClassProbability = False
-weightedPosition = False
+weightedPosition = True
 
 # transforms of X or Y
 makeDBSCAN = False
@@ -558,7 +558,9 @@ if videoClassProbability:
     writer = animation.FFMpegWriter(fps=fps)
     for whichRun in whichRuns:
         fig = plt.figure()
-        fileName = "ProbabilityVideo_{datasetName}_{whichSetName}_run{run}_fps{fps}.mp4".format(fps=fps, whichSetName=whichSetName, run=whichRun,
+        fileName = "ProbabilityVideo_{datasetName}_{whichSetName}_run{run}_fps{fps}.mp4".format(fps=fps,
+                                                                                                whichSetName=whichSetName,
+                                                                                                run=whichRun,
                                                                                                 datasetName=datasetName)
         videoSavePath = os.path.join(rawDataFolder, "Imagery", fileName)
         dpi = 100
