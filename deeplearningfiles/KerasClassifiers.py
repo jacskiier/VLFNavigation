@@ -718,6 +718,59 @@ def getListParameterAndPadLength(parameterName, padLength, classifierParameters,
     return parameter
 
 
+modelJsonExample = {"class_name": "Sequential", "keras_version": "1.1.0", "config":
+    [{"class_name": "LSTM", "config":
+        {"U_regularizer": {"l2": 0.0, "name": "WeightRegularizer", "l1": 9.999999747378752e-05}, "name": "LSTM Layer 1",
+         "inner_activation": "hard_sigmoid",
+         "go_backwards": False, "activation": "tanh", "trainable": True, "unroll": False, "consume_less": "gpu", "stateful": True,
+         "init": "glorot_uniform", "inner_init": "orthogonal", "dropout_U": 0.5, "dropout_W": 0.5, "input_dtype": "float32", "return_sequences": True,
+         "batch_input_shape": [10, 100, 1107], "W_regularizer": {"l2": 0.0, "name": "WeightRegularizer", "l1": 0.0}, "output_dim": 500,
+         "forget_bias_init": "one", "b_regularizer": {"l2": 0.0, "name": "WeightRegularizer", "l1": 0.0}}},
+     {"class_name": "LSTM", "config": {
+         "U_regularizer": {"l2": 0.0, "name": "WeightRegularizer", "l1": 9.999999747378752e-05}, "name": "LSTM Layer 2",
+         "inner_activation": "hard_sigmoid", "go_backwards": False, "activation": "tanh", "trainable": True, "unroll": False, "consume_less": "gpu",
+         "stateful": True, "init": "glorot_uniform", "inner_init": "orthogonal", "dropout_U": 0.5, "dropout_W": 0.5, "input_dtype": "float32",
+         "return_sequences": True, "batch_input_shape": [10, 100, 500], "W_regularizer": {"l2": 0.0, "name": "WeightRegularizer", "l1": 0.0},
+         "output_dim": 500, "forget_bias_init": "one", "b_regularizer": {"l2": 0.0, "name": "WeightRegularizer", "l1": 0.0}}},
+     {"class_name": "TimeDistributed", "config":
+         {"layer": {"class_name": "Dense",
+                    "config": {"W_constraint": None, "b_constraint": None, "name": "Dense Layer 3 tanh",
+                               "activity_regularizer": None, "trainable": True, "init": "glorot_uniform",
+                               "bias": True, "input_dim": None,
+                               "b_regularizer": {"l2": 0.0, "name": "WeightRegularizer", "l1": 0.0},
+                               "W_regularizer": {"l2": 0.0, "name": "WeightRegularizer",
+                                                 "l1": 9.999999747378752e-05}, "activation": "tanh",
+                               "output_dim": 500}}, "trainable": True, "name": "TD Dense Layer 3 tanh"}},
+     {"class_name": "Dropout", "config":
+         {"p": 0.5, "trainable": True, "name": "Dropout Layer 3"}},
+     {"class_name": "TimeDistributed", "config":
+         {"layer": {"class_name": "Dense",
+                    "config": {"W_constraint": None, "b_constraint": None, "name": "Dense Layer 4 tanh", "activity_regularizer": None,
+                               "trainable": True, "init": "glorot_uniform", "bias": True, "input_dim": None,
+                               "b_regularizer": {"l2": 0.0, "name": "WeightRegularizer", "l1": 0.0},
+                               "W_regularizer": {"l2": 0.0, "name": "WeightRegularizer", "l1": 9.999999747378752e-05}, "activation": "tanh",
+                               "output_dim": 500}}, "trainable": True, "name": "TD Dense Layer 4 tanh"}},
+     {"class_name": "Dropout", "config":
+         {"p": 0.5, "trainable": True, "name": "Dropout Layer 4"}},
+     {"class_name": "TimeDistributed", "config": {
+         "layer": {"class_name": "Dense",
+                   "config": {"W_constraint": None, "b_constraint": None, "name": "Dense Layer Output", "activity_regularizer": None,
+                              "trainable": True, "init": "glorot_uniform", "bias": True, "input_dim": None, "b_regularizer": None,
+                              "W_regularizer": None, "activation": "linear", "output_dim": 100}}, "trainable": True,
+         "name": "TD Dense Layer Output"}},
+     {"class_name": "Activation", "config": {"activation": "softmax", "trainable": True, "name": "softmax Layer Output"}}]}
+
+
+def changeBatchInputShapeOfModel(modelConfig, newBatchSize):
+    import json
+    modelJson = json.loads(modelConfig)
+    layerArray = modelJson['config']
+    for layer in layerArray:
+        if 'batch_input_shape' in layer['config']:
+            layer['config']['batch_input_shape'][0] = newBatchSize
+    return json.dumps(modelJson)
+
+
 def kerasClassifier_parameterized(featureParameters, datasetParameters, classifierParameters, forceRebuildModel=False,
                                   showModelAsFigure=False):
     """

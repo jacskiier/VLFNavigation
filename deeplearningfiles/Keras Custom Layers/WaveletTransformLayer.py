@@ -25,6 +25,16 @@ class WaveletTransformLayer(Layer):
                  minCyclesPerOneSigma=None,
                  useConvolution=False,
                  **kwargs):
+        """
+        :param output_dim: number of Frequency-Sigma value banks per input channel
+        :param maxWindowSize: size of filter window (if useConvolution=False must match input_dim)
+        :param kValues: values of normalized frequency (must have one value for each input channel bank combination)
+        :param sigmaValues: values of window drop off as gaussian variable sigma (must have one value for each input channel bank combination)
+        :param minSigmasPerWindow: minimum sigmas in one filter window size
+        :param minCyclesPerOneSigma: minimum cycles to fit inside a one sigma for any frequency
+        :param useConvolution: if True will shift a sliding filter window for all input samples, if false does one window per timestep
+        :param kwargs: extra layer args for Keras
+        """
         assert output_dim is not None, "There must be an output_dim"
         assert maxWindowSize is not None, "There must be a window size"
         self.output_dim = output_dim
@@ -101,11 +111,11 @@ class WaveletTransformLayer(Layer):
             assert self.input_dim == self.maxWindowSize, errorString
 
         sigma_w = 8 if self.initDict['minSigmasPerWindow'] is None else self.initDict['minSigmasPerWindow']
-        c_sigma = 3 / 8.0 if self.initDict['minSigmasPerWindow'] is None else 3 / float(
-            self.initDict['minSigmasPerWindow'])
-        defaultKs = np.random.randint(sigma_w * c_sigma, self.maxWindowSize - sigma_w * c_sigma,
-                                      (self.output_dim,)).astype(theano.config.floatX)
-        defaultSigmas = np.zeros((self.output_dim,))
+        c_sigma = 3 / 8.0 if self.initDict['minSigmasPerWindow'] is None else 3 / float(self.initDict['minSigmasPerWindow'])
+        assert self.maxWindowSize > 2 * (sigma_w * c_sigma), "minSigmasPerWindow and minSigmasPerWindow are too big for given maxWindowSize"
+        defaultKs = np.random.randint(sigma_w * c_sigma, self.maxWindowSize - (sigma_w * c_sigma),
+                                      (self.output_dim * self.input_channels,)).astype(theano.config.floatX)
+        defaultSigmas = np.zeros((self.output_dim * self.input_channels,))
         for index in range(defaultSigmas.shape[0]):
             defaultSigmas[index] = np.random.randint(self.maxWindowSize * c_sigma / defaultKs[index],
                                                      int(self.maxWindowSize / float(sigma_w)), (1,)).astype(
@@ -114,8 +124,7 @@ class WaveletTransformLayer(Layer):
             'kValues': defaultKs,
             'sigmaValues': defaultSigmas,
             'minSigmasPerWindow': 8,
-            'minCyclesPerOneSigma': 3 / 8.0 if self.initDict['minSigmasPerWindow'] is None else 3 / float(
-                self.initDict['minSigmasPerWindow']),
+            'minCyclesPerOneSigma': 3 / 8.0 if self.initDict['minSigmasPerWindow'] is None else 3 / float(self.initDict['minSigmasPerWindow']),
         }
 
         for (weightName, initValue) in self.initDict.iteritems():
@@ -137,8 +146,8 @@ class WaveletTransformLayer(Layer):
     def call(self, inputSignal, mask=None):
         # inputSignal = (bs x timesteps x input_channels x input_dim)
 
-        kValuesT = self.kValues  # (output_dim, )
-        sigmaValuesT = self.sigmaValues  # (output_dim, )
+        kValuesT = self.kValues  # (output_dim * input_channels, )
+        sigmaValuesT = self.sigmaValues  # (output_dim * input_channels, )
 
         if self.useConvolution:
             inputSignalReshaped = T.swapaxes(inputSignal, 1, 2)
@@ -274,11 +283,12 @@ class WaveletTransformLayer(Layer):
         return powerOut
 
 
-def runMain():
+def testNoConvolution():
+    # test with no convolution
     plt.close('all')
     signalLength = 44100 * 60 * 30
     input_channelsMain = 3
-    maxWindowSizeMain = 44100  # 10000
+    maxWindowSizeMain = 44100
     minSigmasPerWindowMain = 8
     minCyclesPerOneSigmaMain = 3
     sigmaMax = maxWindowSizeMain / minSigmasPerWindowMain
@@ -316,11 +326,90 @@ def runMain():
     bank_size = kValuesMain.shape[0] / input_channelsMain
 
     useConvolution = False
-    if useConvolution is False:
-        signal = np.reshape(signal, (signal.shape[0] / input_dim, input_dim))
-        assert maxWindowSizeMain == input_dim, "the window size and input_dim must be equal if not doing conv"
-    else:
-        signal = signal[:, None]
+    signal = np.reshape(signal, (signal.shape[0] / input_dim, input_dim))
+    assert maxWindowSizeMain == input_dim, "the window size and input_dim must be equal if not doing conv"
+
+    signal = np.repeat(signal[None, :], batch_sizeMain, 0)
+    signal = np.repeat(signal[:, :, None], input_channelsMain, 2)
+    # inputSignal = (bs x timesteps x input_channels x input_dim)
+
+    waveletLayer = WaveletTransformLayer(bank_size, maxWindowSizeMain,
+                                         kValues=kValuesMain,
+                                         sigmaValues=sigmaValuesMain,
+                                         minCyclesPerOneSigma=minCyclesPerOneSigmaMain,
+                                         minSigmasPerWindow=minSigmasPerWindowMain,
+                                         useConvolution=useConvolution,
+                                         name="Wavelet Layer")
+    waveletLayer.build((batch_sizeMain, signal.shape[1], input_channelsMain, input_dim))
+    inputSignalT = T.tensor4("inputSignal", dtype=theano.config.floatX)
+    powerOutT = waveletLayer.call(inputSignalT, None)
+
+    waveletTransform = theano.function(inputs=[inputSignalT], outputs=[powerOutT])
+
+    powerOutMain = waveletTransform(signal)[0]
+
+    powerOutMain = np.reshape(powerOutMain,
+                              newshape=(batch_sizeMain, signal.shape[1], input_channelsMain, bank_size))
+    maxBatchesToShow = 9
+    plotsX = np.ceil(np.sqrt(min(bank_size, maxBatchesToShow)))
+    plotsY = plotsX
+    totalPlots = min(bank_size, maxBatchesToShow)
+    print(totalPlots)
+    batchToShow = 0
+    outputChannelToShow = 0
+    for output_dimToShow in range(totalPlots):
+        plt.figure(4)
+        plt.subplot(plotsX, plotsY, output_dimToShow + 1)
+        plt.semilogy(powerOutMain[batchToShow, :, outputChannelToShow, output_dimToShow])
+        plt.ylim([np.min(powerOutMain), np.max(powerOutMain)])
+    plt.show()
+
+
+def testConvolution():
+    # test with convolution
+    plt.close('all')
+    signalLength = 44100 * 5
+    input_channelsMain = 3
+    maxWindowSizeMain = 10000
+    minSigmasPerWindowMain = 8
+    minCyclesPerOneSigmaMain = 3
+    sigmaMax = maxWindowSizeMain / minSigmasPerWindowMain
+    smallestK = minCyclesPerOneSigmaMain * minSigmasPerWindowMain
+    input_dim = 1
+    batch_sizeMain = 1
+
+    # signal for everyone
+    dt = 1 / 44100.0  # second/sample
+    samplingRate = 1 / dt  # samples / second
+    nyquistFreq = samplingRate / 2.0
+    start = 0
+    end = signalLength * dt
+    signalFreq = 100.0
+    signalFreq2 = smallestK / float(maxWindowSizeMain * dt)
+    x = np.arange(start, end, dt, dtype=theano.config.floatX)
+    signal = np.sin(signalFreq * 2 * np.pi * x)
+    signal2 = np.sin(signalFreq2 * 2 * np.pi * x)
+    signal[signalLength / 2:] = signal2[signalLength / 2:]
+    signal = signal.astype(theano.config.floatX)
+    plt.figure(1)
+    plt.plot(x, signal)
+    plt.title("Signal")
+
+    print("Sampling Rate {samplingRate} Hz".format(samplingRate=samplingRate))
+    print("Nyquist freq is {nyqist} Hz".format(nyqist=nyquistFreq))
+    print("Sigma Max {sigmaMax} samples. Smallest K {smallestK} normFreq".format(sigmaMax=sigmaMax, smallestK=smallestK))
+    print("Sigma Max {sigma} seconds. Smallest Freq {freq} Hz".format(sigma=sigmaMax * dt, freq=smallestK / float(maxWindowSizeMain) * samplingRate))
+    secondsPerWindow = dt * maxWindowSizeMain
+    print("Seconds per window {secondsPerWindow}".format(secondsPerWindow=secondsPerWindow))
+
+    # input_channel x filters
+    sigmaValuesMain = (np.array([sigmaMax, sigmaMax / 2.0] * input_channelsMain)).astype(theano.config.floatX)
+    kValuesMain = (np.array([smallestK, smallestK * 2.0] * input_channelsMain)).astype(theano.config.floatX)
+    bank_size = kValuesMain.shape[0] / input_channelsMain
+
+    print ("bank size {0}".format(bank_size))
+    useConvolution = True
+    signal = signal[:, None]
     signal = np.repeat(signal[None, :], batch_sizeMain, 0)
     signal = np.repeat(signal[:, :, None], input_channelsMain, 2)
     # inputSignal = (bs x timesteps x input_channels x input_dim)
@@ -358,4 +447,5 @@ def runMain():
 
 
 if __name__ == '__main__':
-    runMain()
+    # testNoConvolution()
+    testConvolution()

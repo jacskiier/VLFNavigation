@@ -2,16 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="adaf546f-baf3-4e20-a082-824a85cc78b4" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/VLFNavigation.iml" afterPath="$PROJECT_DIR$/.idea/VLFNavigation.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CreateDataset.py" afterPath="$PROJECT_DIR$/CreateDataset.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CreateFeature.py" afterPath="$PROJECT_DIR$/CreateFeature.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CreateUtils.py" afterPath="$PROJECT_DIR$/CreateUtils.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/RunExperiment.py" afterPath="$PROJECT_DIR$/RunExperiment.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py" afterPath="$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" afterPath="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py" afterPath="$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/visualizeTrainingData.py" afterPath="$PROJECT_DIR$/visualizeTrainingData.py" />
     </list>
     <ignored path="VLFNavigation.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -33,7 +26,7 @@
     <SUITE FILE_PATH="coverage/VLFNavigation$CreateClassifierConfig.coverage" NAME="CreateClassifierConfig Coverage Results" MODIFIED="1479755696514" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/VLFNavigation$theanohelper.coverage" NAME="theanohelper Coverage Results" MODIFIED="1478891186696" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/VLFNavigation$RunExperiment.coverage" NAME="RunExperiment Coverage Results" MODIFIED="1480706498461" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$WaveletTransformLayer.coverage" NAME="WaveletTransformLayer Coverage Results" MODIFIED="1479754128030" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$WaveletTransformLayer.coverage" NAME="WaveletTransformLayer Coverage Results" MODIFIED="1481124416699" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
     <SUITE FILE_PATH="coverage/VLFNavigation$KalmanFilter.coverage" NAME="KalmanFilter Coverage Results" MODIFIED="1479325956025" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
   </component>
   <component name="CreatePatchCommitExecutor">
@@ -48,10 +41,11 @@
       <file leaf-file-name="KerasClassifiers.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5670">
-              <caret line="378" column="0" lean-forward="false" selection-start-line="378" selection-start-column="0" selection-end-line="378" selection-end-column="0" />
+            <state relative-caret-position="11085">
+              <caret line="779" column="57" lean-forward="false" selection-start-line="779" selection-start-column="57" selection-end-line="779" selection-end-column="57" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
+                <element signature="e#36343#40168#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -81,7 +75,7 @@
         <entry file="file://$PROJECT_DIR$/RunExperiment.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="195">
-              <caret line="26" column="25" lean-forward="true" selection-start-line="26" selection-start-column="25" selection-end-line="26" selection-end-column="25" />
+              <caret line="26" column="25" lean-forward="false" selection-start-line="26" selection-start-column="25" selection-end-line="26" selection-end-column="25" />
               <folding />
             </state>
           </provider>
@@ -90,8 +84,8 @@
       <file leaf-file-name="ClassificationUtils.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
-              <caret line="687" column="37" lean-forward="true" selection-start-line="687" selection-start-column="37" selection-end-line="687" selection-end-column="37" />
+            <state relative-caret-position="9930">
+              <caret line="687" column="37" lean-forward="false" selection-start-line="687" selection-start-column="37" selection-end-line="687" selection-end-column="37" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -102,8 +96,8 @@
       <file leaf-file-name="visualizeTrainingData.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/visualizeTrainingData.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="427">
-              <caret line="583" column="39" lean-forward="true" selection-start-line="583" selection-start-column="39" selection-end-line="583" selection-end-column="39" />
+            <state relative-caret-position="8250">
+              <caret line="583" column="39" lean-forward="false" selection-start-line="583" selection-start-column="39" selection-end-line="583" selection-end-column="39" />
               <folding />
             </state>
           </provider>
@@ -112,7 +106,7 @@
       <file leaf-file-name="CreateFeature.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CreateFeature.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="420">
+            <state relative-caret-position="13020">
               <caret line="903" column="38" lean-forward="false" selection-start-line="903" selection-start-column="38" selection-end-line="903" selection-end-column="38" />
               <folding />
             </state>
@@ -122,28 +116,28 @@
       <file leaf-file-name="CreateUtils.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CreateUtils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="414">
+            <state relative-caret-position="3780">
               <caret line="254" column="4" lean-forward="false" selection-start-line="254" selection-start-column="4" selection-end-line="254" selection-end-column="4" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="WaveletTransformLayer.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="WaveletTransformLayer.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1110">
-              <caret line="81" column="48" lean-forward="false" selection-start-line="81" selection-start-column="48" selection-end-line="81" selection-end-column="48" />
+            <state relative-caret-position="187">
+              <caret line="369" column="20" lean-forward="true" selection-start-line="369" selection-start-column="20" selection-end-line="369" selection-end-column="20" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="TeacherForcing.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="TeacherForcing.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/TeacherForcing.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3294">
-              <caret line="469" column="0" lean-forward="false" selection-start-line="469" selection-start-column="0" selection-end-line="469" selection-end-column="0" />
+            <state relative-caret-position="4065">
+              <caret line="279" column="19" lean-forward="false" selection-start-line="279" selection-start-column="19" selection-end-line="279" selection-end-column="19" />
               <folding />
             </state>
           </provider>
@@ -152,7 +146,7 @@
       <file leaf-file-name="CreateDataset.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CreateDataset.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
+            <state relative-caret-position="15840">
               <caret line="1184" column="60" lean-forward="false" selection-start-line="1184" selection-start-column="19" selection-end-line="1184" selection-end-column="60" />
               <folding>
                 <element signature="e#54092#54112#0" expanded="false" />
@@ -184,11 +178,15 @@
       <find>gpsD</find>
       <find>weightedPosition</find>
       <find>plotVeroni</find>
+      <find>true</find>
+      <find>false</find>
+      <find>bank</find>
     </findStrings>
     <replaceStrings>
       <replace>22050</replace>
-      <replace>True</replace>
       <replace>None</replace>
+      <replace>True</replace>
+      <replace>False</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -223,16 +221,16 @@
         <option value="$PROJECT_DIR$/deeplearningfiles/ParticleFilter.py" />
         <option value="$PROJECT_DIR$/ParticleFilter.py" />
         <option value="$PROJECT_DIR$/CreateClassifierConfig.py" />
-        <option value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/KalmanFilter.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/TeacherForcing.py" />
-        <option value="$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py" />
         <option value="$PROJECT_DIR$/CreateFeature.py" />
         <option value="$PROJECT_DIR$/CreateUtils.py" />
         <option value="$PROJECT_DIR$/CreateDataset.py" />
         <option value="$PROJECT_DIR$/RunExperiment.py" />
         <option value="$PROJECT_DIR$/visualizeTrainingData.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py" />
+        <option value="$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py" />
+        <option value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" />
       </list>
     </option>
   </component>
@@ -297,6 +295,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -343,7 +342,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -357,7 +355,7 @@
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.RunExperiment">
+  <component name="RunManager" selected="Python.WaveletTransformLayer">
     <configuration default="false" name="TeacherForcing" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -394,24 +392,6 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="CreateClassifierConfig" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="VLFNavigation" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/CreateClassifierConfig.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
     <configuration default="false" name="CreateDataset" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -444,6 +424,24 @@
       <module name="VLFNavigation" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/CreateFeature.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="WaveletTransformLayer" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="VLFNavigation" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -665,17 +663,17 @@
     <list size="5">
       <item index="0" class="java.lang.String" itemvalue="Python.TeacherForcing" />
       <item index="1" class="java.lang.String" itemvalue="Python.RunExperiment" />
-      <item index="2" class="java.lang.String" itemvalue="Python.CreateClassifierConfig" />
-      <item index="3" class="java.lang.String" itemvalue="Python.CreateDataset" />
-      <item index="4" class="java.lang.String" itemvalue="Python.CreateFeature" />
+      <item index="2" class="java.lang.String" itemvalue="Python.CreateDataset" />
+      <item index="3" class="java.lang.String" itemvalue="Python.CreateFeature" />
+      <item index="4" class="java.lang.String" itemvalue="Python.WaveletTransformLayer" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.RunExperiment" />
-        <item index="1" class="java.lang.String" itemvalue="Python.CreateDataset" />
-        <item index="2" class="java.lang.String" itemvalue="Python.CreateFeature" />
-        <item index="3" class="java.lang.String" itemvalue="Python.TeacherForcing" />
-        <item index="4" class="java.lang.String" itemvalue="Python.CreateClassifierConfig" />
+        <item index="0" class="java.lang.String" itemvalue="Python.WaveletTransformLayer" />
+        <item index="1" class="java.lang.String" itemvalue="Python.RunExperiment" />
+        <item index="2" class="java.lang.String" itemvalue="Python.CreateDataset" />
+        <item index="3" class="java.lang.String" itemvalue="Python.CreateFeature" />
+        <item index="4" class="java.lang.String" itemvalue="Python.TeacherForcing" />
       </list>
     </recent_temporary>
   </component>
@@ -777,7 +775,14 @@
       <option name="project" value="LOCAL" />
       <updated>1480428474410</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Daily Commit">
+      <created>1480713796881</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1480713796881</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TodoView">
@@ -793,7 +798,7 @@
     <frame x="65" y="24" width="1855" height="1056" extended-state="6" />
     <editor active="false" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23272526" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23548922" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
@@ -801,7 +806,7 @@
       <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25262576" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25538972" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -872,9 +877,9 @@
     <MESSAGE value="Added output for input shape function" />
     <MESSAGE value="Wavelet Datasets and Features" />
     <MESSAGE value="Added Teacher Forcing Class" />
-    <MESSAGE value="Daily Commit" />
     <MESSAGE value="Teacher Forcing Update" />
-    <option name="LAST_COMMIT_MESSAGE" value="Teacher Forcing Update" />
+    <MESSAGE value="Daily Commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="Daily Commit" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1074,14 +1079,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1110">
-          <caret line="81" column="48" lean-forward="false" selection-start-line="81" selection-start-column="48" selection-end-line="81" selection-end-column="48" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/keras/engine/training.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="198">
@@ -1097,19 +1094,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5670">
-          <caret line="378" column="0" lean-forward="false" selection-start-line="378" selection-start-column="0" selection-end-line="378" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/CreateFeature.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
+        <state relative-caret-position="13020">
           <caret line="903" column="38" lean-forward="false" selection-start-line="903" selection-start-column="38" selection-end-line="903" selection-end-column="38" />
           <folding />
         </state>
@@ -1117,7 +1104,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/CreateUtils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="414">
+        <state relative-caret-position="3780">
           <caret line="254" column="4" lean-forward="false" selection-start-line="254" selection-start-column="4" selection-end-line="254" selection-end-column="4" />
           <folding />
         </state>
@@ -1125,7 +1112,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/CreateDataset.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
+        <state relative-caret-position="15840">
           <caret line="1184" column="60" lean-forward="false" selection-start-line="1184" selection-start-column="19" selection-end-line="1184" selection-end-column="60" />
           <folding>
             <element signature="e#54092#54112#0" expanded="false" />
@@ -1136,15 +1123,15 @@
     <entry file="file://$PROJECT_DIR$/RunExperiment.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="195">
-          <caret line="26" column="25" lean-forward="true" selection-start-line="26" selection-start-column="25" selection-end-line="26" selection-end-column="25" />
+          <caret line="26" column="25" lean-forward="false" selection-start-line="26" selection-start-column="25" selection-end-line="26" selection-end-column="25" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="687" column="37" lean-forward="true" selection-start-line="687" selection-start-column="37" selection-end-line="687" selection-end-column="37" />
+        <state relative-caret-position="9930">
+          <caret line="687" column="37" lean-forward="false" selection-start-line="687" selection-start-column="37" selection-end-line="687" selection-end-column="37" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
@@ -1153,16 +1140,35 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/visualizeTrainingData.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="427">
-          <caret line="583" column="39" lean-forward="true" selection-start-line="583" selection-start-column="39" selection-end-line="583" selection-end-column="39" />
+        <state relative-caret-position="8250">
+          <caret line="583" column="39" lean-forward="false" selection-start-line="583" selection-start-column="39" selection-end-line="583" selection-end-column="39" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/TeacherForcing.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3294">
-          <caret line="469" column="0" lean-forward="false" selection-start-line="469" selection-start-column="0" selection-end-line="469" selection-end-column="0" />
+        <state relative-caret-position="4065">
+          <caret line="279" column="19" lean-forward="false" selection-start-line="279" selection-start-column="19" selection-end-line="279" selection-end-column="19" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="11085">
+          <caret line="779" column="57" lean-forward="false" selection-start-line="779" selection-start-column="57" selection-end-line="779" selection-end-column="57" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+            <element signature="e#36343#40168#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="187">
+          <caret line="369" column="20" lean-forward="true" selection-start-line="369" selection-start-column="20" selection-end-line="369" selection-end-column="20" />
           <folding />
         </state>
       </provider>
