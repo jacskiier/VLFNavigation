@@ -15,11 +15,11 @@ import CreateUtils
 
 rawDataFolder = CreateUtils.getRawDataFolder()
 
-featureSetNameMain = 'FFTWindowLowFreq'
-datasetNameMain = ['bikeneighborhoodPackParticleNormParticleM']
+featureSetNameMain = 'FFTWindowDefault'
+datasetNameMain = ['bikeneighborhoodPackFileNormParticle']
 classifierTypeMain = ['LSTM']
 classifierSetNameMain = ['ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD']
-datasetNameStatsMain = 'bikeneighborhoodPackFileNormParticleM'  # for right now you only get one
+datasetNameStatsMain = 'walkneighborhoodPackFileNormParticle'  # for right now you only get one
 
 # per run variables
 forceRefreshFeatures = False
@@ -35,7 +35,8 @@ removeClassifierSetNames = []
 # statstics parameters
 useLabels = True
 showFigures = True
-whichSetMaster = 1
+whichSetNameMaster = 'valid'
+whichSetNameStats = 'normal'
 wildCards = (0, 0, 0, 0)
 onlyPreviousExperiments = True  # only works if the last wild card is 1
 
@@ -62,7 +63,12 @@ def getParameters(rawDataFolderArg, featureSetName, datasetName, classifierType,
     return featureParameters, datasetParameters, modelParameters
 
 
-def runExperiment(featureSetName, datasetName, classifierType, classifierSetName, whichSet=1,
+def runExperiment(featureSetName,
+                  datasetName,
+                  classifierType,
+                  classifierSetName,
+                  whichSetName='valid',
+                  whichSetNameStat='valid',
                   showFiguresArg=(False, False),
                   datasetNameStats=None,
                   modelStoreNameTypeArg="best"):
@@ -90,7 +96,6 @@ def runExperiment(featureSetName, datasetName, classifierType, classifierSetName
     if not os.path.exists(experimentsFolder):
         os.makedirs(experimentsFolder)
 
-    datasetStatsConfigFileName = ''
     if datasetNameStats is not None and datasetNameStats != '':
         processedDataTestFolder = os.path.join(rawDataFolder, "Processed Data Datasets", datasetNameStats)
         datasetStatsConfigFileName = os.path.join(processedDataTestFolder, "dataset parameters.yaml")
@@ -150,23 +155,25 @@ def runExperiment(featureSetName, datasetName, classifierType, classifierSetName
     if not os.path.exists(os.path.join(experimentsFolder, 'results.yaml')) or forceRefreshStats:
         if modelParameters['classifierType'] in CreateUtils.sklearnensembleTypes:
             SkleanEnsembleRegressors.makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters,
-                                                            datasetStatsParameters, modelParameters, whichSet=whichSet,
+                                                            datasetStatsParameters, modelParameters, whichSetName=whichSetName,
                                                             showFigures=showFiguresArg[0],
                                                             useLabels=useLabels)
         elif modelParameters['classifierType'] in CreateUtils.kerasTypes:
             KerasClassifiers.makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters,
-                                                    datasetStatsParameters, modelParameters, whichSet=whichSet,
+                                                    datasetParameters, modelParameters, whichSetName=whichSetName,
+                                                    whichSetNameStat=whichSetNameStat,
                                                     showFigures=showFiguresArg[0],
                                                     useLabels=useLabels, modelStoreNameType=modelStoreNameTypeArg)
         else:
             classifierGoal = modelParameters['classifierGoal'] if 'classifierGoal' in modelParameters else None
             if classifierGoal == 'classification' or classifierGoal is None:
                 logistic_sgd.makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters,
-                                                    datasetStatsParameters, modelParameters, whichSet=whichSet,
+                                                    datasetParameters, modelParameters, whichSetName=whichSetName,
+                                                    whichSetNameStat=whichSetNameStat,
                                                     showFigures=showFiguresArg[0], useLabels=useLabels)
             elif classifierGoal == 'regression':
                 linearRegression.makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters,
-                                                        datasetStatsParameters, modelParameters, whichSet=whichSet,
+                                                        datasetStatsParameters, modelParameters, whichSetName=whichSetNameStat,
                                                         showFigures=showFiguresArg[0], useLabels=useLabels)
             else:
                 raise ValueError("This classifier goal {0} not supported".format(classifierGoal))
@@ -215,6 +222,12 @@ if __name__ == '__main__':
                     classifierSets = classifierSetNameMain if isinstance(classifierSetNameMain, list) else [
                         classifierSetNameMain]
                 for classifierSet in classifierSets:
-                    runExperiment(featureSet, dataset, classifierTypeIterator, classifierSet, whichSet=whichSetMaster,
-                                  showFiguresArg=(showFigures, showKerasFigure), datasetNameStats=datasetNameStatsMain,
+                    runExperiment(featureSet,
+                                  dataset,
+                                  classifierTypeIterator,
+                                  classifierSet,
+                                  whichSetName=whichSetNameMaster,
+                                  whichSetNameStat=whichSetNameStats,
+                                  showFiguresArg=(showFigures, showKerasFigure),
+                                  datasetNameStats=datasetNameStatsMain,
                                   modelStoreNameTypeArg=modelStoreNameType)

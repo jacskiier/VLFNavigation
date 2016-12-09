@@ -362,7 +362,7 @@ def sgd_optimization_parameterized(featureParameters, datasetParameters, classif
                                rogueClasses=classifierParameters['rogueClasses'])
 
 
-def getPredicted_Values_TrueValues_Labels(datasetFileName='mnist.pkl.gz', experimentStoreFolder='', whichSetArg=2):
+def getPredicted_Values_TrueValues_Labels(datasetFileName='mnist.pkl.gz', experimentStoreFolder='', whichSetName='valid'):
     # load the saved model
     processedDataFolder = os.path.dirname(datasetFileName)
     modelStoreFilePathFullTemp = os.path.join(experimentStoreFolder, 'best_model.pkl')
@@ -376,7 +376,7 @@ def getPredicted_Values_TrueValues_Labels(datasetFileName='mnist.pkl.gz', experi
 
     # We can test it on some examples from test test
     datasets, inputs, outputs, max_batch_size = RegressionUtils.load_data(datasetFileName)
-    (set_x, set_y) = datasets[whichSetArg]
+    (set_x, set_y) = datasets[0]
 
     # partialYoverPartialX = T.grad(T.sum(classifier.y_pred.norm(2, axis=1)), classifier.input)
     partialYoverPartialX = T.grad(T.sum(classifier.y_pred), classifier.input)
@@ -390,7 +390,7 @@ def getPredicted_Values_TrueValues_Labels(datasetFileName='mnist.pkl.gz', experi
     gradArray = getAllPartials()
     gradStoreFilePathFullTemp = os.path.join(experimentStoreFolder, 'gradArray.hf')
     with pd.HDFStore(gradStoreFilePathFullTemp, 'a') as datasetStore:
-        datasetStore['gradArray{0}'.format(whichSetArg)] = pd.DataFrame(gradArray)
+        datasetStore['gradArray{0}'.format(whichSetName)] = pd.DataFrame(gradArray)
     # np.savetxt(os.path.join(experimentStoreFolder, 'gradArray.csv'), gradArray, delimiter=',')
 
     set_x = set_x.get_value()
@@ -398,7 +398,7 @@ def getPredicted_Values_TrueValues_Labels(datasetFileName='mnist.pkl.gz', experi
 
     # We can test it on some examples from test test
     datasets, inputs, outputs, max_batch_size = RegressionUtils.load_data(datasetFileName, makeSharedData=False)
-    (set_x, set_y) = datasets[whichSetArg]
+    (set_x, set_y) = datasets[0]
 
     classLabels = ClassificationUtils.getLabelsForDataset(processedDataFolder, datasetFileName)
 
@@ -411,7 +411,7 @@ def makeStatisticsForModel(experimentsFolder,
                            datasetParameters,
                            classifierParameters,
                            useLabels=True,
-                           whichSet=1,
+                           whichSetName='valid',
                            showFigures=True):
     """
     Make staticstics for a model using the features, datset, and classifier given whose model is already made
@@ -434,14 +434,12 @@ def makeStatisticsForModel(experimentsFolder,
     :type useLabels: bool
     :param useLabels: If labels should be used in charts True or just the class number False
 
-    :type whichSet: int
-    :param whichSet: Which of the sets to do the statistics on training=0 validation=1 testing=2
+    :type whichSetName: str
+    :param whichSetName: Which of the sets to do the thresholding on
 
     :type showFigures: bool
     :param showFigures: If you want to see the figures now instead of viewing them on disk later (still saves them no matter what)
     """
-
-    setNames = ['Training', 'Validation', 'Testing']
 
     if os.path.exists(
             os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
@@ -455,17 +453,17 @@ def makeStatisticsForModel(experimentsFolder,
     (predicted_values_master, true_values_master, classLabelsMaster) = getPredicted_Values_TrueValues_Labels(
         datasetFileName=datasetFile,
         experimentStoreFolder=experimentsFolder,
-        whichSetArg=whichSet)
+        whichSetName=whichSetName)
     if not useLabels:
         classLabelsMaster = None
-    thresholdsMaster = RegressionUtils.getStatistics(predicted_values_master, true_values_master, classLabels=classLabelsMaster,
-                                                     rogueClasses=rogueClassesMaster,
-                                                     setName=setNames[whichSet], statisticsStoreFolder=statisticsStoreFolder,
+    thresholdsMaster = RegressionUtils.getStatistics(predicted_values_master, true_values_master,
+                                                     setName=whichSetName,
+                                                     statisticsStoreFolder=statisticsStoreFolder,
                                                      datasetParameters=datasetParameters)
     if len(rogueClassesMaster) > 0:
         RegressionUtils.rogueAnalysis(thresholdsMaster, predicted_values_master, true_values_master, classLabels=classLabelsMaster,
                                       rogueClasses=rogueClassesMaster,
-                                      setName=setNames[whichSet], statisticsStoreFolder=statisticsStoreFolder)
+                                      setName=whichSetName, statisticsStoreFolder=statisticsStoreFolder)
     if showFigures:
         plt.show()
 

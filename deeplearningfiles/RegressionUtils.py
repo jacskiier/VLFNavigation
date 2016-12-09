@@ -16,7 +16,8 @@ def load_data(datasetFileName,
               makeSharedData=True,
               makeSequenceForX=False,
               makeSequenceForY=False,
-              timesteps=0):
+              timesteps=0,
+              setNames=('train', 'test', 'valid')):
     """ Loads the dataset
 
     :type datasetFileName: string
@@ -66,24 +67,17 @@ def load_data(datasetFileName,
     #
     print '... loading data'
 
+    setDict = {}
     # Load the dataset
-    if re.match('''.*\.pkl\.gz$''', datasetFileName):
-        f = gzip.open(datasetFileName, 'rb')
-        train_set, valid_set, test_set = cPickle.load(f)
-        f.close()
-    elif re.match('''.*\.hf$''', datasetFileName):
+    if re.match('''.*\.hf$''', datasetFileName):
         with pd.HDFStore(datasetFileName, 'r') as featureStore:
-            train_set_x = featureStore['train_set_x'].as_matrix()
-            valid_set_x = featureStore['valid_set_x'].as_matrix()
-            test_set_x = featureStore['test_set_x'].as_matrix()
-            train_set_y = featureStore['train_set_y'].as_matrix()
-            valid_set_y = featureStore['valid_set_y'].as_matrix()
-            test_set_y = featureStore['test_set_y'].as_matrix()
-            train_set = [train_set_x, train_set_y]
-            valid_set = [valid_set_x, valid_set_y]
-            test_set = [test_set_x, test_set_y]
+            for setName in setNames:
+                set_x = featureStore['train_set_x'].as_matrix()
+                set_y = featureStore['train_set_y'].as_matrix()
+                setDict[setName] = (set_x, set_y)
+
     else:
-        raise ValueError('Only .pkl.gz or .hf or .csv file types are supported')
+        raise ValueError('Only .hf file types are supported')
 
     # train_set, valid_set, test_set format: tuple(input, target)
     # input is an np.ndarray of 2 dimensions (a matrix)
@@ -118,44 +112,33 @@ def load_data(datasetFileName,
         return shared_x, shared_y
 
     if len(rogueClasses) > 0:
-        nonRogueMask = np.logical_not(np.in1d(test_set[1], np.array(rogueClasses)))
-        test_set = (test_set[0][nonRogueMask], test_set[1][nonRogueMask])
+        for setName in setNames:
+            thisSet = setDict[setName]
+            nonRogueMask = np.logical_not(np.in1d(thisSet[1], np.array(rogueClasses)))
+            thisSet = (thisSet[0][nonRogueMask], thisSet[1][nonRogueMask])
+            for rogueClass in list(np.flipud(rogueClasses)):
+                thisSet[1][thisSet[1] > rogueClass] -= 1
+            setDict[setName] = thisSet
 
-        nonRogueMask = np.logical_not(np.in1d(valid_set[1], np.array(rogueClasses)))
-        valid_set = (valid_set[0][nonRogueMask], valid_set[1][nonRogueMask])
-
-        nonRogueMask = np.logical_not(np.in1d(train_set[1], np.array(rogueClasses)))
-        train_set = (train_set[0][nonRogueMask], train_set[1][nonRogueMask])
-
-        for rogueClass in list(np.flipud(rogueClasses)):
-            test_set[1][test_set[1] > rogueClass] -= 1
-            valid_set[1][valid_set[1] > rogueClass] -= 1
-            train_set[1][train_set[1] > rogueClass] -= 1
-
-    for setter in [train_set, valid_set, test_set]:
+    for setName in setNames:
+        set_x, set_y = setDict[setName]
         if makeSequenceForX:
-            setter[0] = np.reshape(setter[0], (setter[0].shape[0], timesteps, setter[0].shape[1] / timesteps))
+            set_x = np.reshape(set_x, (set_x.shape[0], timesteps, set_x.shape[1] / timesteps))
         if makeSequenceForY:
-            setter[1] = np.reshape(setter[1], (setter[1].shape[0], timesteps, setter[1].shape[1] / timesteps))
+            set_y = np.reshape(set_y, (set_y.shape[0], timesteps, set_y.shape[1] / timesteps))
+        setDict[setName] = (set_x, set_y)
 
-    if makeSharedData:
-        test_set_x, test_set_y = shared_dataset(test_set)
-        valid_set_x, valid_set_y = shared_dataset(valid_set)
-        train_set_x, train_set_y = shared_dataset(train_set)
-    else:
-        test_set_x, test_set_y = test_set
-        valid_set_x, valid_set_y = valid_set
-        train_set_x, train_set_y = train_set
-
-    rval = [(train_set_x, train_set_y),
-            (valid_set_x, valid_set_y),
-            (test_set_x, test_set_y)]
-
-    inputFeatures = test_set[0].shape[1]
-
-    largestSampleSetPossible = min((test_set[1].shape[0], valid_set[1].shape[0], train_set[1].shape[0]))
+    rval = []
+    for setName in setNames:
+        thisSet = setDict[setName]
+        if makeSharedData:
+            thisSet = shared_dataset(thisSet)
+        rval.append(thisSet)
+    inputFeatures = rval[0][0].shape[1]
+    outputFeatures = rval[0][1].shape[1]
+    largestSampleSetPossible = min([thisSet[1].shape[0] for thisSet in rval])
     print ("loading complete")
-    return rval, inputFeatures, train_set[1].shape[1], largestSampleSetPossible
+    return rval, inputFeatures, outputFeatures, largestSampleSetPossible
 
 
 def getStatistics(predictedValues,

@@ -9,7 +9,7 @@ import numpy as np
 
 
 def makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters, datasetParameters, classifierParameters, valueMethod=0,
-                           useLabels=True, whichSet=1, showFigures=True):
+                           useLabels=True, whichSetName='valid', showFigures=True):
     """
     Make staticstics for a model using the features, datset, and classifier given whose model is already made
 
@@ -41,8 +41,8 @@ def makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featurePara
     :param showFigures: If you want to see the figures now instead of viewing them on disk later (still saves them no matter what)
     """
 
-    valueMethods = ['Probability', 'Probability Ratio', 'Probability Difference']
-    setNames = ['Training', 'Validation', 'Testing']
+    setNames = ['train', 'valid', 'test']
+    whichSet = setNames.index(whichSetName)
 
     if os.path.exists(os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
         datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')

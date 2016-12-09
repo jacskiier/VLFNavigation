@@ -7,6 +7,7 @@ import numpy.random
 import matplotlib.pylab as plt
 
 from sklearn import decomposition
+from sklearn.externals import joblib
 
 from scipy.spatial.distance import cdist
 
@@ -169,8 +170,14 @@ def getIndexOfLabels(dataArray, currentLabelsList):
     return indexOfNewLabels, currentLabelsList
 
 
-def getXYTempAndLabelsFromFile(featureStorePath, datasetParameters, imageShape, useMetadata, metadataList, yValueType,
-                               outputLabelsFinal=None, rowPackagingMetadataFinal=None):
+def getXYTempAndLabelsFromFile(featureStorePath,
+                               datasetParameters,
+                               imageShape,
+                               useMetadata,
+                               metadataList,
+                               yValueType,
+                               outputLabelsFinal=None,
+                               rowPackagingMetadataFinal=None):
     filterXToUpperDiagonal = datasetParameters[
         'filterXToUpperDiagonal'] if 'filterXToUpperDiagonal' in datasetParameters else False
 
@@ -404,15 +411,16 @@ def getXYTempAndLabelsFromFile(featureStorePath, datasetParameters, imageShape, 
     return fXTemp, fYTemp, outputLabelsFinal, rowPackagingMetadata, rowPackagingMetadataFinal
 
 
-def finalFilteringSets(setDictArg, datasetParameters, filterFitSets, yValueType, totalXColumns, totalYColumns):
-    shuffleFinalSamples = datasetParameters[
-        'shuffleFinalSamples'] if 'shuffleFinalSamples' in datasetParameters else False
+def finalFilteringSets(setDictArg, datasetParameters, filterFitSets, yValueType, totalXColumns, totalYColumns, storeFilterFile):
+    shuffleFinalSamples = datasetParameters['shuffleFinalSamples'] if 'shuffleFinalSamples' in datasetParameters else False
 
     # Sequence Parameters
     makeSequences = datasetParameters['makeSequences'] if 'makeSequences' in datasetParameters else False
-    timestepsPerSequence = datasetParameters[
-        'timestepsPerSequence'] if 'timestepsPerSequence' in datasetParameters else 100
+    timestepsPerSequence = datasetParameters['timestepsPerSequence'] if 'timestepsPerSequence' in datasetParameters else 100
 
+    # Saved Filter parameters
+    useSavedFilter = datasetParameters['useSavedFilter'] if 'useSavedFilter' in datasetParameters else False
+    savedFilterFile = datasetParameters['savedFilterFile'] if 'savedFilterFile' in datasetParameters else ''
     # Filter parameters
     filterPCA = datasetParameters['filterPCA'] if 'filterPCA' in datasetParameters else False
     filterPCAn_components = datasetParameters[
@@ -428,34 +436,42 @@ def finalFilteringSets(setDictArg, datasetParameters, filterFitSets, yValueType,
     xBias = datasetParameters['xBias'] if 'xBias' in datasetParameters else 0.0
     xNormalized = datasetParameters['xNormalized'] if 'xNormalized' in datasetParameters else False
 
-    filterFitX = np.empty((0, totalXColumns))
-    filterFitY = np.empty((0, totalYColumns))
-    for setName, setValue in setDictArg.iteritems():
-        if setName in filterFitSets:
-            filterFitX = np.vstack((filterFitX, setValue[0]))
-            filterFitY = np.vstack((filterFitY, setValue[1]))
-
-    if makeSequences:
-        filterFitX = np.reshape(filterFitX,
-                                (int(filterFitX.shape[0] * timestepsPerSequence),
-                                 int(filterFitX.shape[1] / timestepsPerSequence)))
-        filterFitY = np.reshape(filterFitY,
-                                (int(filterFitY.shape[0] * timestepsPerSequence),
-                                 int(filterFitY.shape[1] / timestepsPerSequence)))
-    if filterPCA:
-        if filterPCAn_components is None:
-            filterPCAn_components = filterFitX.shape[1]
-        pca = decomposition.PCA(n_components=filterPCAn_components, whiten=filterPCAwhiten, copy=True)
-        pca.fit(filterFitX)
+    if useSavedFilter:
+        savedFilterDict = joblib.load(savedFilterFile)
+        pca = savedFilterDict['pca']
+        xBias = savedFilterDict['xBias']
+        yBias = savedFilterDict['yBias']
+        xScaleFactor = savedFilterDict['xScaleFactor']
+        yScaleFactor = savedFilterDict['yScaleFactor']
     else:
-        pca = None
+        filterFitX = np.empty((0, totalXColumns))
+        filterFitY = np.empty((0, totalYColumns))
+        for setName, setValue in setDictArg.iteritems():
+            if setName in filterFitSets:
+                filterFitX = np.vstack((filterFitX, setValue[0]))
+                filterFitY = np.vstack((filterFitY, setValue[1]))
 
-    if xNormalized:
-        xBias = -np.min(filterFitX, axis=0)
-        xScaleFactor = 1.0 / (np.max(filterFitX, axis=0) + xBias)
-    if yNormalized:
-        yBias = - np.min(filterFitY, axis=0)
-        yScaleFactor = 1.0 / (np.max(filterFitY, axis=0) + yBias)
+        if makeSequences:
+            filterFitX = np.reshape(filterFitX,
+                                    (int(filterFitX.shape[0] * timestepsPerSequence),
+                                     int(filterFitX.shape[1] / timestepsPerSequence)))
+            filterFitY = np.reshape(filterFitY,
+                                    (int(filterFitY.shape[0] * timestepsPerSequence),
+                                     int(filterFitY.shape[1] / timestepsPerSequence)))
+        if filterPCA:
+            if filterPCAn_components is None:
+                filterPCAn_components = filterFitX.shape[1]
+            pca = decomposition.PCA(n_components=filterPCAn_components, whiten=filterPCAwhiten, copy=True)
+            pca.fit(filterFitX)
+        else:
+            pca = None
+
+        if xNormalized:
+            xBias = -np.min(filterFitX, axis=0)
+            xScaleFactor = 1.0 / (np.max(filterFitX, axis=0) + xBias)
+        if yNormalized:
+            yBias = - np.min(filterFitY, axis=0)
+            yScaleFactor = 1.0 / (np.max(filterFitY, axis=0) + yBias)
 
     for setName, setValue in setDictArg.iteritems():
         if yValueType in CreateUtils.yValueDiscreteTypes:
@@ -495,7 +511,7 @@ def finalFilteringSets(setDictArg, datasetParameters, filterFitSets, yValueType,
         filterX += xBias
         filterX *= xScaleFactor
         # do the PCA transform
-        if filterPCA:
+        if pca is not None:
             filterX = pca.transform(filterX)
         # reshape back to sequences
         if makeSequences:
@@ -504,6 +520,15 @@ def finalFilteringSets(setDictArg, datasetParameters, filterFitSets, yValueType,
                                       int(filterX.shape[1] * timestepsPerSequence)))
         else:
             setValue[0] = filterX
+
+        savedFilterDict = {
+            'pca': pca,
+            'xBias': xBias,
+            'yBias': yBias,
+            'xScaleFactor': xScaleFactor,
+            'yScaleFactor': yScaleFactor,
+        }
+        joblib.dump(savedFilterDict, storeFilterFile)
 
         if shuffleFinalSamples:
             timer.tic("Shuffle {0} Set".format(setName))
@@ -560,7 +585,9 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
     allSetsSameRows = datasetParameters['allSetsSameRows'] if 'allSetsSameRows' in datasetParameters else False
 
     packagedRowsPerSetDict = {}
+    packagedColumnsPerSetDict = {}
     trueRowsPerSetDict = {}
+    trueColumnsPerSetDict = {}
     kerasRowMultiplier = 1
     if rowPackagingStyle is not None:
         newRowsMax = 0
@@ -569,8 +596,10 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
             rowMetadata = rowProcessingMetadataDictArg[setName]
             uniqueRows, uniqueCounts = np.unique(rowMetadata, return_counts=True)
             newRows = uniqueRows.shape[0]
+            trueRowsPerSetDict[setName] = newRows
             newRowsMax = newRows if newRows > newRowsMax else newRowsMax
             totalColumnCount = int(np.max(uniqueCounts) if padRowPackageWithZeros else np.min(uniqueCounts))
+            trueColumnsPerSetDict[setName] = totalColumnCount
             totalColumnCountMax = totalColumnCount if totalColumnCount > totalColumnCountMax else totalColumnCountMax
 
         if alternateRowsForKeras:
@@ -583,6 +612,7 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
             totalColumnCount = totalColumnCountMax
 
         for setName, setValue in setDictArg.iteritems():
+            packagedColumnsPerSetDict[setName] = totalColumnCount
             rowMetadata = rowProcessingMetadataDictArg[setName]
             uniqueRows, uniqueCounts = np.unique(rowMetadata, return_counts=True)
             if allSetsSameRows is True:
@@ -590,7 +620,7 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
             else:
                 newRows = uniqueRows.shape[0]
             packagedRowsPerSetDict[setName] = newRows
-            trueRowsPerSetDict[setName] = uniqueRows.shape[0]
+
             totalColumnsX = setValue[0].shape[1]
             totalColumnsY = setValue[1].shape[1]
             tempX = np.zeros((newRows, totalColumnsX * totalColumnCount))
@@ -647,7 +677,7 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
                     #         plotYKeras(tempSet, newRows, runNumber, True)
             setValue[0] = tempSets[0]
             setValue[1] = tempSets[1]
-    return setDictArg, packagedRowsPerSetDict, trueRowsPerSetDict, kerasRowMultiplier
+    return setDictArg, trueRowsPerSetDict, trueColumnsPerSetDict, packagedRowsPerSetDict, packagedColumnsPerSetDict, kerasRowMultiplier
 
 
 def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False):
@@ -711,32 +741,36 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
         timer.tic("Build dataset {0} for feature set {1}".format(datasetName, featureSetName))
         timer.tic("Extract features from stored files")
 
-        outputLabelsFinal = []
-        rowPackagingMetadataFinal = []
-
         setDict = {}
         rowProcessingMetadataDict = {}
+
+        allIncludedFiles = []
 
         totalXColumns = None
         totalMetadataPackagingColumns = 1
 
-        totalRowsInSetDict = {}
-        totalFilesInSetDict = {}
-
+        rowPackagingMetadataFinal = []
         rowsPerFile = {}
         rowsPerBaseFileDict = {}
+        totalRowsInSetDict = {}
+        totalFilesInSetDict = {}
         maxRowsOfAllFiles = 0
         maxSamplesOfAllFiles = 0
 
-        allIncludedFiles = []
+        outputLabelsFinal = []
+        if yValueType == 'particle':
+            particleFilePath = datasetParameters['y value parameters']['particleFilePath']
+            # the file should be in North x East with the same local level coord
+            particleArray = np.genfromtxt(particleFilePath, delimiter=',', skip_header=1)
+            labelIndices, outputLabelsFinal = getIndexOfLabels(particleArray, outputLabelsFinal)
+
         timer.tic("Get sizes of files")
-        for baseFileName in tqdm(allBaseFileNames):
+        for baseFileName in allBaseFileNames:
             files = np.array([f2 for f2 in sorted(os.listdir(rawDataFolder)) if
                               re.match(re.escape(baseFileName) + r'\d*\.(wav|hf)', f2)])
-            files = CreateUtils.filterFilesByFileNumber(files, baseFileName, removeFileNumbers=removeFileNumbers,
-                                                        onlyFileNumbers=onlyFileNumbers)
+            files = CreateUtils.filterFilesByFileNumber(files, baseFileName, removeFileNumbers=removeFileNumbers, onlyFileNumbers=onlyFileNumbers)
             if len(files) > 0:
-                for fileName in files:
+                for fileName in tqdm(files, desc="File Loop"):
                     allIncludedFiles.append(str(fileName))
                     featureStorePath = os.path.join(featureDataFolder, fileName + ".h5")
                     with pd.HDFStore(featureStorePath, 'r') as featureStore:
@@ -833,19 +867,23 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
         timer.tic("Filtering Sets")
         if filterFitSets is None:
             filterFitSets = [defaultSetName]
+        savedFilterFile = os.path.join(processedDataFolder, "SavedFilters", featureSetName + '.pkl')
         (setDict, xScaleFactor, xBias, yScaleFactor, yBias) = finalFilteringSets(setDict,
                                                                                  datasetParameters,
                                                                                  filterFitSets,
                                                                                  yValueType,
                                                                                  totalXColumns,
-                                                                                 totalyColumns)
+                                                                                 totalyColumns,
+                                                                                 savedFilterFile)
         timer.toc()
 
         # repackage the sets for processing
         timer.tic("Repackaging sets")
         (setDict,
-         packagedRowsPerSetDict,
          trueRowsPerSetDict,
+         trueColumnsPerSetDict,
+         packagedRowsPerSetDict,
+         packagedColumnsPerSetDict,
          kerasRowMultiplier) = repackageSets(setDict,
                                              datasetParameters,
                                              rowProcessingMetadataDict)
@@ -876,27 +914,47 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
             print("\t{setName}: {samples} samples".format(setName=setName, samples=setValue[0].shape[0]))
         print("Features per set {0}".format(totalXColumns))
         print("Output Dim per set {0}".format(totalyColumns))
+        if yValueType in CreateUtils.yValueDiscreteTypes:
+            print("Output Classes: {0}".format(len(outputLabelsFinal)))
         outputString = '\n'.join(['\t{setName}: {rows}'.format(setName=setName, rows=rows) for setName, rows in trueRowsPerSetDict.iteritems()])
         print("True Rows Per Set\n{0}".format(outputString))
         print("Keras Row Multiplier: {kerasRowMultiplier}".format(kerasRowMultiplier=kerasRowMultiplier))
-        bytesPerBatchX = packagedRowsPerSetDict['train'] * np.prod(setDict['train'][0].shape) / setDict['train'][0].shape[0] * 4
-        bytesPerBatchY = packagedRowsPerSetDict['train'] * np.prod(setDict['train'][1].shape) / setDict['train'][1].shape[0] * 4
-        print("Bytes per batch:\nX: {0} \nY: {1} \nTotal: {2}".format(CreateUtils.sizeof_fmt(bytesPerBatchX),
-                                                                      CreateUtils.sizeof_fmt(bytesPerBatchY),
-                                                                      CreateUtils.sizeof_fmt(bytesPerBatchX + bytesPerBatchY)))
+        bytesPerBatchX = packagedRowsPerSetDict[defaultSetName] * np.prod(setDict[defaultSetName][0].shape) / setDict[defaultSetName][0].shape[0] * 4
+        bytesPerBatchY = packagedRowsPerSetDict[defaultSetName] * np.prod(setDict[defaultSetName][1].shape) / setDict[defaultSetName][1].shape[0] * 4
+        print("Bytes per batch:\n\tX: {0} \n\tY: {1} \n\tTotal: {2}".format(CreateUtils.sizeof_fmt(bytesPerBatchX),
+                                                                            CreateUtils.sizeof_fmt(bytesPerBatchY),
+                                                                            CreateUtils.sizeof_fmt(bytesPerBatchX + bytesPerBatchY)))
+
+        outputString = '\n'.join(
+            ['{setName:>15}|{xbytes:>8}|{ybytes:>8}|{totalbytes:>8}'.format(setName=setName,
+                                                                            xbytes=CreateUtils.sizeof_fmt(setValue[0].nbytes),
+                                                                            ybytes=CreateUtils.sizeof_fmt(setValue[1].nbytes),
+                                                                            totalbytes=CreateUtils.sizeof_fmt(
+                                                                                setValue[0].nbytes + setValue[1].nbytes))
+             for setName, setValue in setDict.iteritems()])
+
+        print("Size of each set: \n{setName:^15}|{xbytes:^8}|{ybytes:^8}|{totalbytes:^8}\n{outputString}".format(setName="Set Name",
+                                                                                                                 xbytes="X",
+                                                                                                                 ybytes="Y",
+                                                                                                                 totalbytes="Total",
+                                                                                                                 outputString=outputString))
+
         timer.tic("Save datasets and labels")
         with pd.HDFStore(datasetFile, 'w') as datasetStore:
             for setName, setValue in setDict.iteritems():
-                datasetStore[setName + '_set_x'] = pd.DataFrame(setDict[setName][0])
-                datasetStore[setName + '_set_y'] = pd.DataFrame(setDict[setName][1])
+                datasetStore[setName + '_set_x'] = pd.DataFrame(setValue[0])
+                datasetStore[setName + '_set_y'] = pd.DataFrame(setValue[1])
             datasetStore['labels'] = pd.DataFrame(outputLabelsFinal)
         timer.toc()
 
         datasetParametersToDump = dict(datasetParameters)
         datasetParametersToDump['allIncludedFiles'] = allIncludedFiles
+        datasetParametersToDump['setNames'] = setDict.keys()
         datasetParametersToDump['filesInSets'] = totalFilesInSetDict
         datasetParametersToDump['trueRowsPerSetDict'] = trueRowsPerSetDict
         datasetParametersToDump['packagedRowsPerSetDict'] = packagedRowsPerSetDict
+        datasetParametersToDump['trueColumnsPerSetDict'] = trueColumnsPerSetDict
+        datasetParametersToDump['packagedColumnsPerSetDict'] = packagedColumnsPerSetDict
         datasetParametersToDump['kerasRowMultiplier'] = kerasRowMultiplier
         datasetParametersToDump['totalXColumns'] = totalXColumns
         datasetParametersToDump['totalyColumns'] = totalyColumns
@@ -991,7 +1049,7 @@ def mainRun():
     removeFileNumbers = {}
     onlyFileNumbers = {}
     removeFeatureSetNames = []
-    onlyThisFeatureSetNames = ['FFTWindowLowFreq']
+    onlyThisFeatureSetNames = ['FFTWindowDefault']
     showFigures = True
 
     # Parameters Begin ############
@@ -1019,7 +1077,7 @@ def mainRun():
         "you can't have both repeatSequenceBeginningAtEnd and repeatSequenceEndingAtEnd"
 
     # Packaging
-    rowPackagingStyle = 'particle'  # None, 'BaseFileNameWithNumber', 'gpsD', 'particle'
+    rowPackagingStyle = 'BaseFileNameWithNumber'  # None, 'BaseFileNameWithNumber', 'gpsD', 'particle'
     padRowPackageWithZeros = True
     repeatRowPackageBeginningAtEnd = False
     repeatRowPackageEndingAtEnd = True
@@ -1036,6 +1094,9 @@ def mainRun():
         "You must keep all sets same rows for keras packging to work in keras"
 
     # filter features
+    useSavedFilter = True
+    savedFilterFile = '/home/sena/MyDocuments/Virtual Box Shared Folder/Processed Data Datasets/bikeneighborhoodPackFileNormParticle/SavedFilters/FFTWindowDefault.pkl'
+
     filterPCA = True
     filterFitSets = ["train"]  # names of the sets you want to use to filter
     filterPCAn_components = None
@@ -1067,7 +1128,7 @@ def mainRun():
     particleFilePath = os.path.join(rawDataFolder, "Imagery", "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
 
     # metadata features
-    useMetadata = True
+    useMetadata = False
     metadataList = ['CadenceBike', 'CrankRevolutions', 'SpeedInstant', 'WheelRevolutions', 'DayPercent']
     metadataShape = (len(metadataList),)
 
@@ -1182,22 +1243,22 @@ def mainRun():
     # allBaseFileNames = ["bikeneighborhood"]
     # yValueType = 'gpsC'
 
-    datasetName = 'bikeneighborhoodPackParticleNormParticleM'
-    allBaseFileNames = ["bikeneighborhood"]
+    datasetName = 'walkneighborhoodPackFileNormParticle'
+    allBaseFileNames = ["walkneighborhood"]
     yValueType = 'particle'
-    onlyFileNumbers = {"bikeneighborhood": []}
-    removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 29]}
-    defaultSetName = "train"
-    fileNamesNumbersToSets = [("valid", "bikeneighborhood", [12, 14, 16, 18, 20, 22, 24, 26, 28]), ('test', "bikeneighborhood", [8])]
+    onlyFileNumbers = {"walkneighborhood": []}
+    removeFileNumbers = {"walkneighborhood": []}
+    defaultSetName = "normal"
+    fileNamesNumbersToSets = [("crazy", "walkneighborhood", [1])]
 
-    # datasetName = 'bikeneighborhoodFilePackageCTDM'
+    # datasetName = 'bikeneighborhoodPackFileNormParticle'
     # allBaseFileNames = ["bikeneighborhood"]
-    # yValueType = 'gpsC'
-    # onlyFileNumbers = {"bikeneighborhood": []}
-    # removeFileNumbers = {"bikeneighborhood": range(21) + [25]}
+    # yValueType = 'particle'
+    # onlyFileNumbers = {"bikeneighborhood": range(33)}
+    # removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 29]}
     # defaultSetName = "train"
-    # fileNamesNumbersToSets = [("valid", "bikeneighborhood", [22]),
-    #                           ('test', "bikeneighborhood", [23])]
+    # fileNamesNumbersToSets = [("valid", "bikeneighborhood", [12, 14, 16, 18, 20, 22, 24, 26, 28]),
+    #                           ('test', "bikeneighborhood", [8, 31, 32]), ]
 
     ################################
     # Parameters End   ############
@@ -1271,7 +1332,13 @@ def mainRun():
             }
             packageDict.update(kerasDict)
         datasetParametersToDump.update(packageDict)
-    if filterPCA:
+    if useSavedFilter:
+        filterDict = {
+            'useSavedFilter': useSavedFilter,
+            'savedFilterFile': savedFilterFile
+        }
+        datasetParametersToDump.update(filterDict)
+    elif filterPCA:
         filterDict = {
             'filterPCA': filterPCA,
             'filterFitSets': filterFitSets,
@@ -1302,6 +1369,9 @@ def mainRun():
     if (not os.path.exists(datasetConfigFileName)) or overwriteConfigFile:
         if not os.path.exists(processedDataFolder):
             os.makedirs(processedDataFolder)
+        savedFilterFile = os.path.join(processedDataFolder, 'SavedFilters')
+        if not os.path.exists(savedFilterFile):
+            os.makedirs(savedFilterFile)
         configFileName = os.path.join(processedDataFolder, "dataset parameters.yaml")
         if not overwriteConfigFile:
             assert not os.path.exists(configFileName), 'do you want to overwirte the config file?'

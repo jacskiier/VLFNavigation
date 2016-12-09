@@ -49,6 +49,7 @@ import re
 import pandas as pd
 
 import ClassificationUtils
+import CreateUtils
 
 __docformat__ = 'restructedtext en'
 
@@ -402,7 +403,7 @@ def sgd_optimization_mnist(datasetFileName='mnist.pkl.gz',
 
 def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz',
                                                   experimentStoreFolder='',
-                                                  valueMethod=0, whichSetArg=2):
+                                                  valueMethod=0, whichSetName='test'):
     # load the saved model
     processedDataFolder = os.path.dirname(datasetFileName)
     modelStoreFilePathFullTemp = os.path.join(experimentStoreFolder, 'best_model.pkl')
@@ -415,8 +416,8 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
     )
 
     # We can test it on some examples from test test
-    datasets, inputs, outputs, max_batch_size = ClassificationUtils.load_data(datasetFileName)
-    (set_x, set_y) = datasets[whichSetArg]
+    datasets, inputs, outputs, max_batch_size = ClassificationUtils.load_data(datasetFileName, setNames=[whichSetName])
+    (set_x, set_y) = datasets[0]
     set_x = set_x.get_value()
 
     predicted_probabilities = predict_model_probabilities(set_x)
@@ -426,7 +427,7 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
 
     # We can test it on some examples from test test
     datasets, inputs, outputs, max_batch_size = ClassificationUtils.load_data(datasetFileName, makeSharedData=False)
-    (set_x, set_y) = datasets[whichSetArg]
+    (set_x, set_y) = datasets[0]
 
     predictedValues = None
     if valueMethod == 0:  # probability
@@ -438,7 +439,7 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
         predicted_probabilitiesSorted = np.fliplr(np.sort(predicted_probabilities, axis=1))
         predictedValues = predicted_probabilitiesSorted[:, 0] - predicted_probabilitiesSorted[:, 1]
 
-    classLabels = getLabelsForDataset(processedDataFolder, datasetFileName)
+    classLabels = ClassificationUtils.getLabelsForDataset(processedDataFolder, datasetFileName)
 
     return predicted_class, predictedValues, set_y, classLabels
 
@@ -490,16 +491,16 @@ def sgd_optimization_parameterized(featureParameters, datasetParameters, classif
                                rogueClasses=classifierParameters['rogueClasses'])
 
 
-def makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters, datasetParameters,
-                           classifierParameters, valueMethod=0, useLabels=True, whichSet=1, showFigures=True):
+def makeStatisticsForModel(experimentsFolder, statisticStoreFolder, featureParameters, datasetParameters,
+                           classifierParameters, valueMethod=0, useLabels=True, whichSetName='valid', whichSetNameStat='valid', showFigures=True):
     """
     Make staticstics for a model using the features, datset, and classifier given whose model is already made
 
     :type experimentsFolder: str
     :param experimentsFolder: Location of the pre made model
 
-    :type statisticsStoreFolder: str
-    :param statisticsStoreFolder: Location to store the statistics that may be separate from the experiment
+    :type statisticStoreFolder: str
+    :param statisticStoreFolder: Location to store the statistics that may be separate from the experiment
 
     :type featureParameters: dict
     :param featureParameters: parameters for the features
@@ -525,8 +526,7 @@ def makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featurePara
     (still saves them no matter what)
     """
 
-    valueMethods = ['Probability', 'Probability Ratio', 'Probability Difference']
-    setNames = ['Training', 'Validation', 'Testing']
+    valueMethodName = ClassificationUtils.valueMethodNames[valueMethod]
 
     if os.path.exists(
             os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
@@ -536,24 +536,33 @@ def makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featurePara
         datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'],
                                    datasetParameters['datasetName'] + '.pkl.gz')
 
+    # get statDatasetFile
+    statDatasetConfigFileName = os.path.join(statisticStoreFolder, 'dataset parameters.yaml')
+    with open(statDatasetConfigFileName, 'r') as myConfigFile:
+        statDatasetParameters = yaml.load(myConfigFile)
+    processedDataFolder = CreateUtils.convertPathToThisOS(statDatasetParameters['processedDataFolder'])
+    if os.path.exists(os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')):
+        statDatasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')
+    else:
+        statDatasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'],
+                                       statDatasetParameters['datasetName'] + '.pkl.gz')
+
     rogueClassesMaster = classifierParameters['rogueClasses']
-    thresholdSet = 1
     # Grab the validation set in order to calculate EER thresholds
     tupleOutputTemp = getPredictedClasses_Values_TrueClasses_Labels(datasetFileName=datasetFile,
                                                                     experimentStoreFolder=experimentsFolder,
                                                                     valueMethod=valueMethod,
-                                                                    whichSetArg=thresholdSet)
+                                                                    whichSetName=whichSetName)
     (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster) = tupleOutputTemp
     # make EER thresholds with the validation set
     eerThresholdsMaster = ClassificationUtils.getEERThreshold(predicted_class_master, predicted_values_master, true_class_master,
                                                               rogueClasses=rogueClassesMaster)
 
     # Now get the test set and test the thresholds I just made
-    presentSet = whichSet
-    tupleOutputTemp = getPredictedClasses_Values_TrueClasses_Labels(datasetFileName=datasetFile,
+    tupleOutputTemp = getPredictedClasses_Values_TrueClasses_Labels(datasetFileName=statDatasetFile,
                                                                     experimentStoreFolder=experimentsFolder,
                                                                     valueMethod=valueMethod,
-                                                                    whichSetArg=presentSet)
+                                                                    whichSetName=whichSetNameStat)
     (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster) = tupleOutputTemp
     if not useLabels:
         classLabelsMaster = None
@@ -564,9 +573,9 @@ def makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featurePara
                                        eerThresholdsMaster,
                                        classLabels=classLabelsMaster,
                                        rogueClasses=rogueClassesMaster,
-                                       setName=setNames[presentSet],
-                                       valueMethodName=valueMethods[valueMethod],
-                                       statisticsStoreFolder=statisticsStoreFolder)
+                                       setName=whichSetNameStat,
+                                       valueMethodName=valueMethodName,
+                                       statisticsStoreFolder=statisticStoreFolder)
 
     if len(rogueClassesMaster) > 0:
         ClassificationUtils.rogueAnalysis(eerThresholdsMaster,
@@ -575,9 +584,9 @@ def makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featurePara
                                           true_class_master,
                                           classLabels=classLabelsMaster,
                                           rogueClasses=rogueClassesMaster,
-                                          setName=setNames[presentSet],
-                                          valueMethodName=valueMethods[valueMethod],
-                                          statisticsStoreFolder=statisticsStoreFolder)
+                                          setName=whichSetNameStat,
+                                          valueMethodName=valueMethodName,
+                                          statisticsStoreFolder=statisticStoreFolder)
     if showFigures:
         plt.show()
 

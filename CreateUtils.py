@@ -29,7 +29,7 @@ speedNames = ['SpeedInstant', 'WheelRevolutions', 'WheelCircumference']
 locationWahooNames = ['LongitudeWahoo', 'DistanceOffset', 'Accuracy', 'AltitudeWahoo', 'LatitudeWahoo',
                       'TotalDistanceWahoo', 'GradeDeg', 'SpeedWahoo']
 heartNames = ['TotalHeartbeats', 'Heartrate']
-footpadNames = ['TotalStrides', 'TotalDistanceFootpad', 'CadenceFootpad', 'SpeedFootpad']
+footpodNames = ['TotalStrides', 'TotalDistanceFootpod', 'CadenceFootpod', 'SpeedFootpod']
 maNames = ['GroundContactTime', 'MotionCount', 'MotionPowerZ', 'CadenceMA', 'MotionPowerX', 'Smoothness',
            'MotionPowerY', 'VerticalOscillation']
 accelerometerNames = ['x', 'y', 'z']
@@ -40,7 +40,7 @@ headingNames = ['trueHeading', 'headingAccuracy', 'magneticHeading']
 timeNames = ['ElapsedSeconds', 'Hour', 'DayOfYear', 'DayPercent', 'SeasonSineWave']
 otherNames = ['BaseFileName', 'BaseFileNameWithNumber']
 
-allMetadataNamesList = cadenceNames + speedNames + locationWahooNames + heartNames + footpadNames + maNames + \
+allMetadataNamesList = cadenceNames + speedNames + locationWahooNames + heartNames + footpodNames + maNames + \
                        accelerometerNames + gyroscopeNames + locationiPhoneNames + headingNames + timeNames + otherNames
 allMetadataNamesSet = set(allMetadataNamesList)
 assert len(allMetadataNamesList) == len(allMetadataNamesSet), "There are name collisions in metadata names"
@@ -51,8 +51,8 @@ locationWahooDtypes = [('LongitudeWahoo', float), ('DistanceOffset', float), ('A
                        ('AltitudeWahoo', float), ('LatitudeWahoo', float), ('TotalDistanceWahoo', float),
                        ('GradeDeg', float), ('SpeedWahoo', float)]
 heartDtypes = [('TotalHeartbeats', int), ('Heartrate', int)]
-footpadDtypes = [('TotalStrides', float), ('TotalDistanceFootpad', float), ('CadenceFootpad', int),
-                 ('SpeedFootpad', float)]
+footpodDtypes = [('TotalStrides', float), ('TotalDistanceFootpod', float), ('CadenceFootpod', int),
+                 ('SpeedFootpod', float)]
 maDtypes = ndtype = [('GroundContactTime', float), ('MotionCount', int), ('MotionPowerZ', float), ('CadenceMA', int),
                      ('MotionPowerX', float), ('Smoothness', float), ('MotionPowerY', float),
                      ('VerticalOscillation', float)]
@@ -70,7 +70,7 @@ def getNamesFromDtypes(dtyper):
     return [tup[0] for tup in dtyper]
 
 
-allMetadataDtyesList = cadenceDtypes + speedDtypes + locationWahooDtypes + heartDtypes + footpadDtypes + maDtypes + \
+allMetadataDtyesList = cadenceDtypes + speedDtypes + locationWahooDtypes + heartDtypes + footpodDtypes + maDtypes + \
                        accelerometerDtypes + gyroscopeDtypes + locationiPhoneDtypes + headingDtypes + \
                        timeNamesDtype + otherNamesDtype
 allMetadataDtyesNamesList = getNamesFromDtypes(allMetadataDtyesList)
@@ -202,8 +202,8 @@ def getSetNameForFile(filename, defaultSetName, fileNamesNumbersToSets):
 
 def filterFilesByFileNumber(files, baseFileName, removeFileNumbers=(), onlyFileNumbers=()):
     if baseFileName in removeFileNumbers or baseFileName in onlyFileNumbers:
-        largestFileNumberRemove = np.max(np.array(removeFileNumbers[baseFileName])) if len(removeFileNumbers[baseFileName]) > 0 else 0
-        largestFileNumberOnly = np.max(np.array(onlyFileNumbers[baseFileName])) if len(onlyFileNumbers[baseFileName]) > 0 else 0
+        largestFileNumberRemove = np.max(np.array(removeFileNumbers[baseFileName])) if baseFileName in removeFileNumbers and len(removeFileNumbers[baseFileName]) > 0 else 0
+        largestFileNumberOnly = np.max(np.array(onlyFileNumbers[baseFileName])) if baseFileName in onlyFileNumbers and len(onlyFileNumbers[baseFileName]) > 0 else 0
         largestFileNumber = max(largestFileNumberRemove, largestFileNumberOnly)
         errorString = "you have a file number {0} that is over the possible files {1}".format(largestFileNumber, files.size)
         assert largestFileNumber < files.size, errorString

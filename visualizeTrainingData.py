@@ -528,7 +528,7 @@ def getPredictedStuff():
 
 
 if videoClassProbability:
-    (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster, predicted_probabilities,
+    (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster, totalOuputClasses, predicted_probabilities,
      classifierParameters) = getPredictedStuff()
     whichRuns = [0, 1, 2]
 
@@ -587,7 +587,7 @@ if videoClassProbability:
                 writer.grab_frame()
 
 if weightedPosition:
-    (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster, predicted_probabilities,
+    (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster, totalOuputClasses, predicted_probabilities,
      classifierParameters) = getPredictedStuff()
     whichRuns = range(9)
 

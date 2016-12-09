@@ -2,6 +2,7 @@ import theano
 import theano.tensor as T
 import numpy as np
 import pylab as plt
+import CoordinateTransforms
 
 doTheanoShiz = False
 doMatrixMultiplyFun = False
@@ -12,6 +13,7 @@ doResidualStuff = False
 doSemiPositiveStuff = False
 doZipshiz = False
 doResoluitonComparison = False
+doLatLonShiz = True
 
 if doTheanoShiz:
     m = T.matrix(dtype=theano.config.floatX)
@@ -363,3 +365,25 @@ if doResoluitonComparison:
     print ("pixels per size: {0}".format(pixelsPerSize))
     newDiag = getNewDiag(pixelHeightMain, pixelWidthMain, diagonalMain, newPixelHeightMain, newPixelWidthMain)
     print ("new diag: {0}".format(newDiag))
+
+if doLatLonShiz:
+    lat1 = 21.32525
+    lat2 = 21.325038
+    lon1 = -157.9439
+    lon2 = -157.920485
+    lat1 = lat1 * np.pi / 180.
+    lat2 = lat2 * np.pi / 180.
+    lon1 = lon1 * np.pi / 180.
+    lon2 = lon2 * np.pi / 180.
+
+    r = 6371.
+    x = (lon2 - lon1) * np.cos((lat1 + lat2) / 2.)
+    y = (lat2 - lat1)
+    d = np.sqrt(x * x + y * y) * r
+
+    print(d)
+    arr = np.array([[lat1, lon1, 0], [lat2, lon2, 0]])
+    ecefCoords = CoordinateTransforms.LlhToEcef(arr)
+
+    dist =np.sqrt(np.sum((ecefCoords[0,:] - ecefCoords[1,:]) ** 2))
+    print (dist)

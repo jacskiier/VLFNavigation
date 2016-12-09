@@ -3,8 +3,18 @@
   <component name="ChangeListManager">
     <list default="true" id="adaf546f-baf3-4e20-a082-824a85cc78b4" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" afterPath="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CreateDataset.py" afterPath="$PROJECT_DIR$/CreateDataset.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CreateFeature.py" afterPath="$PROJECT_DIR$/CreateFeature.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CreateUtils.py" afterPath="$PROJECT_DIR$/CreateUtils.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/RunExperiment.py" afterPath="$PROJECT_DIR$/RunExperiment.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py" afterPath="$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py" afterPath="$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/RegressionUtils.py" afterPath="$PROJECT_DIR$/deeplearningfiles/RegressionUtils.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/SkleanEnsembleRegressors.py" afterPath="$PROJECT_DIR$/deeplearningfiles/SkleanEnsembleRegressors.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/linearRegression.py" afterPath="$PROJECT_DIR$/deeplearningfiles/linearRegression.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/logistic_sgd.py" afterPath="$PROJECT_DIR$/deeplearningfiles/logistic_sgd.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/theanohelper.py" afterPath="$PROJECT_DIR$/theanohelper.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/visualizeTrainingData.py" afterPath="$PROJECT_DIR$/visualizeTrainingData.py" />
     </list>
     <ignored path="VLFNavigation.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -17,15 +27,15 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/VLFNavigation$CreateDataset.coverage" NAME="CreateDataset Coverage Results" MODIFIED="1480706134428" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$CreateDataset.coverage" NAME="CreateDataset Coverage Results" MODIFIED="1481302308700" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/VLFNavigation$visualizeTrainingData.coverage" NAME="visualizeTrainingData Coverage Results" MODIFIED="1479324799144" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$CreateFeature.coverage" NAME="CreateFeature Coverage Results" MODIFIED="1480688433395" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$CreateFeature.coverage" NAME="CreateFeature Coverage Results" MODIFIED="1481124944672" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/VLFNavigation$analyzeWavFile.coverage" NAME="analyzeWavFile Coverage Results" MODIFIED="1479244641941" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/VLFNavigation$ParticleFilter.coverage" NAME="ParticleFilter Coverage Results" MODIFIED="1479328350643" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/VLFNavigation$TeacherForcing.coverage" NAME="TeacherForcing Coverage Results" MODIFIED="1480428376961" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
     <SUITE FILE_PATH="coverage/VLFNavigation$CreateClassifierConfig.coverage" NAME="CreateClassifierConfig Coverage Results" MODIFIED="1479755696514" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$theanohelper.coverage" NAME="theanohelper Coverage Results" MODIFIED="1478891186696" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$RunExperiment.coverage" NAME="RunExperiment Coverage Results" MODIFIED="1480706498461" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$theanohelper.coverage" NAME="theanohelper Coverage Results" MODIFIED="1481207164887" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$RunExperiment.coverage" NAME="RunExperiment Coverage Results" MODIFIED="1481302784235" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/VLFNavigation$WaveletTransformLayer.coverage" NAME="WaveletTransformLayer Coverage Results" MODIFIED="1481124416699" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
     <SUITE FILE_PATH="coverage/VLFNavigation$KalmanFilter.coverage" NAME="KalmanFilter Coverage Results" MODIFIED="1479325956025" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
   </component>
@@ -38,35 +48,24 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="KerasClassifiers.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="KerasClassifiers.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="11085">
-              <caret line="779" column="57" lean-forward="false" selection-start-line="779" selection-start-column="57" selection-end-line="779" selection-end-column="57" />
+            <state relative-caret-position="384">
+              <caret line="708" column="0" lean-forward="true" selection-start-line="708" selection-start-column="0" selection-end-line="708" selection-end-column="0" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
-                <element signature="e#36343#40168#0" expanded="false" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="CreateClassifierConfig.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/CreateClassifierConfig.py">
+      <file leaf-file-name="mlp.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/deeplearningfiles/mlp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="510">
-              <caret line="242" column="0" lean-forward="false" selection-start-line="242" selection-start-column="0" selection-end-line="242" selection-end-column="0" />
-              <folding>
-                <element signature="e#857#1593#0" expanded="false" />
-                <element signature="e#1636#2596#0" expanded="false" />
-                <element signature="e#2652#3685#0" expanded="false" />
-                <element signature="e#3728#4845#0" expanded="false" />
-                <element signature="e#4901#5640#0" expanded="false" />
-                <element signature="e#5692#6111#0" expanded="false" />
-                <element signature="e#6159#6690#0" expanded="false" />
-                <element signature="e#6746#7164#0" expanded="false" />
-                <element signature="e#7219#7730#0" expanded="false" />
-              </folding>
+            <state relative-caret-position="475">
+              <caret line="950" column="17" lean-forward="false" selection-start-line="950" selection-start-column="17" selection-end-line="950" selection-end-column="17" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -74,8 +73,28 @@
       <file leaf-file-name="RunExperiment.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/RunExperiment.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="195">
-              <caret line="26" column="25" lean-forward="false" selection-start-line="26" selection-start-column="25" selection-end-line="26" selection-end-column="25" />
+            <state relative-caret-position="375">
+              <caret line="38" column="27" lean-forward="false" selection-start-line="38" selection-start-column="27" selection-end-line="38" selection-end-column="27" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="linearRegression.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/deeplearningfiles/linearRegression.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="594">
+              <caret line="453" column="36" lean-forward="false" selection-start-line="453" selection-start-column="36" selection-end-line="453" selection-end-column="36" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="RegressionUtils.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/deeplearningfiles/RegressionUtils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="261">
+              <caret line="128" column="28" lean-forward="false" selection-start-line="128" selection-start-column="28" selection-end-line="128" selection-end-column="28" />
               <folding />
             </state>
           </provider>
@@ -84,8 +103,8 @@
       <file leaf-file-name="ClassificationUtils.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="9930">
-              <caret line="687" column="37" lean-forward="false" selection-start-line="687" selection-start-column="37" selection-end-line="687" selection-end-column="37" />
+            <state relative-caret-position="221">
+              <caret line="267" column="0" lean-forward="false" selection-start-line="267" selection-start-column="0" selection-end-line="267" selection-end-column="0" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -93,22 +112,15 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="visualizeTrainingData.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/visualizeTrainingData.py">
+      <file leaf-file-name="CreateDataset.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/CreateDataset.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="8250">
-              <caret line="583" column="39" lean-forward="false" selection-start-line="583" selection-start-column="39" selection-end-line="583" selection-end-column="39" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="CreateFeature.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/CreateFeature.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="13020">
-              <caret line="903" column="38" lean-forward="false" selection-start-line="903" selection-start-column="38" selection-end-line="903" selection-end-column="38" />
-              <folding />
+            <state relative-caret-position="195">
+              <caret line="923" column="34" lean-forward="false" selection-start-line="923" selection-start-column="34" selection-end-line="923" selection-end-column="34" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+                <element signature="e#58053#58073#0" expanded="false" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -116,41 +128,9 @@
       <file leaf-file-name="CreateUtils.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CreateUtils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3780">
-              <caret line="254" column="4" lean-forward="false" selection-start-line="254" selection-start-column="4" selection-end-line="254" selection-end-column="4" />
+            <state relative-caret-position="438">
+              <caret line="260" column="0" lean-forward="true" selection-start-line="260" selection-start-column="0" selection-end-line="260" selection-end-column="0" />
               <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="WaveletTransformLayer.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="187">
-              <caret line="369" column="20" lean-forward="true" selection-start-line="369" selection-start-column="20" selection-end-line="369" selection-end-column="20" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="TeacherForcing.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/TeacherForcing.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4065">
-              <caret line="279" column="19" lean-forward="false" selection-start-line="279" selection-start-column="19" selection-end-line="279" selection-end-column="19" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="CreateDataset.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/CreateDataset.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15840">
-              <caret line="1184" column="60" lean-forward="false" selection-start-line="1184" selection-start-column="19" selection-end-line="1184" selection-end-column="60" />
-              <folding>
-                <element signature="e#54092#54112#0" expanded="false" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -166,27 +146,48 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>FFT</find>
-      <find>samplingRate</find>
-      <find>22500</find>
-      <find>y</find>
-      <find>null</find>
-      <find>x</find>
-      <find>get siz</find>
-      <find>predict</find>
-      <find>forceRefreshDataset</find>
-      <find>gpsD</find>
-      <find>weightedPosition</find>
-      <find>plotVeroni</find>
-      <find>true</find>
-      <find>false</find>
-      <find>bank</find>
+      <find>threshold</find>
+      <find>getPredictedStuff</find>
+      <find>datasetFileName</find>
+      <find>statisticStoreFolder</find>
+      <find>datasetFile</find>
+      <find>whichSetName</find>
+      <find>set_X</find>
+      <find>totalyColumns</find>
+      <find>classifierParameters</find>
+      <find>CoordinateTransforms</find>
+      <find>alternateRowsForKeras</find>
+      <find>experimentsFolder</find>
+      <find>timestepsPerKerasBatchRow</find>
+      <find>setDict</find>
+      <find>Footpad</find>
+      <find>footpad</find>
+      <find>SpeedFoot</find>
+      <find>allBaseFileNames</find>
+      <find>valueMethods</find>
+      <find>setNames</find>
+      <find>datasetParameters</find>
+      <find>useSavedPCA</find>
+      <find>useSavedFilter</find>
+      <find>savedPCAModelFile</find>
+      <find>exist</find>
+      <find>setter[1]</find>
+      <find>setter[0]</find>
+      <find>datasetStatsParameters</find>
+      <find>outputLabelsFinal</find>
+      <find>discrete</find>
     </findStrings>
     <replaceStrings>
       <replace>22050</replace>
       <replace>None</replace>
       <replace>True</replace>
       <replace>False</replace>
+      <replace>Footpod</replace>
+      <replace>footpod</replace>
+      <replace>useSavedFilter</replace>
+      <replace>set_y</replace>
+      <replace>set_x</replace>
+      <replace>savedFilterFile</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -196,10 +197,7 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/deeplearningfiles/ClassificationStats.py" />
-        <option value="$PROJECT_DIR$/deeplearningfiles/logistic_sgd.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/mlp.py" />
-        <option value="$PROJECT_DIR$/deeplearningfiles/SkleanEnsembleRegressors.py" />
-        <option value="$PROJECT_DIR$/deeplearningfiles/linearRegression.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/DBN.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/convolutional_mlp.py" />
         <option value="$PROJECT_DIR$/ConvertASCIIToWAV.py" />
@@ -215,22 +213,25 @@
         <option value="$PROJECT_DIR$/makeTHoRhf.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/rbm.py" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/theanohelper.py" />
         <option value="$PROJECT_DIR$/analyzeWavFile.py" />
-        <option value="$PROJECT_DIR$/deeplearningfiles/RegressionUtils.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/ParticleFilter.py" />
         <option value="$PROJECT_DIR$/ParticleFilter.py" />
         <option value="$PROJECT_DIR$/CreateClassifierConfig.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/KalmanFilter.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/TeacherForcing.py" />
+        <option value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" />
+        <option value="$PROJECT_DIR$/visualizeTrainingData.py" />
+        <option value="$PROJECT_DIR$/theanohelper.py" />
         <option value="$PROJECT_DIR$/CreateFeature.py" />
         <option value="$PROJECT_DIR$/CreateUtils.py" />
-        <option value="$PROJECT_DIR$/CreateDataset.py" />
+        <option value="$PROJECT_DIR$/deeplearningfiles/SkleanEnsembleRegressors.py" />
+        <option value="$PROJECT_DIR$/deeplearningfiles/linearRegression.py" />
+        <option value="$PROJECT_DIR$/deeplearningfiles/logistic_sgd.py" />
+        <option value="$PROJECT_DIR$/deeplearningfiles/RegressionUtils.py" />
         <option value="$PROJECT_DIR$/RunExperiment.py" />
-        <option value="$PROJECT_DIR$/visualizeTrainingData.py" />
-        <option value="$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py" />
-        <option value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" />
+        <option value="$PROJECT_DIR$/CreateDataset.py" />
+        <option value="$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py" />
       </list>
     </option>
   </component>
@@ -295,7 +296,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -342,6 +342,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -349,31 +350,14 @@
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
     <property name="last_opened_file_path" value="$USER_HOME$/anaconda2/bin/python" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="js.eslint.eslintPackage" value="" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.WaveletTransformLayer">
-    <configuration default="false" name="TeacherForcing" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="VLFNavigation" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/TeacherForcing.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
+  <component name="RunManager" selected="Python.RunExperiment">
     <configuration default="false" name="RunExperiment" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -442,6 +426,24 @@
       <module name="VLFNavigation" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="theanohelper" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="VLFNavigation" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/theanohelper.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -661,19 +663,19 @@
       <method />
     </configuration>
     <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="Python.TeacherForcing" />
-      <item index="1" class="java.lang.String" itemvalue="Python.RunExperiment" />
-      <item index="2" class="java.lang.String" itemvalue="Python.CreateDataset" />
-      <item index="3" class="java.lang.String" itemvalue="Python.CreateFeature" />
-      <item index="4" class="java.lang.String" itemvalue="Python.WaveletTransformLayer" />
+      <item index="0" class="java.lang.String" itemvalue="Python.RunExperiment" />
+      <item index="1" class="java.lang.String" itemvalue="Python.CreateDataset" />
+      <item index="2" class="java.lang.String" itemvalue="Python.CreateFeature" />
+      <item index="3" class="java.lang.String" itemvalue="Python.WaveletTransformLayer" />
+      <item index="4" class="java.lang.String" itemvalue="Python.theanohelper" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.WaveletTransformLayer" />
-        <item index="1" class="java.lang.String" itemvalue="Python.RunExperiment" />
-        <item index="2" class="java.lang.String" itemvalue="Python.CreateDataset" />
+        <item index="0" class="java.lang.String" itemvalue="Python.RunExperiment" />
+        <item index="1" class="java.lang.String" itemvalue="Python.CreateDataset" />
+        <item index="2" class="java.lang.String" itemvalue="Python.theanohelper" />
         <item index="3" class="java.lang.String" itemvalue="Python.CreateFeature" />
-        <item index="4" class="java.lang.String" itemvalue="Python.TeacherForcing" />
+        <item index="4" class="java.lang.String" itemvalue="Python.WaveletTransformLayer" />
       </list>
     </recent_temporary>
   </component>
@@ -782,7 +784,14 @@
       <option name="project" value="LOCAL" />
       <updated>1480713796881</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Daily Commit">
+      <created>1481124445157</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1481124445157</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TodoView">
@@ -798,16 +807,17 @@
     <frame x="65" y="24" width="1855" height="1056" extended-state="6" />
     <editor active="false" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23548922" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25538972" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24378109" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25538972" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -815,7 +825,6 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
@@ -895,11 +904,6 @@
           <option name="timeStamp" value="46" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py</url>
-          <line>351</line>
-          <option name="timeStamp" value="69" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/TeacherForcing.py</url>
           <line>202</line>
           <option name="timeStamp" value="84" />
@@ -911,44 +915,34 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/CreateDataset.py</url>
-          <line>343</line>
+          <line>350</line>
           <option name="timeStamp" value="87" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/CreateDataset.py</url>
+          <line>439</line>
+          <option name="timeStamp" value="109" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py</url>
+          <line>191</line>
+          <option name="timeStamp" value="113" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py</url>
+          <line>264</line>
+          <option name="timeStamp" value="114" />
+        </line-breakpoint>
       </breakpoints>
-      <option name="time" value="88" />
+      <option name="time" value="116" />
     </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
-        <watch expression="y_train_last" language="Python" />
-        <watch expression="y_reshaped" language="Python" />
+        <watch expression="reshapeSet" language="Python" />
       </configuration>
     </watches-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/crunchTHoRStats.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
-          <caret line="28" column="67" lean-forward="false" selection-start-line="28" selection-start-column="67" selection-end-line="28" selection-end-column="67" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tictoc.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" column="0" lean-forward="false" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/CreateDatasetConfig.py" />
-    <entry file="file://$PROJECT_DIR$/readwav.py" />
-    <entry file="file://$PROJECT_DIR$/CreateFeatureConfig.py" />
-    <entry file="file://$PROJECT_DIR$/makeTestTrainingData.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="11" column="20" lean-forward="false" selection-start-line="11" selection-start-column="20" selection-end-line="11" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/deeplearningfiles/rbm.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="8280">
@@ -979,13 +973,6 @@
     </entry>
     <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/numpy/core/_methods.py" />
     <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/scipy/io/wavfile.py" />
-    <entry file="file://$PROJECT_DIR$/theanohelper.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="12" column="17" lean-forward="false" selection-start-line="12" selection-start-column="17" selection-end-line="12" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/theano/tensor/var.py" />
     <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/subprocess.py" />
     <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/matplotlib/animation.py" />
@@ -997,13 +984,6 @@
       </provider>
     </entry>
     <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/keras/layers/core.py" />
-    <entry file="file://$PROJECT_DIR$/deeplearningfiles/RegressionUtils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2205">
-          <caret line="157" column="0" lean-forward="false" selection-start-line="157" selection-start-column="0" selection-end-line="157" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ParticleFilter.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="210">
@@ -1023,7 +1003,6 @@
     <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/theano/tensor/type.py" />
     <entry file="file://$USER_HOME$/.PyCharm2016.2/system/python_stubs/-286011962/__builtin__.py" />
     <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/keras/layers/wrappers.py" />
-    <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/numpy/core/fromnumeric.py" />
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/pydevd.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="176">
@@ -1051,17 +1030,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="510">
           <caret line="242" column="0" lean-forward="false" selection-start-line="242" selection-start-column="0" selection-end-line="242" selection-end-column="0" />
-          <folding>
-            <element signature="e#857#1593#0" expanded="false" />
-            <element signature="e#1636#2596#0" expanded="false" />
-            <element signature="e#2652#3685#0" expanded="false" />
-            <element signature="e#3728#4845#0" expanded="false" />
-            <element signature="e#4901#5640#0" expanded="false" />
-            <element signature="e#5692#6111#0" expanded="false" />
-            <element signature="e#6159#6690#0" expanded="false" />
-            <element signature="e#6746#7164#0" expanded="false" />
-            <element signature="e#7219#7730#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1094,58 +1062,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/CreateFeature.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="13020">
-          <caret line="903" column="38" lean-forward="false" selection-start-line="903" selection-start-column="38" selection-end-line="903" selection-end-column="38" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/CreateUtils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3780">
-          <caret line="254" column="4" lean-forward="false" selection-start-line="254" selection-start-column="4" selection-end-line="254" selection-end-column="4" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/CreateDataset.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15840">
-          <caret line="1184" column="60" lean-forward="false" selection-start-line="1184" selection-start-column="19" selection-end-line="1184" selection-end-column="60" />
-          <folding>
-            <element signature="e#54092#54112#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/RunExperiment.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="26" column="25" lean-forward="false" selection-start-line="26" selection-start-column="25" selection-end-line="26" selection-end-column="25" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="9930">
-          <caret line="687" column="37" lean-forward="false" selection-start-line="687" selection-start-column="37" selection-end-line="687" selection-end-column="37" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/visualizeTrainingData.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="8250">
-          <caret line="583" column="39" lean-forward="false" selection-start-line="583" selection-start-column="39" selection-end-line="583" selection-end-column="39" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/TeacherForcing.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="4065">
@@ -1154,22 +1070,146 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py">
+    <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="11085">
-          <caret line="779" column="57" lean-forward="false" selection-start-line="779" selection-start-column="57" selection-end-line="779" selection-end-column="57" />
+        <state relative-caret-position="352">
+          <caret line="380" column="25" lean-forward="true" selection-start-line="380" selection-start-column="25" selection-end-line="380" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CoordinateTransforms.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45">
+          <caret line="4" column="4" lean-forward="false" selection-start-line="4" selection-start-column="4" selection-end-line="4" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/theanohelper.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="234">
+          <caret line="370" column="20" lean-forward="true" selection-start-line="370" selection-start-column="20" selection-end-line="370" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/sklearn/utils/validation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="453">
+          <caret line="432" column="68" lean-forward="true" selection-start-line="432" selection-start-column="68" selection-end-line="432" selection-end-column="68" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/visualizeTrainingData.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="690">
+          <caret line="79" column="23" lean-forward="false" selection-start-line="79" selection-start-column="23" selection-end-line="79" selection-end-column="23" />
           <folding>
-            <element signature="e#0#9#0" expanded="true" />
-            <element signature="e#36343#40168#0" expanded="false" />
+            <element signature="e#84#93#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/WaveletTransformLayer.py">
+    <entry file="file://$PROJECT_DIR$/CreateFeature.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="187">
-          <caret line="369" column="20" lean-forward="true" selection-start-line="369" selection-start-column="20" selection-end-line="369" selection-end-column="20" />
+        <state relative-caret-position="9840">
+          <caret line="691" column="28" lean-forward="false" selection-start-line="691" selection-start-column="28" selection-end-line="691" selection-end-column="28" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deeplearningfiles/SkleanEnsembleRegressors.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="10" column="17" lean-forward="true" selection-start-line="10" selection-start-column="17" selection-end-line="10" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deeplearningfiles/mlp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="475">
+          <caret line="950" column="17" lean-forward="false" selection-start-line="950" selection-start-column="17" selection-end-line="950" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deeplearningfiles/linearRegression.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="594">
+          <caret line="453" column="36" lean-forward="false" selection-start-line="453" selection-start-column="36" selection-end-line="453" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deeplearningfiles/logistic_sgd.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1305">
+          <caret line="571" column="57" lean-forward="false" selection-start-line="571" selection-start-column="57" selection-end-line="571" selection-end-column="57" />
+          <folding>
+            <element signature="e#951#965#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CreateUtils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="438">
+          <caret line="260" column="0" lean-forward="true" selection-start-line="260" selection-start-column="0" selection-end-line="260" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deeplearningfiles/RegressionUtils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="261">
+          <caret line="128" column="28" lean-forward="false" selection-start-line="128" selection-start-column="28" selection-end-line="128" selection-end-column="28" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/RunExperiment.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="375">
+          <caret line="38" column="27" lean-forward="false" selection-start-line="38" selection-start-column="27" selection-end-line="38" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/numpy/core/fromnumeric.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="266">
+          <caret line="223" column="0" lean-forward="false" selection-start-line="223" selection-start-column="0" selection-end-line="223" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CreateDataset.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="195">
+          <caret line="923" column="34" lean-forward="false" selection-start-line="923" selection-start-column="34" selection-end-line="923" selection-end-column="34" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+            <element signature="e#58053#58073#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="267" column="0" lean-forward="false" selection-start-line="267" selection-start-column="0" selection-end-line="267" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="384">
+          <caret line="708" column="0" lean-forward="true" selection-start-line="708" selection-start-column="0" selection-end-line="708" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

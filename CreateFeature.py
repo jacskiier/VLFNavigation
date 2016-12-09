@@ -592,8 +592,8 @@ def determineMetadata(fileNameArg, numOfSamples=None, windowTimeLengthArg=1.0, b
     if footpodArray.dtype.names:
         newNames = list(footpodArray.dtype.names)
         newNames[newNames.index('Speed')] = 'SpeedFootpod'
-        newNames[newNames.index('Cadence')] = 'CadenceFootpad'
-        newNames[newNames.index('TotalDistance')] = 'TotalDistanceFootpad'
+        newNames[newNames.index('Cadence')] = 'CadenceFootpod'
+        newNames[newNames.index('TotalDistance')] = 'TotalDistanceFootpod'
         footpodArray.dtype.names = tuple(newNames)
     # wahoo ma
     if maArray.dtype.names:
@@ -689,7 +689,7 @@ def determineMetadata(fileNameArg, numOfSamples=None, windowTimeLengthArg=1.0, b
                  accelerometerArray, gyroscopeArray, locationiPhoneArray, headingArray]
     namesAll = [CreateUtils.cadenceNames, CreateUtils.speedNames,
                 CreateUtils.locationWahooNames, CreateUtils.heartNames,
-                CreateUtils.footpadNames, CreateUtils.maNames,
+                CreateUtils.footpodNames, CreateUtils.maNames,
                 CreateUtils.accelerometerNames, CreateUtils.gyroscopeNames,
                 CreateUtils.locationiPhoneNames, CreateUtils.headingNames]
     elapsedTimeAll = [cadenceElapsedtime, speedElapsedtime, locationWahooElapsedtime, heartElapsedtime,
@@ -901,7 +901,7 @@ def runMain():
     removeFeatureSetNames = []
     maxFiles = 100
 
-    featureSetName = 'FFTWindowLowFreq'
+    featureSetName = 'FFTWindowHighFreq'
     featureMethod = 'FFTWindow'
     signalSource = 'Loop Antenna With iPhone 4'
     # signalSource = '3-Axis Dipole With SRI Receiver'
@@ -1098,7 +1098,7 @@ def runMain():
         elif featureMethod == 'FFTWindow':
             # x matrix parameters
             burstMethod = False
-            windowFreqBounds = [0, 11025]  # the start and stop frequencies in Hz
+            windowFreqBounds = [11025, 22050]  # the start and stop frequencies in Hz
 
             samplesPerWindow = int(samplingRate / 10.0)
             windowTimeLength = samplesPerWindow / float(samplingRate)

@@ -25,6 +25,8 @@ import pandas as pd
 import StringIO
 from tqdm import tqdm
 
+valueMethodNames = ['Probability', 'Probability Ratio', 'Probability Difference']
+
 
 # from https://gist.github.com/pv/8036995
 def voronoi_finite_polygons_2d(vor, radius=None):
@@ -133,7 +135,8 @@ def load_data(datasetFileName,
               makeSharedData=True,
               makeSequenceForX=False,
               makeSequenceForY=False,
-              timesteps=0):
+              timesteps=0,
+              setNames=('train', 'valid', 'test')):
     """ Loads the dataset
     :type datasetFileName: string
     :param datasetFileName: the path to the dataset pickle file that returns (train_set, valid_set, test_set) who
@@ -183,24 +186,17 @@ def load_data(datasetFileName,
     #
     print '... loading data'
 
+    setDict = {}
     # Load the dataset
-    if re.match('''.*\.pkl\.gz$''', datasetFileName):
-        f = gzip.open(datasetFileName, 'rb')
-        train_set, valid_set, test_set = cPickle.load(f)
-        f.close()
-    elif re.match('''.*\.hf$''', datasetFileName):
+    if re.match('''.*\.hf$''', datasetFileName):
         with pd.HDFStore(datasetFileName, 'r') as featureStore:
-            train_set_x = featureStore['train_set_x'].as_matrix()
-            valid_set_x = featureStore['valid_set_x'].as_matrix()
-            test_set_x = featureStore['test_set_x'].as_matrix()
-            train_set_y = featureStore['train_set_y'].as_matrix()
-            valid_set_y = featureStore['valid_set_y'].as_matrix()
-            test_set_y = featureStore['test_set_y'].as_matrix()
-            train_set = [train_set_x, train_set_y]
-            valid_set = [valid_set_x, valid_set_y]
-            test_set = [test_set_x, test_set_y]
+            for setName in setNames:
+                set_x = featureStore[setName + '_set_x'].as_matrix()
+                set_y = featureStore[setName + '_set_y'].as_matrix()
+                setDict[setName] = (set_x, set_y)
+            labels = featureStore['labels'].as_matrix()
     else:
-        raise ValueError('Only .pkl.gz or .hf file types are supported')
+        raise ValueError('Only .hf file types are supported')
 
     # train_set, valid_set, test_set format: tuple(input, target)
     # input is an numpy.ndarray of 2 dimensions (a matrix)
@@ -235,51 +231,41 @@ def load_data(datasetFileName,
         return shared_x, T.cast(shared_y, 'int32')
 
     if len(rogueClasses) > 0:
-        nonRogueMask = np.logical_not(np.in1d(test_set[1], np.array(rogueClasses)))
-        test_set = (test_set[0][nonRogueMask], test_set[1][nonRogueMask])
-
-        nonRogueMask = np.logical_not(np.in1d(valid_set[1], np.array(rogueClasses)))
-        valid_set = (valid_set[0][nonRogueMask], valid_set[1][nonRogueMask])
-
-        nonRogueMask = np.logical_not(np.in1d(train_set[1], np.array(rogueClasses)))
-        train_set = (train_set[0][nonRogueMask], train_set[1][nonRogueMask])
-
-        for rogueClass in list(np.flipud(rogueClasses)):
-            test_set[1][test_set[1] > rogueClass] -= 1
-            valid_set[1][valid_set[1] > rogueClass] -= 1
-            train_set[1][train_set[1] > rogueClass] -= 1
-
-    for setter in [train_set, valid_set, test_set]:
+        for setName in setNames:
+            set_x = setDict[setName][0]
+            set_y = setDict[setName][1]
+            nonRogueMask = np.logical_not(np.in1d(set_y, np.array(rogueClasses)))
+            set_x = set_x[nonRogueMask]
+            set_y = set_y[nonRogueMask]
+            for rogueClass in list(np.flipud(rogueClasses)):
+                set_y[set_y > rogueClass] -= 1
+            setDict[setName] = (set_x, set_y)
+    for setName in setNames:
+        set_x, set_y = setDict[setName]
         if makeSequenceForX:
-            setter[0] = np.reshape(setter[0], (setter[0].shape[0], timesteps, setter[0].shape[1] / timesteps))
+            set_x = np.reshape(set_x, (set_x.shape[0], timesteps, set_x.shape[1] / timesteps))
         if makeSequenceForY:
-            setter[1] = np.reshape(setter[1], (setter[1].shape[0], timesteps, setter[1].shape[1] / timesteps))
+            set_y = np.reshape(set_y, (set_y.shape[0], timesteps, set_y.shape[1] / timesteps))
+        setDict[setName] = (set_x, set_y)
 
-    if makeSharedData:
-        test_set_x, test_set_y = shared_dataset(test_set)
-        valid_set_x, valid_set_y = shared_dataset(valid_set)
-        train_set_x, train_set_y = shared_dataset(train_set)
-    else:
-        test_set_x, test_set_y = test_set
-        valid_set_x, valid_set_y = valid_set
-        train_set_x, train_set_y = train_set
+    rval = []
+    for setName in setNames:
+        thisSet = setDict[setName]
+        if makeSharedData:
+            thisSet = shared_dataset(thisSet)
+            setDict[setName] = thisSet
+        rval.append(thisSet)
 
-    rval = [(train_set_x, train_set_y),
-            (valid_set_x, valid_set_y),
-            (test_set_x, test_set_y)]
+    inputFeatures = rval[0][0].shape[1]
 
-    inputFeatures = test_set[0].shape[1]
-
-    allOutputClasses = np.concatenate((train_set[1], valid_set[1], test_set[1]), 0)
+    allOutputClasses = np.concatenate([thisSet[1] for thisSet in rval], 0)
     outputClassesByUnique = np.unique(allOutputClasses).shape[0]
     outputClassesByLargest = int(np.max(allOutputClasses)) + 1
-    assert outputClassesByUnique == outputClassesByLargest, "Unique output classes != largest output class"
-    outputClassesTotal = max(outputClassesByUnique, outputClassesByLargest)
-    # assert outputClassesTotal == (int(np.max(test_set[1] )) + 1), "test  set is missing output classes"
-    # assert outputClassesTotal == (int(np.max(valid_set[1])) + 1), "valid set is missing output classes"
-    # assert outputClassesTotal == (int(np.max(train_set[1])) + 1), "train set is missing output classes"
+    outputClassesByLabels = labels.size
+    outputClassesTotal = outputClassesByLabels
+    assert outputClassesTotal <= max(outputClassesByUnique, outputClassesByLargest), "Class indices are beyond total classes"
 
-    largestSampleSetPossible = min((test_set[1].shape[0], valid_set[1].shape[0], train_set[1].shape[0]))
+    largestSampleSetPossible = min([thisSet[1].shape[0] for thisSet in rval])
     print ("loading complete")
     return rval, inputFeatures, outputClassesTotal, largestSampleSetPossible
 
@@ -315,14 +301,22 @@ def getLabelsForDataset(processedDataFolder, datasetFileName, includeRawLabels=F
         return classLabels
 
 
-def getEERThreshold(predicted_class, predictedValues, true_class, nTotalClassesArg=None, rogueClasses=()):
+def getEERThreshold(predicted_class, predictedValues, true_class, nTotalClassesArg=None, rogueClasses=(), classLabels=None):
     nRogue = len(rogueClasses)
     if nTotalClassesArg is None:
         # nTotalClasses = np.unique(true_class).shape[0] # this way doesn't work if some of your
         # output classes never happened
-        nTotalClasses = int(np.max(true_class)) + 1  # and this is gonna fail if the largest
+        # nTotalClasses = int(np.max(true_class)) + 1  # and this is gonna fail if the largest
         # output clases never happened
         # assert(np.unique(true_class).shape[0] == int(np.max(true_class)) + 1)
+
+        if classLabels is None:
+            # this way doesn't work if some of your output classes never happened
+            # nTotalClasses = np.unique(true_class).shape[0]
+            # and this is gonna fail if the largest output clases never happened
+            nTotalClasses = int(np.max(true_class)) + 1
+        else:
+            nTotalClasses = len(classLabels)
     else:
         nTotalClasses = nTotalClassesArg
 
@@ -420,7 +414,8 @@ def plotThresholds(predicted_class,
                    valueMethodName="",
                    statisticsStoreFolder='',
                    plotThresholdFigures=True,
-                   plotLabels=False):
+                   plotLabels=False,
+                   useVoroni=False):
     nRogue = len(rogueClasses)
     if nTotalClassesArg is None:
         if classLabels is None:
@@ -662,7 +657,6 @@ def plotThresholds(predicted_class,
         outputString = '\n'.join(classLabelsRaw)
         outputLabelsAsArray = np.genfromtxt(StringIO.StringIO(outputString), delimiter=',')
 
-        useVoroni = True
         if useVoroni:
             polygons = []
             vor = Voronoi(points=outputLabelsAsArray)
@@ -699,7 +693,7 @@ def plotThresholds(predicted_class,
             plt.ylim(vor.min_bound[0] - edgeBuffer, vor.max_bound[0] + edgeBuffer)
             plt.xlabel('East (m)')
             plt.ylabel('North (m)')
-            plt.title("Counts and True Positive percentage for each grid location")
+            plt.title("True Positive percentage for each polygon")
             plt.savefig(os.path.join(statisticsStoreFolder, "labelsplot"))
         else:
             diffArray = np.diff(np.sort(outputLabelsAsArray[:, 0]))
@@ -720,23 +714,23 @@ def plotThresholds(predicted_class,
                                                          gridSize[1],
                                                          gridSize[0])
                 rects.append(thisPatch)
-                plt.text(x=xMid - gridSize[1] / 2.0,
-                         y=yMid,
-                         s="{countsThisClass} \n{tpRateThisClass:2.2%}".format(tpRateThisClass=acc,
-                                                                               countsThisClass=totalCountsThisClass),
-                         size=12,
-                         zorder=2,
-                         color='k')
+                # plt.text(x=xMid - gridSize[1] / 2.0,
+                #          y=yMid,
+                #          s="{countsThisClass} \n{tpRateThisClass:2.2%}".format(tpRateThisClass=acc,
+                #                                                                countsThisClass=totalCountsThisClass),
+                #          size=12,
+                #          zorder=2,
+                #          color='k')
 
             colorMap = cm.get_cmap('coolwarm')
-            p = matplotlib.collections.PatchCollection(patches=rects, cmap=colorMap)
+            p = matplotlib.collections.PatchCollection(patches=rects, cmap=colorMap, norm=matplotlib.colors.NoNorm())
             p.set_array(accuracyPerClass)
             ax.add_collection(p)
             plt.xlim([np.min(outputLabelsAsArray[:, 1]) - gridSize[1], np.max(outputLabelsAsArray[:, 1]) + gridSize[1]])
             plt.ylim([np.min(outputLabelsAsArray[:, 0]) - gridSize[0], np.max(outputLabelsAsArray[:, 0]) + gridSize[0]])
             plt.xlabel('East (m)')
             plt.ylabel('North (m)')
-            plt.title("Counts and True Positive percentage for each grid location")
+            plt.title("True Positive percentage for each grid location")
             plt.savefig(os.path.join(statisticsStoreFolder, "labelsplot"))
 
     thresholdString = """Set {setName}

@@ -4,6 +4,8 @@ import csv
 import warnings
 from collections import Iterable, OrderedDict
 import shutil
+import yaml
+import json
 
 import matplotlib.pylab as plt
 import numpy as np
@@ -303,79 +305,100 @@ def compileAModel(model, classifierParameters, datasetParameters):
 def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz',
                                                   experimentStoreFolder='',
                                                   valueMethod=0,
-                                                  whichSetArg=2,
+                                                  whichSetName='valid',
                                                   datasetParameters=None,
                                                   classifierParameters=None,
                                                   modelStoreNameType="best",
                                                   runByShape=False,
                                                   returnClassProbabilities=False):
+    # get parameters
+    totalyColumns = datasetParameters['totalyColumns']
+
+    # sequence params
+    makeSequences = datasetParameters['makeSequences'] if 'makeSequences' in datasetParameters else False
+    timestepsOfASample = datasetParameters['timestepsPerSequence'] if 'timestepsPerSequence' in datasetParameters else None
+
+    # packing
+    rowPackagingStyle = datasetParameters['rowPackagingStyle'] if 'rowPackagingStyle' in datasetParameters else None
+    alternateRowsForKeras = datasetParameters['alternateRowsForKeras'] if 'alternateRowsForKeras' in datasetParameters else False
+    kerasRowMultiplier = datasetParameters['kerasRowMultiplier'] if 'kerasRowMultiplier' in datasetParameters else 1
+    timestepsPerKerasBatchRow = datasetParameters['timestepsPerKerasBatchRow'] if 'timestepsPerKerasBatchRow' in datasetParameters else None
+    packagedRowsPerSetDict = datasetParameters['packagedRowsPerSetDict'] if 'packagedRowsPerSetDict' in datasetParameters else {whichSetName: None}
+    packagedColumnsPerSetDict = datasetParameters['packagedColumnsPerSetDict'] if 'packagedColumnsPerSetDict' in datasetParameters else {
+        whichSetName: None}
+    assert whichSetName in packagedRowsPerSetDict, "The set name {0} is not in the dataset".format(whichSetName)
+    packagedRows = packagedRowsPerSetDict[whichSetName]
+    packagedColumns = packagedColumnsPerSetDict[whichSetName]
+
+    if rowPackagingStyle is not None:
+        if alternateRowsForKeras:
+            timesteps_load = timestepsPerKerasBatchRow
+        else:
+            timesteps_load = packagedColumns
+        makeSequencesForX = True
+    else:
+        timesteps_load = 1
+        makeSequencesForX = False
+
+    useTimeDistributedOutput = classifierParameters['useTimeDistributedOutput'] if 'useTimeDistributedOutput' in classifierParameters else False
+    datasets, inputs, outputs, max_batch_size = ClassificationUtils.load_data(datasetFileName,
+                                                                              rogueClasses=(),
+                                                                              makeSharedData=False,
+                                                                              makeSequenceForX=makeSequencesForX,
+                                                                              makeSequenceForY=useTimeDistributedOutput,
+                                                                              timesteps=timesteps_load,
+                                                                              setNames=[whichSetName])
+    X_test = datasets[0][0]
+    if 'useWaveletTransform' in classifierParameters and classifierParameters['useWaveletTransform'] is True:
+        X_test = X_test[:, :, None, :]
+    set_X = X_test
+    trueValues = datasets[0][1]
+
+    # get parameters that depended on size of data
+    batch_size = min(classifierParameters['batch_size'], max_batch_size)
+    stateful = classifierParameters['stateful'] if 'stateful' in classifierParameters else False
+
+    if stateful:
+
+        auto_stateful_batch = classifierParameters['auto_stateful_batch'] if 'auto_stateful_batch' in classifierParameters else False
+        if auto_stateful_batch:
+            batch_size = packagedRows
+        else:
+            assert batch_size == packagedRows, "You chose stateful but your batch size didn't match the files in the training set"
+
+    trueRowsPerSetDict = datasetParameters['trueRowsPerSetDict'] if 'trueRowsPerSetDict' in datasetParameters else {}
+    trueRows = trueRowsPerSetDict[whichSetName] if whichSetName in trueRowsPerSetDict else batch_size
+
+    print("Loading model")
     modelStoreFilePathFullTemp = os.path.join(experimentStoreFolder, 'model.json'.format(modelStoreNameType))
     if not os.path.exists(modelStoreFilePathFullTemp):
         modelStoreFilePathFullTemp = os.path.join(experimentStoreFolder, 'best_model.json'.format(modelStoreNameType))
 
     with open(modelStoreFilePathFullTemp, 'r') as modelStoreFile:
         json_string = modelStoreFile.read()
+    json_string = changeBatchInputShapeOfModel(json_string, batch_size)
     model = model_from_json(json_string, custom_objects={"KalmanFilterLayer": KalmanFilterLayer, "WaveletTransformLayer": WaveletTransformLayer})
-
-    modelStoreWeightsFilePathFullTemp = os.path.join(experimentStoreFolder,
-                                                     '{0}_modelWeights.h5'.format(modelStoreNameType))
+    modelStoreWeightsFilePathFullTemp = os.path.join(experimentStoreFolder, '{0}_modelWeights.h5'.format(modelStoreNameType))
     model.load_weights(modelStoreWeightsFilePathFullTemp)
 
     compileAModel(model,
                   classifierParameters=classifierParameters,
                   datasetParameters=datasetParameters)
 
-    makeSequences = datasetParameters['makeSequences'] if 'makeSequences' in datasetParameters else False
-    alternateRowsForKeras = datasetParameters[
-        'alternateRowsForKeras'] if 'alternateRowsForKeras' in datasetParameters else False
-    if alternateRowsForKeras:
-        timesteps = datasetParameters['timestepsPerKerasBatchRow']
-        makeSequencesForX = True
-    elif makeSequences:
-        timesteps = datasetParameters['timestepsPerSequence']
-        makeSequencesForX = True
-    else:
-        timesteps = 0
-        makeSequencesForX = False
-    useTimeDistributedOutput = classifierParameters[
-        'useTimeDistributedOutput'] if 'useTimeDistributedOutput' in classifierParameters else False
-
-    datasets, inputs, outputs, max_batch_size = ClassificationUtils.load_data(datasetFileName,
-                                                                              rogueClasses=(),
-                                                                              makeSharedData=False,
-                                                                              makeSequenceForX=makeSequencesForX,
-                                                                              makeSequenceForY=useTimeDistributedOutput,
-                                                                              timesteps=timesteps)
-    if whichSetArg > 2 or whichSetArg < 0:
-        raise ValueError("Invalid which set number {0}".format(whichSetArg))
-    X_test = datasets[whichSetArg][0]
-    if 'useWaveletTransform' in classifierParameters and classifierParameters['useWaveletTransform'] is True:
-        X_test = X_test[:, :, None, :]
-    set_X = X_test
-    trueValues = datasets[whichSetArg][1]
-
-    batch_size = min(classifierParameters['batch_size'], max_batch_size)
-    stateful = classifierParameters['stateful'] if 'stateful' in classifierParameters else False
-    if stateful:
-        whichSetName = ['train', 'valid', 'test'][whichSetArg]
-        packagedRowsPerSetDict = datasetParameters['packagedRowsPerSetDict']
-        packagedRows = packagedRowsPerSetDict[whichSetName]
-        auto_stateful_batch = classifierParameters[
-            'auto_stateful_batch'] if 'auto_stateful_batch' in classifierParameters else False
-        if auto_stateful_batch:
-            batch_size = packagedRows
-        else:
-            assert batch_size == packagedRows, \
-                "You chose stateful but your batch size didn't match the files in the training set"
     print("Making Prediction Classes")
     predicted_probabilities = model.predict_proba(set_X, batch_size=batch_size, verbose=2)
     print("Predictions over")
+    modelOutputClasses = predicted_probabilities.shape[-1]
+    assert modelOutputClasses == outputs, "The dataset and model were configured for a different number of classes"
     # reshape predicted_probabilities to be rows and indices
-    predicted_probabilities = np.reshape(predicted_probabilities, (
-        predicted_probabilities.shape[0] * predicted_probabilities.shape[1], predicted_probabilities.shape[2]))
+    predicted_probabilities = np.reshape(predicted_probabilities,
+                                         newshape=(
+                                         predicted_probabilities.shape[0] * predicted_probabilities.shape[1], predicted_probabilities.shape[2]))
 
     trueValues = np.reshape(trueValues, (trueValues.shape[0] * trueValues.shape[1], trueValues.shape[2]))
     # trueValues = totalSamples x output data dim
+
+    # both True and predicted shape = (batch_size * kerasRowMultiplier * timesteps x totalColumnsY)
 
     processedDataFolder = os.path.dirname(datasetFileName)
     classLabels = ClassificationUtils.getLabelsForDataset(processedDataFolder, datasetFileName)
@@ -393,42 +416,46 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
         predicted_probabilitiesSorted = np.fliplr(np.sort(predicted_probabilities, axis=1))
         predictedValues = predicted_probabilitiesSorted[:, 0] - predicted_probabilitiesSorted[:, 1]
 
-    if runByShape and stateful:
-        kerasRowMultiplier = datasetParameters['kerasRowMultiplier']
-        totalyColumns = datasetParameters['totalyColumns']
+    if rowPackagingStyle is not None:
+        reshapeSets = [trueValues, predicted_probabilities, predicted_class, predictedValues]
+        for setIndex, final_dim in enumerate([totalyColumns, outputs, 1, 1]):
+            reshapeSet = reshapeSets[setIndex]
+            if alternateRowsForKeras:
+                # shape = (batch_size * kerasRowMultiplier * timestepsPerKerasBatchRow x final_dim)
+                reshapeSet = np.reshape(reshapeSet, newshape=(batch_size * kerasRowMultiplier, timestepsPerKerasBatchRow * final_dim))
+                # shape = (run count in timestep x timestep data dim)
+                reshapeSet = np.reshape(reshapeSet, newshape=(batch_size, kerasRowMultiplier, timestepsPerKerasBatchRow * final_dim), order='F')
+                # shape = (run x slice of run x timestep data dim)
+                reshapeSet = np.reshape(reshapeSet, newshape=(batch_size, kerasRowMultiplier * timestepsPerKerasBatchRow, final_dim))
+                # shape = (run x timestep x data dim)
+            else:
+                # shape = (batch_size * timestep x final_dim)
+                reshapeSet = np.reshape(reshapeSet, newshape=(batch_size, packagedColumns, final_dim))
+                # shape = (run x timestep x data dim)
 
-        predictedValues = np.reshape(predictedValues, newshape=(batch_size * kerasRowMultiplier, timesteps * totalyColumns))
-
-        predictedValues = np.reshape(predictedValues,
-                                     newshape=(batch_size, predictedValues.shape[0] / batch_size, predictedValues.shape[1]),
-                                     order='F')
-        predictedValues = np.reshape(predictedValues,
-                                     newshape=(batch_size, predictedValues.shape[1] * timesteps, predictedValues.shape[2] / timesteps))
-
-        # trueValues.shape = (batch_size * kerasRowMultiplier * timesteps x totalColumnsY
-        trueValues = np.reshape(trueValues, newshape=(batch_size * kerasRowMultiplier, timesteps * totalyColumns))
-        # true_values.shape = (run count in timestep x timestep data dim)
-        trueValues = np.reshape(trueValues, newshape=(batch_size, trueValues.shape[0] / batch_size, trueValues.shape[1]), order='F')
-        # true_values.shape = (run x slice of run x timestep data dim)
-        trueValues = np.reshape(trueValues, newshape=(batch_size, trueValues.shape[1] * timesteps, trueValues.shape[2] / timesteps))
-
-        predicted_class = np.reshape(predicted_class, newshape=(batch_size * kerasRowMultiplier, timesteps * 1))
-        predicted_class = np.reshape(predicted_class, newshape=(batch_size, kerasRowMultiplier, timesteps * 1), order='F')
-        predicted_class = np.reshape(predicted_class, newshape=(batch_size, kerasRowMultiplier * timesteps, 1))
-
-        predicted_probabilities = np.reshape(predicted_probabilities, newshape=(batch_size * kerasRowMultiplier, timesteps * outputs))
-        predicted_probabilities = np.reshape(predicted_probabilities, newshape=(batch_size, kerasRowMultiplier, timesteps * outputs), order='F')
-        predicted_probabilities = np.reshape(predicted_probabilities, newshape=(batch_size, kerasRowMultiplier * timesteps, outputs))
+            # slice out the actual rows
+            reshapeSet = reshapeSet[0:trueRows]
+            # reshape output as desired
+            if not runByShape:
+                reshapeSet = np.reshape(reshapeSet, newshape=(trueRows * kerasRowMultiplier * timestepsPerKerasBatchRow, final_dim))
+            reshapeSets[setIndex] = reshapeSet
+        (trueValues, predicted_probabilities, predicted_class, predictedValues) = reshapeSets
+        predicted_class = np.squeeze(predicted_class, axis=-1)
+        predictedValues = np.squeeze(predictedValues, axis=-1)
 
     if returnClassProbabilities is False:
-        returnTuple = (predicted_class, predictedValues, trueValues, classLabels)
+        returnTuple = (predicted_class, predictedValues, trueValues, classLabels, outputs)
     else:
-        returnTuple = (predicted_class, predictedValues, trueValues, classLabels, predicted_probabilities)
+        returnTuple = (predicted_class, predictedValues, trueValues, classLabels, outputs, predicted_probabilities)
     return returnTuple
 
 
-def getPred_Values_True_Labels(datasetFileName='mnist.pkl.gz', experimentStoreFolder='', whichSetArg=2,
-                               datasetParameters=None, classifierParameters=None, modelStoreNameType="best",
+def getPred_Values_True_Labels(datasetFileName='mnist.pkl.gz',
+                               experimentStoreFolder='',
+                               whichSetName='valid',
+                               datasetParameters=None,
+                               classifierParameters=None,
+                               modelStoreNameType="best",
                                shapeByRun=False):
     modelStoreFilePathFullTemp = os.path.join(experimentStoreFolder, 'model.json'.format(modelStoreNameType))
     if not os.path.exists(modelStoreFilePathFullTemp):
@@ -464,17 +491,15 @@ def getPred_Values_True_Labels(datasetFileName='mnist.pkl.gz', experimentStoreFo
                                                                                 makeSharedData=False,
                                                                                 makeSequenceForX=makeSequencesForX,
                                                                                 makeSequenceForY=useTimeDistributedOutput,
-                                                                                timesteps=timesteps)
+                                                                                timesteps=timesteps,
+                                                                                setNames=[whichSetName])
 
-    if whichSetArg > 2 or whichSetArg < 0:
-        raise ValueError("Invalid which set number {0}".format(whichSetArg))
-    set_X = datasets[whichSetArg][0]
-    true_values = datasets[whichSetArg][1]
+    set_X = datasets[0][0]
+    true_values = datasets[0][1]
 
     batch_size = min(classifierParameters['batch_size'], max_batch_size)
     stateful = classifierParameters['stateful'] if 'stateful' in classifierParameters else False
     if stateful:
-        whichSetName = ['train', 'valid', 'test'][whichSetArg]
         packagedRowsPerSetDict = datasetParameters['packagedRowsPerSetDict']
         packagedRows = packagedRowsPerSetDict[whichSetName]
         auto_stateful_batch = classifierParameters[
@@ -561,8 +586,16 @@ def getPred_Values_True_Labels(datasetFileName='mnist.pkl.gz', experimentStoreFo
     return predicted_y_values, true_values, classLabels
 
 
-def makeStatisticsForModel(experimentsFolder, statisticStoreFolder, featureParameters, datasetParameters,
-                           classifierParameters, valueMethod=0, useLabels=True, whichSet=1, showFigures=True,
+def makeStatisticsForModel(experimentsFolder,
+                           statisticStoreFolder,
+                           featureParameters,
+                           datasetParameters,
+                           classifierParameters,
+                           valueMethod=0,
+                           useLabels=True,
+                           whichSetName='valid',
+                           whichSetNameStat='valid',
+                           showFigures=True,
                            modelStoreNameType="best"):
     """
     Make staticstics for a model using the features, datset, and classifier given whose model is already made
@@ -589,8 +622,11 @@ def makeStatisticsForModel(experimentsFolder, statisticStoreFolder, featureParam
     :type useLabels: bool
     :param useLabels: If labels should be used in charts True or just the class number False
 
-    :type whichSet: int
-    :param whichSet: Which of the sets to do the statistics on training=0 validation=1 testing=2
+    :type whichSetName: str
+    :param whichSetName: Which of the sets to do the thresholding on
+
+    :type whichSetNameStat: str
+    :param whichSetNameStat: Which of the sets to do the statistics
 
     :type showFigures: bool
     :param showFigures: If you want to see the figures now instead of viewing them on disk later
@@ -600,37 +636,48 @@ def makeStatisticsForModel(experimentsFolder, statisticStoreFolder, featureParam
     :param modelStoreNameType: the string prefix of the type of weights to use (best|last)
     """
 
-    valueMethods = ['Probability', 'Probability Ratio', 'Probability Difference']
-    setNames = ['Training', 'Validation', 'Testing']
-    processedDataFolder = CreateUtils.convertPathToThisOS(datasetParameters['processedDataFolder'])
+    valueMethodName = ClassificationUtils.valueMethodNames[valueMethod]
 
+    # get datasetFile
+    processedDataFolder = CreateUtils.convertPathToThisOS(datasetParameters['processedDataFolder'])
     if os.path.exists(os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')):
         datasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')
     else:
         datasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'],
                                    datasetParameters['datasetName'] + '.pkl.gz')
 
+    # get statDatasetFile
+    statDatasetConfigFileName = os.path.join(statisticStoreFolder, 'dataset parameters.yaml')
+    with open(statDatasetConfigFileName, 'r') as myConfigFile:
+        statDatasetParameters = yaml.load(myConfigFile)
+    processedDataFolder = CreateUtils.convertPathToThisOS(statDatasetParameters['processedDataFolder'])
+    if os.path.exists(os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')):
+        statDatasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')
+    else:
+        statDatasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'],
+                                       statDatasetParameters['datasetName'] + '.pkl.gz')
+
     rogueClassesMaster = classifierParameters['rogueClasses']
     if classifierParameters['classifierGoal'] == 'regression':
-        (predicted_values_master, true_values_master, classLabelsMaster) = getPred_Values_True_Labels(
-            datasetFileName=datasetFile,
-            experimentStoreFolder=experimentsFolder,
-            whichSetArg=whichSet,
-            classifierParameters=classifierParameters,
-            datasetParameters=datasetParameters,
-            modelStoreNameType=modelStoreNameType)
+        tupleOutputTemp = getPred_Values_True_Labels(datasetFileName=statDatasetFile,
+                                                     experimentStoreFolder=experimentsFolder,
+                                                     whichSetName=whichSetNameStat,
+                                                     classifierParameters=classifierParameters,
+                                                     datasetParameters=statDatasetParameters,
+                                                     modelStoreNameType=modelStoreNameType)
+        (predicted_values_master, true_values_master, classLabelsMaster) = tupleOutputTemp
+
         if not useLabels:
             classLabelsMaster = None
-        yScaleFactor = datasetParameters['y value parameters']['yScaleFactor'] if 'yScaleFactor' in datasetParameters[
+        yScaleFactor = statDatasetParameters['y value parameters']['yScaleFactor'] if 'yScaleFactor' in statDatasetParameters[
             'y value parameters'] else 1.0
-        yBias = datasetParameters['y value parameters']['yBias'] if 'yBias' in datasetParameters[
-            'y value parameters'] else 0.0
+        yBias = statDatasetParameters['y value parameters']['yBias'] if 'yBias' in statDatasetParameters['y value parameters'] else 0.0
         predicted_values_master = (predicted_values_master / yScaleFactor) - yBias
         true_values_master = (true_values_master / yScaleFactor) - yBias
         thresholdsMaster = RegressionUtils.getStatistics(predicted_values_master, true_values_master,
-                                                         setName=setNames[whichSet],
+                                                         setName=whichSetNameStat,
                                                          statisticsStoreFolder=statisticStoreFolder,
-                                                         datasetParameters=datasetParameters,
+                                                         datasetParameters=statDatasetParameters,
                                                          weightsName=modelStoreNameType)
         if len(rogueClassesMaster) > 0:
             RegressionUtils.rogueAnalysis(thresholdsMaster,
@@ -638,37 +685,40 @@ def makeStatisticsForModel(experimentsFolder, statisticStoreFolder, featureParam
                                           true_values_master,
                                           classLabels=classLabelsMaster,
                                           rogueClasses=rogueClassesMaster,
-                                          setName=setNames[whichSet],
+                                          setName=whichSetNameStat,
                                           statisticsStoreFolder=statisticStoreFolder)
     else:
-        thresholdSet = 1
-        yValueType = datasetParameters['yValueType']
+        yValueType = statDatasetParameters['yValueType']
         plotLabels = (yValueType == 'gpsD' or yValueType == 'particle') and useLabels
-        # Grab the validation set in order to calculate EER thresholds
+        useVoroni = yValueType == 'particle'
+        # Grab the dataset used in the model in order to calculate EER thresholds
         tupleOutputTemp = getPredictedClasses_Values_TrueClasses_Labels(datasetFileName=datasetFile,
                                                                         experimentStoreFolder=experimentsFolder,
                                                                         valueMethod=valueMethod,
-                                                                        whichSetArg=thresholdSet,
+                                                                        whichSetName=whichSetName,
                                                                         datasetParameters=datasetParameters,
                                                                         classifierParameters=classifierParameters,
                                                                         modelStoreNameType=modelStoreNameType)
-        (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster) = tupleOutputTemp
-        # make EER thresholds with the validation set
+        (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster, totalOuputClasses) = tupleOutputTemp
+        # make EER thresholds with the dataset used in the model
         eerThresholdsMaster = ClassificationUtils.getEERThreshold(predicted_class_master,
                                                                   predicted_values_master,
                                                                   true_class_master,
-                                                                  rogueClasses=rogueClassesMaster)
+                                                                  rogueClasses=rogueClassesMaster,
+                                                                  classLabels=classLabelsMaster,
+                                                                  nTotalClassesArg=totalOuputClasses)
 
-        # Now get the test set and test the thresholds I just made
-        presentSet = whichSet
-        tupleOutputTemp = getPredictedClasses_Values_TrueClasses_Labels(datasetFileName=datasetFile,
+        # Now get the stat set to show the results
+        tupleOutputTemp = getPredictedClasses_Values_TrueClasses_Labels(datasetFileName=statDatasetFile,
                                                                         experimentStoreFolder=experimentsFolder,
                                                                         valueMethod=valueMethod,
-                                                                        whichSetArg=presentSet,
-                                                                        datasetParameters=datasetParameters,
+                                                                        whichSetName=whichSetNameStat,
+                                                                        datasetParameters=statDatasetParameters,
                                                                         classifierParameters=classifierParameters,
                                                                         modelStoreNameType=modelStoreNameType)
-        (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster) = tupleOutputTemp
+        (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster, totalStatOuputClasses) = tupleOutputTemp
+        assert totalOuputClasses == totalStatOuputClasses, "The model dataset class number doesn't equal the stat dataset class number"
+
         if not useLabels:
             classLabelsMaster = None
         # using the thresholds from before but now the test set plot what this looks like
@@ -678,10 +728,13 @@ def makeStatisticsForModel(experimentsFolder, statisticStoreFolder, featureParam
                                            eerThresholdsMaster,
                                            classLabels=classLabelsMaster,
                                            rogueClasses=rogueClassesMaster,
-                                           setName=setNames[presentSet],
-                                           valueMethodName=valueMethods[valueMethod],
+                                           setName=whichSetNameStat,
+                                           valueMethodName=valueMethodName,
                                            statisticsStoreFolder=statisticStoreFolder,
-                                           plotLabels=plotLabels)
+                                           plotLabels=plotLabels,
+                                           useVoroni=useVoroni,
+                                           plotThresholdFigures=True,
+                                           nTotalClassesArg=totalOuputClasses)
 
         if len(rogueClassesMaster) > 0:
             ClassificationUtils.rogueAnalysis(eerThresholdsMaster,
@@ -690,8 +743,8 @@ def makeStatisticsForModel(experimentsFolder, statisticStoreFolder, featureParam
                                               true_class_master,
                                               classLabels=classLabelsMaster,
                                               rogueClasses=rogueClassesMaster,
-                                              setName=setNames[presentSet],
-                                              valueMethodName=valueMethods[valueMethod],
+                                              setName=whichSetNameStat,
+                                              valueMethodName=valueMethodName,
                                               statisticsStoreFolder=statisticStoreFolder)
     if showFigures:
         plt.show()
@@ -761,9 +814,8 @@ modelJsonExample = {"class_name": "Sequential", "keras_version": "1.1.0", "confi
      {"class_name": "Activation", "config": {"activation": "softmax", "trainable": True, "name": "softmax Layer Output"}}]}
 
 
-def changeBatchInputShapeOfModel(modelConfig, newBatchSize):
-    import json
-    modelJson = json.loads(modelConfig)
+def changeBatchInputShapeOfModel(model_json_string, newBatchSize):
+    modelJson = json.loads(model_json_string)
     layerArray = modelJson['config']
     for layer in layerArray:
         if 'batch_input_shape' in layer['config']:
