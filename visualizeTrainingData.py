@@ -47,13 +47,13 @@ if os.name == 'nt':
 # stats model parameters
 featureMethod = 'FFTWindow'
 featureSetName = 'FFTWindowDefault'
-datasetName = "bikeneighborhoodPackFileNormParticle"
+datasetName = "bikeneighborhoodPackFileNormC"
 
 whichSetName = 'valid'
 downsample = None
 
 # prediction model parameters
-datasetModelName = "bikeneighborhoodPackFileNormParticle"
+datasetModelName = "bikeneighborhoodPackFileNormC"
 classifierType = "LSTM"
 classifierSetName = "ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD"
 modelStoreNameType = 'best'
@@ -66,7 +66,7 @@ makeAnimation = False
 # Y Visuals
 makeYScatterPlot = False
 makeYScatterPlotColorOnY = False
-showPathPerRowOfPackagedFile = False
+showPathPerRowOfPackagedFile = True
 gpsGrid = False
 
 # Calculate Stats
@@ -74,7 +74,7 @@ calculatex_t0andP_t0 = False
 kMeansOnRegressionY = False
 
 # Prediction Visuals
-videoClassProbability = True
+videoClassProbability = False
 weightedPosition = False
 
 # transforms of X or Y

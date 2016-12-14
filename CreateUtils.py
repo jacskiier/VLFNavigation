@@ -250,7 +250,7 @@ def getRootDataFolder(featureMethod=None, signalSource='Loop Antenna With iPhone
     if os.name == 'nt':
         if featureMethod in featureMethodNamesRebuildValid:
             if signalSource == 'Loop Antenna With iPhone 4' or signalSource == 'Loop Antenna With iPhone 5c':
-                rootDataFolder = os.path.join("M:\\", "iPhoneVLFSingals")
+                rootDataFolder = os.path.join("M:\\", "iPhoneVLFSignals")
                 samplingRate = 44100
             elif signalSource == '3-Axis Dipole With SRI Receiver':
                 rootDataFolder = os.path.join("M:\\", "3AxisVLFSignals")
@@ -258,11 +258,11 @@ def getRootDataFolder(featureMethod=None, signalSource='Loop Antenna With iPhone
             else:
                 raise ValueError("Signal Source of {0} is not supported".format(signalSource))
         elif featureMethod == 'MNIST':
-            rootDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\mnist raw data folder\\"
+            rootDataFolder = r"M:\\MNIST Data Root\\"
         elif featureMethod == 'THoR':
             rootDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\parse NHL\\"
         else:  # featureMethod == "Test"
-            rootDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\test raw data folder\\"
+            rootDataFolder = r"M:\\Test Data Root\\"
     elif os.name == 'posix':
         if featureMethod in featureMethodNamesRebuildValid:
             if signalSource == 'Loop Antenna With iPhone 4' or signalSource == 'Loop Antenna With iPhone 5c':
@@ -274,11 +274,11 @@ def getRootDataFolder(featureMethod=None, signalSource='Loop Antenna With iPhone
             else:
                 raise ValueError("Signal Source of {0} is not supported".format(signalSource))
         elif featureMethod == 'MNIST':
-            rootDataFolder = r"/media/sena/Greed Island/Users/Joey/Documents/Python Scripts/Spyder/deeplearningfiles/mnist raw data folder/"
+            rootDataFolder = os.path.join("/media", "sena", "Mystery Shack", "MNIST Data Root")
         elif featureMethod == 'THoR':
             rootDataFolder = r"/media/sena/Greed Island/Users/Joey/Documents/Python Scripts/parse NHL/"
         else:  # featureMethod == "Test"
-            rootDataFolder = r"/media/sena/Greed Island/Users/Joey/Documents/Python Scripts/Spyder/deeplearningfiles/test raw data folder/"
+            rootDataFolder = os.path.join("/media", "sena", "Mystery Shack", "Test Data Root")
     else:
         raise ValueError("This OS is not allowed")
 
@@ -323,15 +323,15 @@ def getModelFolder(classifierType=None, classifierSetName=None):
 
 def getExperimentFolder(featureSetName=None, datasetName=None, classifierType=None, classifierSetName=None):
     if featureSetName is None and datasetName is None and classifierType is None and classifierSetName is None:
-        experimentFolder = os.path.join(getRawDataFolder(), "Data Experiments")
+        experimentFolder = os.path.join(getRootDataFolder(), "Data Experiments")
     elif featureSetName is not None and datasetName is not None and classifierType is None and classifierSetName is None:
-        experimentFolder = os.path.join(getRawDataFolder(), "Data Experiments", featureSetName)
+        experimentFolder = os.path.join(getRootDataFolder(), "Data Experiments", featureSetName)
     elif featureSetName is not None and datasetName is None and classifierType is None and classifierSetName is None:
-        experimentFolder = os.path.join(getRawDataFolder(), "Data Experiments", featureSetName, datasetName)
+        experimentFolder = os.path.join(getRootDataFolder(), "Data Experiments", featureSetName, datasetName)
     elif featureSetName is not None and datasetName is None and classifierType is not None and classifierSetName is None:
-        experimentFolder = os.path.join(getRawDataFolder(), "Data Experiments", featureSetName, datasetName, classifierType)
+        experimentFolder = os.path.join(getRootDataFolder(), "Data Experiments", featureSetName, datasetName, classifierType)
     else:
-        experimentFolder = os.path.join(getRawDataFolder(), "Data Experiments", featureSetName, datasetName, classifierType, classifierSetName)
+        experimentFolder = os.path.join(getRootDataFolder(), "Data Experiments", featureSetName, datasetName, classifierType, classifierSetName)
     return experimentFolder
 
 
@@ -354,29 +354,26 @@ def getDatasetFile(featureSetName, datasetName):
     return datasetFile
 
 
-def getParameters(featureSetName=None, datasetName=None, classifierType=None, classifierSetName=None):
-    ret = ()
+def getParameters(featureSetName=None, datasetName=None, classifierType=None, classifierSetName=None, baseFolder=None):
+    returnParameters = ()
     if featureSetName is not None:
-        featureDataFolder = getProcessedFeaturesFolder(featureName=featureSetName)
-        featureConfigFileName = getFeatureConfigFileName(featureSetName)
+        featureConfigFileName = getFeatureConfigFileName(featureSetName, baseFolder=baseFolder)
         with open(featureConfigFileName, 'r') as myConfigFile:
             featureParameters = yaml.load(myConfigFile)
-        ret = ret + featureParameters
+        returnParameters += (featureParameters,)
 
     if datasetName is not None:
-        processedDataFolder = getProcessedDataDatasetsFolder(datasetName=datasetName)
-        datasetConfigFileName = getDatasetConfigFileName(datasetName)
+        datasetConfigFileName = getDatasetConfigFileName(datasetName, baseFolder=baseFolder)
         with open(datasetConfigFileName, 'r') as myConfigFile:
             datasetParameters = yaml.load(myConfigFile)
-        ret = ret + datasetParameters
+        returnParameters += (datasetParameters,)
 
     if classifierType is not None and classifierSetName is not None:
-        modelDataFolder = getModelFolder(classifierType=classifierType, classifierSetName=classifierSetName)
-        modelConfigFileName = getModelConfigFileName(classifierType, classifierSetName)
+        modelConfigFileName = getModelConfigFileName(classifierType, classifierSetName, baseFolder=baseFolder)
         with open(modelConfigFileName, 'r') as myConfigFile:
             modelParameters = yaml.load(myConfigFile)
-        ret = ret + modelParameters
-    return ret
+        returnParameters += (modelParameters,)
+    return returnParameters
 
 
 def get3AxisCollectFolder():
@@ -389,20 +386,34 @@ def get3AxisCollectFolder():
     return dataCollectFolderMain
 
 
-def getFeatureConfigFileName(featureSetName):
-    return os.path.join(getProcessedFeaturesFolder(featureSetName), "feature parameters.yaml")
+def getFeatureConfigFileName(featureSetName, baseFolder=None):
+    if baseFolder is None:
+        featureConfigFileName = os.path.join(getProcessedFeaturesFolder(featureSetName), "feature parameters.yaml")
+    else:
+        featureConfigFileName = os.path.join(baseFolder, "feature parameters.yaml")
+    return featureConfigFileName
 
 
-def getDatasetConfigFileName(datasetName):
-    return os.path.join(getProcessedDataDatasetsFolder(datasetName), "dataset parameters.yaml")
+def getDatasetConfigFileName(datasetName, baseFolder=None):
+    if baseFolder is None:
+        datasetConfigFileName = os.path.join(getProcessedDataDatasetsFolder(datasetName), "dataset parameters.yaml")
+    else:
+        datasetConfigFileName = os.path.join(baseFolder, "dataset parameters.yaml")
+    return datasetConfigFileName
 
 
-def getModelConfigFileName(classifierType, classifierSetName):
-    return os.path.join(getModelFolder(classifierType=classifierType, classifierSetName=classifierSetName), "model set parameters.yaml")
+def getModelConfigFileName(classifierType, classifierSetName, baseFolder=None):
+    if baseFolder is None:
+        modelConfigFileName = os.path.join(getModelFolder(classifierType=classifierType, classifierSetName=classifierSetName),
+                                           "model set parameters.yaml")
+    else:
+        modelConfigFileName = os.path.join(baseFolder, "model set parameters.yaml")
+    return modelConfigFileName
 
 
 def getDatasetStatConfigFileName(statisticsFolder):
     return os.path.join(statisticsFolder, 'dataset parameters.yaml')
+
 
 def copyConfigsToExperimentsFolder(experimentsFolder, featureSetName=None, datasetName=None, classifierType=None, classifierSetName=None):
     if featureSetName is not None:

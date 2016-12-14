@@ -157,7 +157,7 @@ if __name__ == '__main__':
             'LSTM',
             'RegressionAllClasses2LPlus2MLPStatefulKalmanTrainDQ2AutoBatchDropRlrPWeightRMSPropTD'),
             'bestLoss_modelWeights.h5')
-        filePatherArg = CreateUtils.convertPathToThisOS(loadWeightsFilePath)
+        filePatherArg = loadWeightsFilePath
         with pd.HDFStore(filePatherArg, 'r') as datasetStore:
             print datasetStore.root
             print datasetStore.root.model_weights
