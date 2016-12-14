@@ -44,15 +44,20 @@ if os.name == 'nt':
 # elif os.name == 'posix':
 #     plt.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'
 
+# stats model parameters
+featureMethod = 'FFTWindow'
+featureSetName = 'FFTWindowDefault'
+datasetName = "bikeneighborhoodPackFileNormParticle"
 
-rawDataFolder = CreateUtils.getRawDataFolder()
-
-featureSetName = 'PatchShortTallAllFreq'
-datasetName = "bikeneighborhoodPackFileCTDM"
-
-whichSet = 1
-whichSetName = ['train', 'valid', 'test'][whichSet]
+whichSetName = 'valid'
 downsample = None
+
+# prediction model parameters
+datasetModelName = "bikeneighborhoodPackFileNormParticle"
+classifierType = "LSTM"
+classifierSetName = "ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD"
+modelStoreNameType = 'best'
+valueMethod = 0
 
 # X visuals
 showImages = False
@@ -69,8 +74,8 @@ calculatex_t0andP_t0 = False
 kMeansOnRegressionY = False
 
 # Prediction Visuals
-videoClassProbability = False
-weightedPosition = True
+videoClassProbability = True
+weightedPosition = False
 
 # transforms of X or Y
 makeDBSCAN = False
@@ -87,15 +92,10 @@ makeTSNEPlotX = False
 makeTSNEPlotYRegression = False
 
 # Load all the config files
-featureDataFolderMain = os.path.join(rawDataFolder, "Processed Data Features", featureSetName)
-featureConfigFileName = os.path.join(featureDataFolderMain, "feature parameters.yaml")
-with open(featureConfigFileName, 'r') as myConfigFile:
-    featureParameters = yaml.load(myConfigFile)
-
-processedDataFolderMain = os.path.join(rawDataFolder, "Processed Data Datasets", datasetName)
-datasetConfigFileName = os.path.join(processedDataFolderMain, "dataset parameters.yaml")
-with open(datasetConfigFileName, 'r') as myConfigFile:
-    datasetParameters = yaml.load(myConfigFile)
+rootDataFolder = CreateUtils.getRootDataFolder(featureMethod=featureMethod)
+rawDataFolder = CreateUtils.getRawDataFolder()
+processedDataFolderMain = CreateUtils.getProcessedDataDatasetsFolder(datasetName=datasetName)
+(featureParameters, datasetParameters) = CreateUtils.getParameters(featureSetName=featureSetName, datasetName=datasetName)
 
 if os.path.exists(os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
     datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')
@@ -106,15 +106,17 @@ else:
 if datasetParameters['yValueType'] != 'gpsC':
     datasets, inputs, outputs, max_batch_size = ClassificationUtils.load_data(datasetFile,
                                                                               rogueClasses=(),
-                                                                              makeSharedData=False)
+                                                                              makeSharedData=False,
+                                                                              setNames=[whichSetName])
 else:
     datasets, inputs, outputs, max_batch_size = RegressionUtils.load_data(datasetFile,
                                                                           rogueClasses=(),
-                                                                          makeSharedData=False)
+                                                                          makeSharedData=False,
+                                                                          setNames=[whichSetName])
+
 outputLabels, outputLabelsRaw = ClassificationUtils.getLabelsForDataset(processedDataFolderMain, datasetFile,
                                                                         includeRawLabels=True)
 
-train_set, valid_set, test_set = datasets
 imageShape = featureParameters['imageShape']
 timeDistributedY = datasetParameters['timeDistributedY'] if 'timeDistributedY' in datasetParameters else False
 timestepsPerSequence = datasetParameters[
@@ -146,23 +148,21 @@ if 'y value parameters' in datasetParameters:
         'localLevelOriginInECEF']
 else:
     includeAltitude = False
-    gridSize = (10, 10, 1000)
+    gridSize = (100, 100, 1000)
     localLevelOriginInECEF = [506052.051626, -4882162.055080, 4059778.630410]
 
 alternateRowsForKeras = datasetParameters[
     'alternateRowsForKeras'] if 'alternateRowsForKeras' in datasetParameters else False
 
-print("Train set has {0} samples".format(train_set[0].shape[0]))
-print("Valid set has {0} samples".format(valid_set[0].shape[0]))
-print("Test  set has {0} samples".format(test_set[0].shape[0]))
-print("Features per set {0}".format(test_set[0].shape[1]))
-print("Output Dim per set {0}".format(test_set[1].shape[1] if len(test_set[1].shape) > 1 else 1))
+print("{setName} set has {0} samples".format(datasets[0][0].shape[0], setName=whichSetName))
+print("Features per set {0}".format(datasets[0][0].shape[1]))
+print("Output Dim per set {0}".format(datasets[0][1].shape[1] if len(datasets[0][1].shape) > 1 else 1))
 print("Image Shape is {0}".format(imageShape))
 
-XRaw = datasets[whichSet][0][0:downsample, :]
+XRaw = datasets[0][0][0:downsample, :]
 XRaw[np.isnan(XRaw)] = 0
 X = XRaw
-yRaw = datasets[whichSet][1][0:downsample, :]
+yRaw = datasets[0][1][0:downsample, :]
 y = yRaw
 makeSequences = datasetParameters['makeSequences'] if 'makeSequences' in datasetParameters else False
 # undo packaging
@@ -260,7 +260,7 @@ if showImages or makeAnimation:
 
         writer = animation.FFMpegWriter(fps=fps)
         fig = plt.figure()
-        videoSavePath = os.path.join(rawDataFolder, "Imagery", datasetName + ".mp4")
+        videoSavePath = os.path.join(CreateUtils.getImageryFolder(), datasetName + ".mp4")
         with writer.saving(fig, videoSavePath, 100):
             for threeChannelImageData in tqdm(imageList, "Making Animation Per Image"):
                 extent = [0, featureParameters['feature parameters']['windowTimeLength'],
@@ -346,16 +346,17 @@ if makeYScatterPlotColorOnY:
 if showPathPerRowOfPackagedFile:
     assert yValueType == 'gpsC', "can only show path for gpsC"
     assert rowPackagingStyle is not None, "you didn't package any rows"
-    yWorking = yRaw
+    print ('packagedRows {0}'.format(packagedRows))
+    totalRuns = packagedRows
+    gridSize = (100, 100, 1000)
+    showLegend = False
 
+    yWorking = yRaw
+    # yWorking = yWorking / yScaleFactor - yBias
     if alternateRowsForKeras:
         yWorking = convertBatchSequencesToFullSequences(yWorking, packagedRows)
-
-    # yWorking = yWorking / yScaleFactor - yBias
-    print ('packagedRows {0}'.format(packagedRows))
-    totalRuns = 1
     plotsY, plotsX = getFactorsClosestToSquareRoot(packagedRows)
-    for seqs in range(packagedRows):
+    for seqs in range(totalRuns):
         plt.figure(1)
         # plt.subplot(plotsX, plotsY, seqs + 1)
         ranger = np.arange(seqs, yWorking.shape[0], packagedRows)
@@ -363,31 +364,38 @@ if showPathPerRowOfPackagedFile:
         print filterRange
         xer = yWorking[filterRange, 0::2].flatten()
         yer = yWorking[filterRange, 1::2].flatten()
-        # plt.plot(yer, xer)
-        thisCmap = cm.get_cmap('prism')
+        thisCmap = cm.get_cmap('spectral')
         thisColor = thisCmap(seqs / float(packagedRows))
-        plt.scatter(yer, xer, c=thisColor, marker='o', edgecolors=thisColor)
-        ax = plt.gca()
-        miner = -800
-        maxer = 600
-        major_ticks = np.arange(start=gridSize[1] * int(miner / gridSize[1]),
-                                stop=gridSize[1] * int(maxer / gridSize[1]),
-                                step=gridSize[1])
-        major_ticksX = major_ticks
-        major_ticksY = major_ticks
-        if yNormalized:
-            miner = 0
-            maxer = 1
-            major_ticksX = yScaleFactor[1] * (major_ticksX + yBias[1])
-            major_ticksY = yScaleFactor[0] * (major_ticksY + yBias[0])
 
-        plt.ylim([miner, maxer])
-        plt.xlim([miner, maxer])
-        ax.set_xticks(major_ticksX)
-        ax.set_yticks(major_ticksY)
-        ax.grid(which='both')
+        # plt.scatter(yer, xer, c=thisColor, marker='o', edgecolors=thisColor)
+        plt.plot(yer, xer, c=thisColor, label="Run: {0}".format(seqs))
 
-        ax.grid(which='major', alpha=0.5)
+    ax = plt.gca()
+    miner = -800
+    maxer = 600
+    major_ticks = np.arange(start=gridSize[1] * int(miner / gridSize[1]),
+                            stop=gridSize[1] * int(maxer / gridSize[1]),
+                            step=gridSize[1])
+    major_ticksX = major_ticks
+    major_ticksY = major_ticks
+    if yNormalized:
+        miner = 0
+        maxer = 1
+        major_ticksX = yScaleFactor[1] * (major_ticksX + yBias[1])
+        major_ticksY = yScaleFactor[0] * (major_ticksY + yBias[0])
+
+    plt.ylim([miner, maxer])
+    plt.xlim([miner, maxer])
+    ax.set_xticks(major_ticksX)
+    ax.set_yticks(major_ticksY)
+    ax.grid(which='both')
+    ax.grid(which='major', alpha=0.5)
+    plt.xlabel('East (m)')
+    plt.ylabel('North (m)')
+    plt.title('Path Travelled by Run on set: {0}'.format(whichSetName))
+    if showLegend:
+        plt.legend(bbox_to_anchor=(1, 0.5), loc='center left')
+        plt.tight_layout(rect=(0, 0, 0.8, 1))
     plt.show()
 
 if gpsGrid:
@@ -493,7 +501,7 @@ if kMeansOnRegressionY:
     plt.title('MiniBatchKMeans')
     saveCenters = False
     if saveCenters:
-        filePath = os.path.join(rawDataFolder, "Imagery", datasetName + "RegressionYkMeansClusters.csv")
+        filePath = os.path.join(CreateUtils.getImageryFolder(), datasetName + "RegressionYkMeansClusters.csv")
         np.savetxt(filePath, mbk_means_cluster_centers, fmt='%6.2f', delimiter=',', header="North, East")
     plt.show()
 
@@ -504,13 +512,11 @@ if kMeansOnRegressionY:
 
 
 def getPredictedStuff():
-    classifierType = "LSTM"
-    classifierSetName = "ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD"
-    experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureSetName, datasetName, classifierType,
-                                     classifierSetName)
-    valueMethod = 0
-    modelStoreNameType = 'best'
-    modelDataFolder = os.path.join(rawDataFolder, "Processed Data Models", classifierType, classifierSetName)
+    experimentsFolder = CreateUtils.getExperimentFolder(featureSetName=featureSetName,
+                                                        datasetName=datasetModelName,
+                                                        classifierType=classifierType,
+                                                        classifierSetName=classifierSetName)
+    modelDataFolder = CreateUtils.getModelFolder(classifierType, classifierSetName)
     modelConfigFileName = os.path.join(modelDataFolder, "model set parameters.yaml")
     with open(modelConfigFileName, 'r') as myConfigFile:
         classifierParameters = yaml.load(myConfigFile)
@@ -518,7 +524,7 @@ def getPredictedStuff():
     tupleOutputTemp = getPredictedClasses_Values_TrueClasses_Labels(datasetFileName=datasetFile,
                                                                     experimentStoreFolder=experimentsFolder,
                                                                     valueMethod=valueMethod,
-                                                                    whichSetArg=whichSet,
+                                                                    whichSetName=whichSetName,
                                                                     datasetParameters=datasetParameters,
                                                                     classifierParameters=classifierParameters,
                                                                     modelStoreNameType=modelStoreNameType,
@@ -530,7 +536,7 @@ def getPredictedStuff():
 if videoClassProbability:
     (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster, totalOuputClasses, predicted_probabilities,
      classifierParameters) = getPredictedStuff()
-    whichRuns = [0, 1, 2]
+    whichRuns = [0]
 
     outputString = '\n'.join(outputLabelsRaw)
     outputLabelsAsArray = np.genfromtxt(StringIO.StringIO(outputString), delimiter=',')
@@ -562,7 +568,7 @@ if videoClassProbability:
                                                                                                 whichSetName=whichSetName,
                                                                                                 run=whichRun,
                                                                                                 datasetName=datasetName)
-        videoSavePath = os.path.join(rawDataFolder, "Imagery", fileName)
+        videoSavePath = os.path.join(CreateUtils.getImageryFolder(), fileName)
         dpi = 100
         with writer.saving(fig, videoSavePath, 100):
             ax = plt.gca()
@@ -584,6 +590,7 @@ if videoClassProbability:
                             marker='*',
                             s=300,
                             c='g')
+                # plt.show()
                 writer.grab_frame()
 
 if weightedPosition:
@@ -597,11 +604,11 @@ if weightedPosition:
 
     saveCenters = True
     if saveCenters:
-        filePath = os.path.join(rawDataFolder, "Imagery", datasetName + "particleLocationsFromDataset.csv")
+        filePath = os.path.join(CreateUtils.getImageryFolder(), datasetName + "particleLocationsFromDataset.csv")
         np.savetxt(filePath, outputLabelsAsArray, fmt='%6.2f', delimiter=',', header="North, East")
 
     trueDatasetName = "bikeneighborhoodPackFileCTDM"
-    datasetFileTrue = os.path.join(rawDataFolder, "Processed Data Datasets", trueDatasetName, featureParameters['featureSetName'] + '.hf')
+    datasetFileTrue = os.path.join(CreateUtils.getProcessedDataDatasetsFolder(trueDatasetName), featureParameters['featureSetName'] + '.hf')
     datasetsTrue, inputsTrue, outputsTrue, max_batch_sizeTrue = RegressionUtils.load_data(datasetFileTrue,
                                                                                           rogueClasses=(),
                                                                                           makeSharedData=False)
@@ -623,7 +630,7 @@ if weightedPosition:
             assert batch_size == packagedRows, \
                 "You chose stateful but your batch size didn't match the files in the training set"
 
-    yTrue = datasetsTrue[whichSet][1]
+    yTrue = datasetsTrue[0][1]
     outputsTrue = int(outputsTrue / timesteps)
     yTrue = np.reshape(yTrue, newshape=(batch_size * kerasRowMultiplier, timesteps * outputsTrue))
     yTrue = np.reshape(yTrue, newshape=(batch_size, kerasRowMultiplier, timesteps * outputsTrue), order='F')

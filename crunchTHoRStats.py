@@ -2,23 +2,21 @@ import numpy
 import os
 import pandas as pd
 import scipy
-
-if os.name == 'nt':
-    rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\parse NHL\\"
-elif os.name == 'posix':
-    rawDataFolder = r"/media/sena/Greed Island/Users/Joey/Documents/Python Scripts/parse NHL/"
-else:
-    raise ValueError("This OS is not allowed")
+import CreateUtils
 
 datasetName = "THoR"
+featureMethod = "THoR"
 featureSetName = 'DefaultTHoRFeatures'
 whichSet = 0
+
+rootDataFolder = CreateUtils.getRootDataFolder(featureMethod=featureMethod)
+rawDataFolder = CreateUtils.getRawDataFolder()
 
 allStats = numpy.genfromtxt(os.path.join(rawDataFolder, 'allStats.csv'), delimiter=',', usecols=[13], dtype='a')
 if len(allStats.shape) <= 1:
     allStats = numpy.expand_dims(allStats, 1)
 
-processedDataFolder = os.path.join(rawDataFolder, "Processed Data Datasets", datasetName)
+processedDataFolder = CreateUtils.getProcessedDataDatasetsFolder(datasetName)
 datasetFile = os.path.join(processedDataFolder, featureSetName + '.hf')
 with pd.HDFStore(datasetFile, 'r') as featureStore:
     p_train = featureStore['p_train'.format(whichSet)].as_matrix()
@@ -26,7 +24,7 @@ with pd.HDFStore(datasetFile, 'r') as featureStore:
     p_test = featureStore['p_test'.format(whichSet)].as_matrix()
     columnNames = numpy.array(featureStore['columnNames'.format(whichSet)].as_matrix(), dtype='a').squeeze()
 
-experimentStore = os.path.join(rawDataFolder, r"Data Experiments\\DefaultTHoRFeatures\\THoR\\MLP\\RegressionAllClassesDefault\\")
+experimentStore = os.path.join(rootDataFolder, "Data Experiments", "DefaultTHoRFeatures", "THoR", "MLP", "RegressionAllClassesDefault")
 gradFile = os.path.join(experimentStore, 'gradArray.hf')
 with pd.HDFStore(gradFile, 'r') as featureStore:
     gradArray = featureStore['gradArray{0}'.format(whichSet)].as_matrix()

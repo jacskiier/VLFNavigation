@@ -732,7 +732,7 @@ def getFileStatisticsOfFile(fileNameArg):
 def buildFeatures(featureParameters, forceRefreshFeatures=False, showFigures=False, maxFiles=10000,
                   allBaseFileNames=None, removeFileNumbers=(), onlyFileNumbers=()):
     processedFilesCount = 0
-    rawDataFolder = CreateUtils.convertPathToThisOS(featureParameters['rawDataFolder'])
+    rawDataFolder = CreateUtils.getRawDataFolder()
     featureDataFolder = CreateUtils.convertPathToThisOS(featureParameters['featureDataFolder'])
     if allBaseFileNames is None:
         allBaseFileNames = CreateUtils.getAllBaseFileNames(rawDataFolder)
@@ -903,51 +903,19 @@ def runMain():
 
     featureSetName = 'FFTWindowHighFreq'
     featureMethod = 'FFTWindow'
-    signalSource = 'Loop Antenna With iPhone 4'
+    # signalSource = 'Loop Antenna With iPhone 4'
+    signalSource = 'Loop Antenna With iPhone 5c'
     # signalSource = '3-Axis Dipole With SRI Receiver'
-    samplingRate = None
 
-    if os.name == 'nt':
-        if featureMethod in CreateUtils.featureMethodNamesRebuildValid:
-            if signalSource == 'Loop Antenna With iPhone 4':
-                rawDataFolder = r"E:\\Users\\Joey\Documents\\Virtual Box Shared Folder\\"
-                samplingRate = 44100
-            elif signalSource == '3-Axis Dipole With SRI Receiver':
-                rawDataFolder = r"E:\\Users\\Joey\\Documents\\DataFolder\\"
-                samplingRate = 200000
-            else:
-                raise ValueError("Signal Source of {0} is not supported".format(signalSource))
-        elif featureMethod == 'MNIST':
-            rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\mnist raw data folder\\"
-        elif featureMethod == 'THoR':
-            rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\parse NHL\\"
-        else:  # featureMethod == "Test"
-            rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\test raw data folder\\"
-    elif os.name == 'posix':
-        if featureMethod in CreateUtils.featureMethodNamesRebuildValid:
-            if signalSource == 'Loop Antenna With iPhone 4':
-                rawDataFolder = r"/media/sena/Greed Island/Users/Joey/Documents/Virtual Box Shared Folder/"
-                samplingRate = 44100
-            elif signalSource == '3-Axis Dipole With SRI Receiver':
-                rawDataFolder = r"/media/sena/Greed Island/Users/Joey/Documents/DataFolder/"
-                samplingRate = 200000
-            else:
-                raise ValueError("Signal Source of {0} is not supported".format(signalSource))
-        elif featureMethod == 'MNIST':
-            rawDataFolder = r"/media/sena/Greed Island/Users/Joey/Documents/Python Scripts/Spyder/deeplearningfiles/mnist raw data folder/"
-        elif featureMethod == 'THoR':
-            rawDataFolder = r"/media/sena/Greed Island/Users/Joey/Documents/Python Scripts/parse NHL/"
-        else:  # featureMethod == "Test"
-            rawDataFolder = r"/media/sena/Greed Island/Users/Joey/Documents/Python Scripts/Spyder/deeplearningfiles/test raw data folder/"
-    else:
-        raise ValueError("This OS is not allowed")
+    rootDataFolder, samplingRate = CreateUtils.getRootDataFolder(featureMethod=featureMethod, signalSource=signalSource, includeSamplingRate=True)
+    rawDataFolder = CreateUtils.getRawDataFolder()
 
     ##################################
     # Feature specific parameters ###
     ##################################
 
     featureParametersDefault = {}
-    featureDataFolder = os.path.join(rawDataFolder, "Processed Data Features", featureSetName)
+    featureDataFolder = CreateUtils.getProcessedFeaturesFolder(featureSetName)
     configFileName = os.path.join(featureDataFolder, "feature parameters.yaml")
     if (not os.path.exists(configFileName)) or overwriteConfigFile:
         if featureMethod == 'Patch':
@@ -977,8 +945,6 @@ def runMain():
             featureParametersDefault = {
                 'featureSetName': featureSetName,
                 'signalSource': signalSource,
-                'rawDataFolder': rawDataFolder,
-                'featureDataFolder': featureDataFolder,
                 'feature parameters': {
                     'featureMethod': featureMethod,
                     'fftPower': fftPower,
@@ -1011,8 +977,6 @@ def runMain():
             featureParametersDefault = {
                 'featureSetName': featureSetName,
                 'signalSource': signalSource,
-                'rawDataFolder': rawDataFolder,
-                'featureDataFolder': featureDataFolder,
                 'feature parameters': {
                     'featureMethod': featureMethod,
                     'fftPower': fftPower,
@@ -1045,8 +1009,6 @@ def runMain():
             featureParametersDefault = {
                 'featureSetName': featureSetName,
                 'signalSource': signalSource,
-                'rawDataFolder': rawDataFolder,
-                'featureDataFolder': featureDataFolder,
                 'feature parameters': {
                     'featureMethod': featureMethod,
                     'fftPower': fftPower,
@@ -1083,8 +1045,6 @@ def runMain():
             featureParametersDefault = {
                 'featureSetName': featureSetName,
                 'signalSource': signalSource,
-                'rawDataFolder': rawDataFolder,
-                'featureDataFolder': featureDataFolder,
                 'feature parameters': {
                     'featureMethod': featureMethod,
                     'fftPower': fftPower,
@@ -1118,8 +1078,6 @@ def runMain():
             featureParametersDefault = {
                 'featureSetName': featureSetName,
                 'signalSource': signalSource,
-                'rawDataFolder': rawDataFolder,
-                'featureDataFolder': featureDataFolder,
                 'feature parameters': {
                     'samplesPerWindow': samplesPerWindow,
                     'featureMethod': featureMethod,
@@ -1150,8 +1108,6 @@ def runMain():
             featureParametersDefault = {
                 'featureSetName': featureSetName,
                 'signalSource': signalSource,
-                'rawDataFolder': rawDataFolder,
-                'featureDataFolder': featureDataFolder,
                 'feature parameters': {
                     'samplesPerWindow': samplesPerWindow,
                     'featureMethod': featureMethod,
@@ -1170,8 +1126,6 @@ def runMain():
             featureParametersDefault = {
                 'featureSetName': featureSetName,
                 'signalSource': signalSource,
-                'rawDataFolder': rawDataFolder,
-                'featureDataFolder': featureDataFolder,
                 'imageShape': imageShape,
                 'imageShapeOrder': imageShapeOrder,
             }
@@ -1181,8 +1135,6 @@ def runMain():
             featureParametersDefault = {
                 'featureSetName': featureSetName,
                 'signalSource': signalSource,
-                'rawDataFolder': rawDataFolder,
-                'featureDataFolder': featureDataFolder,
                 'imageShape': imageShape,
                 'imageShapeOrder': imageShapeOrder,
             }
@@ -1192,8 +1144,6 @@ def runMain():
             featureParametersDefault = {
                 'featureSetName': featureSetName,
                 'signalSource': signalSource,
-                'rawDataFolder': rawDataFolder,
-                'featureDataFolder': featureDataFolder,
                 'imageShape': imageShape,
                 'imageShapeOrder': imageShapeOrder,
             }
@@ -1217,7 +1167,7 @@ def runMain():
         featureSets = [featureSetName]
     else:
         if rebuildAllFromConfig:
-            featureDataFolderRoot = os.path.join(rawDataFolder, "Processed Data Features")
+            featureDataFolderRoot = CreateUtils.getProcessedFeaturesFolder()
             featureSets = [fileIterator for fileIterator in os.listdir(featureDataFolderRoot) if
                            os.path.isdir(os.path.join(featureDataFolderRoot,
                                                       fileIterator)) and fileIterator not in removeFeatureSetNames]
@@ -1228,8 +1178,8 @@ def runMain():
 
     if runNow:
         for featureSetFolder in featureSets:
-            featureConfigFileName = os.path.join(rawDataFolder, "Processed Data Features", featureSetFolder,
-                                                 "feature parameters.yaml")
+            featureDataFolderRoot = CreateUtils.getProcessedFeaturesFolder()
+            featureConfigFileName = os.path.join(featureDataFolderRoot, "feature parameters.yaml")
             with open(featureConfigFileName, 'r') as myConfigFile:
                 featureParametersDefault = yaml.load(myConfigFile)
             # didProcessAllFiles = False

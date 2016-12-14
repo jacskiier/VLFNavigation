@@ -122,7 +122,7 @@ def plotVeroni(ax, regions, vertices, colorScaleNumbers):
         polygons.append(thisPatch)
 
     colorMap = cm.get_cmap('coolwarm')
-    p = matplotlib.collections.PatchCollection(patches=polygons, cmap=colorMap, norm=matplotlib.colors.NoNorm)
+    p = matplotlib.collections.PatchCollection(patches=polygons, cmap=colorMap, norm=matplotlib.colors.NoNorm())
     p.set_array(colorScaleNumbers)
     ax.add_collection(p)
     plt.xlabel('East (m)')
@@ -240,6 +240,7 @@ def load_data(datasetFileName,
             for rogueClass in list(np.flipud(rogueClasses)):
                 set_y[set_y > rogueClass] -= 1
             setDict[setName] = (set_x, set_y)
+
     for setName in setNames:
         set_x, set_y = setDict[setName]
         if makeSequenceForX:
@@ -301,7 +302,7 @@ def getLabelsForDataset(processedDataFolder, datasetFileName, includeRawLabels=F
         return classLabels
 
 
-def getEERThreshold(predicted_class, predictedValues, true_class, nTotalClassesArg=None, rogueClasses=(), classLabels=None):
+def getEERThreshold(predicted_class, predictedValues, true_class, nTotalClassesArg=None, rogueClasses=(), classLabels=None, thresholdsSaveFile=None):
     nRogue = len(rogueClasses)
     if nTotalClassesArg is None:
         # nTotalClasses = np.unique(true_class).shape[0] # this way doesn't work if some of your
@@ -398,7 +399,11 @@ def getEERThreshold(predicted_class, predictedValues, true_class, nTotalClassesA
                     eerIndex = np.argmin(abs(1 - truePositiveRates - falsePositiveRates))
                     eer = eerIndex * increment
             eerThresholds[classIndex] = eer
-
+    if thresholdsSaveFile is not None:
+        thresholdsDict = {
+            'eerThresholds': [float(value) for value in eerThresholds], }
+        with open(thresholdsSaveFile, 'w') as resultsFile:
+            yaml.dump(thresholdsDict, resultsFile, default_flow_style=False, width=1000)
     return eerThresholds
 
 
@@ -530,7 +535,7 @@ def plotThresholds(predicted_class,
                                  alpha=0.75, range=(0, maxValue), label='False', figure=thisfig)
 
                 ax = plt.gca()
-                plt.plot([inputThresholds[classIndex], inputThresholds[classIndex]], [0, ax.get_ylim()[1]])
+                plt.plot([inputThresholds[classIndex], inputThresholds[classIndex]], [0, ax.get_ylim()[1]], label='threshold')
                 plt.title('Threshold Probabilities for Class {0}'.format(classLabels[classValue]))
                 plt.xlabel('Threshold')
                 plt.ylabel('Probability of that class')
@@ -659,6 +664,7 @@ def plotThresholds(predicted_class,
 
         if useVoroni:
             polygons = []
+            polygons_nocounts = []
             vor = Voronoi(points=outputLabelsAsArray)
             regions, vertices = voronoi_finite_polygons_2d(vor)
             vertices = np.hstack((vertices[:, 1][:, None], vertices[:, 0][:, None]))
@@ -673,6 +679,9 @@ def plotThresholds(predicted_class,
                 thisPatch = matplotlib.patches.Polygon(polygon)
                 polygons.append(thisPatch)
 
+                if totalCountsThisClass <= 0:
+                    polygons_nocounts.append(thisPatch)
+
                 # plt.text(x=xMid,
                 #          y=yMid,
                 #          s="{countsThisClass} \n{tpRateThisClass:2.2%}".format(tpRateThisClass=acc,
@@ -682,11 +691,16 @@ def plotThresholds(predicted_class,
                 #          color='k')
 
             colorMap = cm.get_cmap('coolwarm')
-            p = matplotlib.collections.PatchCollection(patches=polygons, cmap=colorMap, norm=matplotlib.colors.NoNorm())
-            p.set_array(accuracyPerClass)
-            ax.add_collection(p)
+            patchCollection = matplotlib.collections.PatchCollection(patches=polygons, cmap=colorMap, norm=matplotlib.colors.NoNorm())
+            patchCollection.set_array(accuracyPerClass)
+            ax.add_collection(patchCollection)
+
+            patch_nullCollection = matplotlib.collections.PatchCollection(patches=polygons_nocounts)
+            patch_nullCollection.set_facecolor('g')
+            ax.add_collection(patch_nullCollection)
+
             edgeBuffer = 100
-            plt.scatter(outputLabelsAsArray[:, 1], outputLabelsAsArray[:, 0], marker='*')
+            plt.scatter(outputLabelsAsArray[totalCountsPerClass > 0, 1], outputLabelsAsArray[totalCountsPerClass > 0, 0], marker='*')
             # plt.xlim([np.min(outputLabelsAsArray[:, 1]) - edgeBuffer, np.max(outputLabelsAsArray[:, 1]) + edgeBuffer])
             # plt.ylim([np.min(outputLabelsAsArray[:, 0]) - edgeBuffer, np.max(outputLabelsAsArray[:, 0]) + edgeBuffer])
             plt.xlim(vor.min_bound[1] - edgeBuffer, vor.max_bound[1] + edgeBuffer)
@@ -723,9 +737,9 @@ def plotThresholds(predicted_class,
                 #          color='k')
 
             colorMap = cm.get_cmap('coolwarm')
-            p = matplotlib.collections.PatchCollection(patches=rects, cmap=colorMap, norm=matplotlib.colors.NoNorm())
-            p.set_array(accuracyPerClass)
-            ax.add_collection(p)
+            patchCollection = matplotlib.collections.PatchCollection(patches=rects, cmap=colorMap, norm=matplotlib.colors.NoNorm())
+            patchCollection.set_array(accuracyPerClass)
+            ax.add_collection(patchCollection)
             plt.xlim([np.min(outputLabelsAsArray[:, 1]) - gridSize[1], np.max(outputLabelsAsArray[:, 1]) + gridSize[1]])
             plt.ylim([np.min(outputLabelsAsArray[:, 0]) - gridSize[0], np.max(outputLabelsAsArray[:, 0]) + gridSize[0]])
             plt.xlabel('East (m)')
@@ -756,13 +770,12 @@ Thresholds for each class:\n{eerThresholds} """.format(setName=setName,
                 'fp': float(falsePositiveRate),
                 'fn': float(falseNegativeRate),
                 'tn': float(trueNegativeRate)
-            },
-            'eerThresholds': [float(value) for value in inputThresholds]
+            }
         }
     }
 
     print (thresholdString)
-    with open(os.path.join(statisticsStoreFolder, 'thresholdstats.log'), 'w') as logfile:
+    with open(os.path.join(statisticsStoreFolder, 'stats.log'), 'w') as logfile:
         logfile.write(thresholdString)
     with open(os.path.join(statisticsStoreFolder, 'results.yaml'), 'w') as resultsFile:
         yaml.dump(statsDict, resultsFile, default_flow_style=False, width=1000)

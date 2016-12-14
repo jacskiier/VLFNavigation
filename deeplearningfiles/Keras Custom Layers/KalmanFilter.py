@@ -502,11 +502,10 @@ def runMain():
     whichSetName = ['train', 'valid', 'test'][whichSetArg]
     (featureParameters,
      datasetParameters,
-     classifierParameters) = RunExperiment.getParameters(rawDataFolder,
-                                                         featureSetName,
-                                                         datasetName,
-                                                         classifierType,
-                                                         classifierSetName)
+     classifierParameters) = CreateUtils.getParameters(featureSetName,
+                                                       datasetName,
+                                                       classifierType,
+                                                       classifierSetName)
     processedDataFolder = CreateUtils.convertPathToThisOS(datasetParameters['processedDataFolder'])
     datasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')
     experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureSetName, datasetName, classifierType,

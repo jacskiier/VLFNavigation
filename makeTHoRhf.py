@@ -2,8 +2,15 @@ import numpy
 import os
 import pandas as pd
 from CreateDataset import shuffle_in_unison_inplaceWithP
+import CreateUtils
 
-rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\parse NHL\\"
+datasetName = "THoR"
+featureMethod = "THoR"
+featureSetName = 'DefaultTHoRFeatures'
+whichSet = 0
+
+rootDataFolder = CreateUtils.getRootDataFolder(featureMethod=featureMethod)
+rawDataFolder = CreateUtils.getRawDataFolder()
 
 xAll = numpy.genfromtxt(os.path.join(rawDataFolder, 'xAll.csv'), dtype=int, delimiter=',')
 y0 = numpy.genfromtxt(os.path.join(rawDataFolder, 'Y0.csv'), dtype=float, delimiter=',')
@@ -33,10 +40,7 @@ p_train = p[:trainSetEnd]
 p_valid = p[trainSetEnd:validSetEnd]
 p_test = p[validSetEnd:-1]
 
-datasetName = "THoR"
-featureSetName = 'DefaultTHoRFeatures'
-
-processedDataFolder = os.path.join(rawDataFolder, "Processed Data Datasets", datasetName)
+processedDataFolder = CreateUtils.getProcessedDataDatasetsFolder(datasetName=datasetName)
 datasetFile = os.path.join(processedDataFolder, featureSetName + '.hf')
 with pd.HDFStore(datasetFile, 'a') as datasetStore:
     datasetStore['train_set_x'] = pd.DataFrame(train_set[0])

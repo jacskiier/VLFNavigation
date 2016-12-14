@@ -33,9 +33,9 @@ rawDataFolder = CreateUtils.getRawDataFolder()
 # fileName = 'biketest00001.wav'
 fileName = 'bikeneighborhood00029.wav'
 
-filePather = os.path.join(rawDataFolder, fileName)
+rawDataFile = os.path.join(rawDataFolder, fileName)
 
-(actualDataY, samplingRate) = CreateFeature.readDataFile(filePather)
+(actualDataY, samplingRate) = CreateFeature.readDataFile(rawDataFile)
 actualDataX = np.arange(actualDataY.shape[-1]) * 1.0 / samplingRate
 timeStep = 1.0 / samplingRate
 

@@ -13,13 +13,12 @@ import CreateFeature
 import CreateDataset
 import CreateUtils
 
-rawDataFolder = CreateUtils.getRawDataFolder()
-
+featureMethod = "FFTWindow"
 featureSetNameMain = 'FFTWindowDefault'
 datasetNameMain = ['bikeneighborhoodPackFileNormParticle']
 classifierTypeMain = ['LSTM']
 classifierSetNameMain = ['ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD']
-datasetNameStatsMain = 'walkneighborhoodPackFileNormParticle'  # for right now you only get one
+datasetNameStatsMain = ''  # for right now you only get one
 
 # per run variables
 forceRefreshFeatures = False
@@ -36,7 +35,7 @@ removeClassifierSetNames = []
 useLabels = True
 showFigures = True
 whichSetNameMaster = 'valid'
-whichSetNameStats = 'normal'
+whichSetNameStats = 'train'
 wildCards = (0, 0, 0, 0)
 onlyPreviousExperiments = True  # only works if the last wild card is 1
 
@@ -44,23 +43,8 @@ onlyPreviousExperiments = True  # only works if the last wild card is 1
 showKerasFigure = False
 modelStoreNameType = "best"
 
-
-def getParameters(rawDataFolderArg, featureSetName, datasetName, classifierType, classifierSetName):
-    featureDataFolder = os.path.join(rawDataFolderArg, "Processed Data Features", featureSetName)
-    featureConfigFileName = os.path.join(featureDataFolder, "feature parameters.yaml")
-    with open(featureConfigFileName, 'r') as myConfigFile:
-        featureParameters = yaml.load(myConfigFile)
-
-    processedDataFolder = os.path.join(rawDataFolderArg, "Processed Data Datasets", datasetName)
-    datasetConfigFileName = os.path.join(processedDataFolder, "dataset parameters.yaml")
-    with open(datasetConfigFileName, 'r') as myConfigFile:
-        datasetParameters = yaml.load(myConfigFile)
-
-    modelDataFolder = os.path.join(rawDataFolderArg, "Processed Data Models", classifierType, classifierSetName)
-    modelConfigFileName = os.path.join(modelDataFolder, "model set parameters.yaml")
-    with open(modelConfigFileName, 'r') as myConfigFile:
-        modelParameters = yaml.load(myConfigFile)
-    return featureParameters, datasetParameters, modelParameters
+# this line sets the root folder for future calls
+rootDataFolder = CreateUtils.getRootDataFolder(featureMethod=featureMethod)
 
 
 def runExperiment(featureSetName,
@@ -76,36 +60,35 @@ def runExperiment(featureSetName,
         featureSetName=featureSetName, datasetName=datasetName, classifierType=classifierType,
         classifierSetName=classifierSetName))
     # Load all the config files
-    featureDataFolder = os.path.join(rawDataFolder, "Processed Data Features", featureSetName)
+    featureDataFolder = CreateUtils.getProcessedFeaturesFolder(featureSetName)
     featureConfigFileName = os.path.join(featureDataFolder, "feature parameters.yaml")
     with open(featureConfigFileName, 'r') as myConfigFile:
         featureParameters = yaml.load(myConfigFile)
 
-    processedDataFolder = os.path.join(rawDataFolder, "Processed Data Datasets", datasetName)
+    processedDataFolder = CreateUtils.getProcessedDataDatasetsFolder(datasetName)
     datasetConfigFileName = os.path.join(processedDataFolder, "dataset parameters.yaml")
     with open(datasetConfigFileName, 'r') as myConfigFile:
         datasetParameters = yaml.load(myConfigFile)
 
-    modelDataFolder = os.path.join(rawDataFolder, "Processed Data Models", classifierType, classifierSetName)
+    modelDataFolder = CreateUtils.getModelFolder(classifierType=classifierType, classifierSetName=classifierSetName)
     modelConfigFileName = os.path.join(modelDataFolder, "model set parameters.yaml")
     with open(modelConfigFileName, 'r') as myConfigFile:
         modelParameters = yaml.load(myConfigFile)
 
-    experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureSetName, datasetName, classifierType,
-                                     classifierSetName)
+    experimentsFolder = CreateUtils.getExperimentFolder(featureSetName, datasetName, classifierType, classifierSetName)
     if not os.path.exists(experimentsFolder):
         os.makedirs(experimentsFolder)
 
     if datasetNameStats is not None and datasetNameStats != '':
-        processedDataTestFolder = os.path.join(rawDataFolder, "Processed Data Datasets", datasetNameStats)
+        processedDataTestFolder = CreateUtils.getProcessedDataDatasetsFolder(datasetNameStats)
         datasetStatsConfigFileName = os.path.join(processedDataTestFolder, "dataset parameters.yaml")
         with open(datasetStatsConfigFileName, 'r') as myConfigFile:
             datasetStatsParameters = yaml.load(myConfigFile)
-        statisticsStoreFolder = os.path.join(experimentsFolder, datasetNameStats)
+        statisticsStoreFolder = os.path.join(experimentsFolder, datasetNameStats, whichSetNameStat)
     else:
         datasetStatsParameters = datasetParameters
         datasetStatsConfigFileName = datasetConfigFileName
-        statisticsStoreFolder = os.path.join(experimentsFolder, datasetName)
+        statisticsStoreFolder = os.path.join(experimentsFolder, datasetName, whichSetNameStat)
     if not os.path.exists(statisticsStoreFolder):
         os.makedirs(statisticsStoreFolder)
 
@@ -180,28 +163,26 @@ def runExperiment(featureSetName,
 
 
 if __name__ == '__main__':
-    featureDataFolderMain = os.path.join(rawDataFolder, "Processed Data Features")
+    featureDataFolderMain = CreateUtils.getProcessedFeaturesFolder()
     if wildCards[0]:
-        thisFeatureFolder = os.path.join(rawDataFolder,
-                                         "Data Experiments") if onlyPreviousExperiments else featureDataFolderMain
+        thisFeatureFolder = CreateUtils.getExperimentFolder() if onlyPreviousExperiments else featureDataFolderMain
         featureSets = [fileIterator for fileIterator in os.listdir(thisFeatureFolder) if os.path.isdir(
             os.path.join(thisFeatureFolder, fileIterator)) and fileIterator not in removeFeatureSetNames]
     else:
         featureSets = featureSetNameMain if isinstance(featureSetNameMain, list) else [featureSetNameMain]
     for featureSet in featureSets:
-        processedDataFolderMain = os.path.join(rawDataFolder, "Processed Data Datasets")
+        processedDataFolderMain = CreateUtils.getProcessedDataDatasetsFolder()
         if wildCards[1]:
-            thisDatasetFolder = os.path.join(rawDataFolder, "Data Experiments",
-                                             featureSet) if onlyPreviousExperiments else processedDataFolderMain
+            thisDatasetFolder = CreateUtils.getExperimentFolder(featureSetName=featureSet) if onlyPreviousExperiments else processedDataFolderMain
             datasets = [fileIterator for fileIterator in os.listdir(thisDatasetFolder) if os.path.isdir(
                 os.path.join(thisDatasetFolder, fileIterator)) and fileIterator not in removeDatasetNames]
         else:
             datasets = datasetNameMain if isinstance(datasetNameMain, list) else [datasetNameMain]
         for dataset in datasets:
-            modelDataFolderMain = os.path.join(rawDataFolder, "Processed Data Models")
+            modelDataFolderMain = CreateUtils.getModelFolder()
             if wildCards[2]:
-                thisClassifierTypeFolder = os.path.join(rawDataFolder, "Data Experiments", featureSet,
-                                                        dataset) if onlyPreviousExperiments else modelDataFolderMain
+                thisClassifierTypeFolder = CreateUtils.getExperimentFolder(featureSetName=featureSet, datasetName=dataset) \
+                    if onlyPreviousExperiments else modelDataFolderMain
                 classifierTypes = [fileIterator for fileIterator in os.listdir(thisClassifierTypeFolder) if
                                    os.path.isdir(
                                        os.path.join(thisClassifierTypeFolder,
@@ -209,10 +190,11 @@ if __name__ == '__main__':
             else:
                 classifierTypes = classifierTypeMain if isinstance(classifierTypeMain, list) else [classifierTypeMain]
             for classifierTypeIterator in classifierTypes:
-                modelTypeDataFolderMain = os.path.join(rawDataFolder, "Processed Data Models", classifierTypeIterator)
+                modelTypeDataFolderMain = CreateUtils.getModelFolder(classifierType=classifierTypeIterator)
                 if wildCards[3]:
-                    thisClassifierSetFolder = os.path.join(rawDataFolder, "Data Experiments", featureSet, dataset,
-                                                           classifierTypeIterator) \
+                    thisClassifierSetFolder = CreateUtils.getExperimentFolder(featureSetName=featureSet,
+                                                                              datasetName=dataset,
+                                                                              classifierType=classifierTypeIterator) \
                         if onlyPreviousExperiments else modelDataFolderMain
                     classifierSets = [fileIterator for fileIterator in os.listdir(thisClassifierSetFolder) if
                                       os.path.isdir(

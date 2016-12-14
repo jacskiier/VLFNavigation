@@ -687,9 +687,9 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
     imageShape = featureParameters['imageShape']
 
     # general dataset variables
-    rawDataFolder = CreateUtils.convertPathToThisOS(datasetParameters['rawDataFolder'])
-    processedDataFolder = CreateUtils.convertPathToThisOS(datasetParameters['processedDataFolder'])
+    rawDataFolder = CreateUtils.getRawDataFolder()
     datasetName = datasetParameters['datasetName']
+    processedDataFolder = CreateUtils.getProcessedDataDatasetsFolder(datasetName=datasetName)
 
     # which files to use variables
     allBaseFileNames = datasetParameters['allBaseFileNames']
@@ -940,6 +940,12 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
                                                                                                                  outputString=outputString))
 
         timer.tic("Save datasets and labels")
+        # no package
+        # set_x.shape = (sample x seqTimestep x data_dim)
+        # if packaged
+        # set_x.shape = (packageRow x packageTimestep x seqTimestep x data_dim)
+        # if packaged and alternate rows
+        # set_x.shape = (packageRow x sliceOfPackageRow x packageTimestep x seqTimestep x data_dim)
         with pd.HDFStore(datasetFile, 'w') as datasetStore:
             for setName, setValue in setDict.iteritems():
                 datasetStore[setName + '_set_x'] = pd.DataFrame(setValue[0])
@@ -972,7 +978,7 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
 def getStatisticsOnSet(datasetParameters, featureParameters, allBaseFileNames=None, removeFileNumbers=(),
                        onlyFileNumbers=(), showFiguresArg=False):
     # feature parameters
-    rawDataFolder = CreateUtils.convertPathToThisOS(featureParameters['rawDataFolder'])
+    rawDataFolder = CreateUtils.getRawDataFolder()
     featureSetName = featureParameters['featureSetName']
     imageShape = featureParameters['imageShape']
     windowTimeLength = featureParameters['feature parameters']['windowTimeLength']
@@ -1037,6 +1043,7 @@ def getStatisticsOnSet(datasetParameters, featureParameters, allBaseFileNames=No
 
 
 def mainRun():
+    rootDataFolder = CreateUtils.getRootDataFolder()
     rawDataFolder = CreateUtils.getRawDataFolder()
     # Run Parameters   ############
     runNow = True
@@ -1086,7 +1093,7 @@ def mainRun():
     allSetsSameRows = True
     # packing parameters based on type of pack
     gridSizePackage = (100, 100, 1000)
-    particlePackFilePath = os.path.join(rawDataFolder, "Imagery", "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
+    particlePackFilePath = os.path.join(CreateUtils.getImageryFolder(), "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
     # keras packaging
     alternateRowsForKeras = True
     timestepsPerKerasBatchRow = 100
@@ -1125,7 +1132,7 @@ def mainRun():
     localLevelOriginInECEF = [507278.89822834, -4884824.02376298, 4056425.76820216]  # Neighborhood Center
 
     # particle variables
-    particleFilePath = os.path.join(rawDataFolder, "Imagery", "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
+    particleFilePath = os.path.join(CreateUtils.getImageryFolder(), "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
 
     # metadata features
     useMetadata = False
@@ -1134,7 +1141,7 @@ def mainRun():
 
     assert len(set(metadataList).union(CreateUtils.allMetadataNamesSet)) == len(
         CreateUtils.allMetadataNamesList), "You are using a metadata name not in the master list"
-    # Other Datasets ###
+    # region Other Datasets ###
     ######################
 
     # datasetName = 'MNIST'
@@ -1155,7 +1162,7 @@ def mainRun():
     # allBaseFileNames = ['642lobby','646lobby','library','640244class','enyconf','einstein','jimsoffice',
     # 'dolittles','kennylobby','642lobbytop','antoffice','cube','640sideroom',
     # 'algebra','engconf','640338class','640220lab']
-    # ##allBaseFileNames =  readwav.getAllBaseFileNames(rawDataFolder, nomatch = ["afitwalk","afitwalkFail",
+    # ##allBaseFileNames =  readwav.getAllBaseFileNames(CreateUtils.getRawDataFolder(), nomatch = ["afitwalk","afitwalkFail",
     # "afitinsidewalk",'mixer','microwave','transformer', 'kitchentable'])
     # yValueType = 'file'
 
@@ -1243,17 +1250,27 @@ def mainRun():
     # allBaseFileNames = ["bikeneighborhood"]
     # yValueType = 'gpsC'
 
-    datasetName = 'walkneighborhoodPackFileNormParticle'
+    # endregion
+
+    datasetName = 'walkneighborhoodPackFileNormC'
     allBaseFileNames = ["walkneighborhood"]
-    yValueType = 'particle'
+    yValueType = 'gpsC'
     onlyFileNumbers = {"walkneighborhood": []}
-    removeFileNumbers = {"walkneighborhood": []}
+    removeFileNumbers = {"walkneighborhood": [0]}
     defaultSetName = "normal"
     fileNamesNumbersToSets = [("crazy", "walkneighborhood", [1])]
 
-    # datasetName = 'bikeneighborhoodPackFileNormParticle'
+    # datasetName = 'bikeneighborhoodExamPackFileNormC'
     # allBaseFileNames = ["bikeneighborhood"]
-    # yValueType = 'particle'
+    # yValueType = 'gpsC'
+    # onlyFileNumbers = {"bikeneighborhood": [31, 32]}
+    # removeFileNumbers = {"bikeneighborhood": []}
+    # defaultSetName = "normal"
+    # fileNamesNumbersToSets = [("crazy", "bikeneighborhood", [32])]
+
+    # datasetName = 'bikeneighborhoodPackFileNormC'
+    # allBaseFileNames = ["bikeneighborhood"]
+    # yValueType = 'gpsC'
     # onlyFileNumbers = {"bikeneighborhood": range(33)}
     # removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 29]}
     # defaultSetName = "train"
@@ -1264,15 +1281,11 @@ def mainRun():
     # Parameters End   ############
     ################################
 
-    processedDataFolder = os.path.join(rawDataFolder, "Processed Data Datasets", datasetName)
+    processedDataFolder = CreateUtils.getProcessedDataDatasetsFolder(datasetName)
     datasetConfigFileName = os.path.join(processedDataFolder, "dataset parameters.yaml")
-
-    processedDataFolder = os.path.join(rawDataFolder, "Processed Data Datasets", datasetName)
 
     # region: Make Dicts
     datasetParametersToDump = {
-        'rawDataFolder': rawDataFolder,
-        'processedDataFolder': processedDataFolder,
         'datasetName': datasetName,
         'yValueType': yValueType,
         'removeFileNumbers': removeFileNumbers,
@@ -1380,7 +1393,7 @@ def mainRun():
         datasets = [datasetName]
     else:
         if rebuildAllFromConfig:
-            processedDataFolderMain = os.path.join(rawDataFolder, "Processed Data Datasets")
+            processedDataFolderMain = CreateUtils.getProcessedDataDatasetsFolder()
             datasets = [fileIterator for fileIterator in os.listdir(processedDataFolderMain) if
                         os.path.isdir(os.path.join(processedDataFolderMain,
                                                    fileIterator)) and fileIterator not in removeDatasetNames]
@@ -1390,7 +1403,7 @@ def mainRun():
             datasets = []
 
     if runNow:
-        featureDataFolderRoot = os.path.join(rawDataFolder, "Processed Data Features")
+        featureDataFolderRoot = CreateUtils.getProcessedFeaturesFolder()
         if len(onlyThisFeatureSetNames) == 0:
             featureSetNamesAll = os.listdir(featureDataFolderRoot)
             featureSetNames = list(featureSetNamesAll)
@@ -1400,12 +1413,12 @@ def mainRun():
         else:
             featureSetNames = list(onlyThisFeatureSetNames)
         for featureSetName in featureSetNames:
-            featureDataFolderMain = os.path.join(rawDataFolder, "Processed Data Features", featureSetName)
+            featureDataFolderMain = CreateUtils.getProcessedFeaturesFolder(featureSetName)
             featureConfigFileName = os.path.join(featureDataFolderMain, "feature parameters.yaml")
             with open(featureConfigFileName, 'r') as myConfigFile:
                 featureParametersDefault = yaml.load(myConfigFile)
             for datasetName in datasets:
-                processedDataFolder = os.path.join(rawDataFolder, "Processed Data Datasets", datasetName)
+                processedDataFolder = CreateUtils.getProcessedDataDatasetsFolder(datasetName)
                 datasetConfigFileName = os.path.join(processedDataFolder, "dataset parameters.yaml")
                 with open(datasetConfigFileName, 'r') as myConfigFile:
                     datasetParameters = yaml.load(myConfigFile)

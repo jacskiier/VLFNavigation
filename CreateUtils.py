@@ -1,7 +1,9 @@
 import os
 import re
 import numpy as np
+import yaml
 
+masterFeatureMethod = 'FFTWindow'
 # Feature Statics
 signalSources = ['Loop Antenna with iPhone 4', '3-Axis Dipole With SRI Receiver']
 featureMethodNames = ['Patch', 'Covariance', 'MFCC', 'FFT', 'FFTWindow', 'RawAmplitude' 'MNIST', 'Test', 'THoR']
@@ -202,8 +204,10 @@ def getSetNameForFile(filename, defaultSetName, fileNamesNumbersToSets):
 
 def filterFilesByFileNumber(files, baseFileName, removeFileNumbers=(), onlyFileNumbers=()):
     if baseFileName in removeFileNumbers or baseFileName in onlyFileNumbers:
-        largestFileNumberRemove = np.max(np.array(removeFileNumbers[baseFileName])) if baseFileName in removeFileNumbers and len(removeFileNumbers[baseFileName]) > 0 else 0
-        largestFileNumberOnly = np.max(np.array(onlyFileNumbers[baseFileName])) if baseFileName in onlyFileNumbers and len(onlyFileNumbers[baseFileName]) > 0 else 0
+        largestFileNumberRemove = np.max(np.array(removeFileNumbers[baseFileName])) if baseFileName in removeFileNumbers and len(
+            removeFileNumbers[baseFileName]) > 0 else 0
+        largestFileNumberOnly = np.max(np.array(onlyFileNumbers[baseFileName])) if baseFileName in onlyFileNumbers and len(
+            onlyFileNumbers[baseFileName]) > 0 else 0
         largestFileNumber = max(largestFileNumberRemove, largestFileNumberOnly)
         errorString = "you have a file number {0} that is over the possible files {1}".format(largestFileNumber, files.size)
         assert largestFileNumber < files.size, errorString
@@ -234,22 +238,139 @@ def getAllBaseFileNames(rawDataFolderArg, nomatch=None):
     return list(fileSet)
 
 
-def getRawDataFolder():
-    # os.path.abspath(os.path.expanduser("~/Virtual Box Shared Folder/"))
-    if os.name == 'nt':
-        rawDataFolder = os.path.join("E:\\", "Users", "Joey", "Documents",
-                                     "Virtual Box Shared Folder")  # VLF signals raw data folder
-        # rawDataFolder = r"E:\\Users\\Joey\\Documents\\DataFolder\\" # 3 Axis VLF Antenna signals raw data folder
-        # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\mnist raw data folder\\" # MNIST raw data folder
-        # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\test raw data folder\\" # Test raw data folder
-        # rawDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\parse NHL\\"
-    elif os.name == 'posix':
-        rawDataFolder = os.path.join("/media", "sena", "Greed Island", "Users", "Joey", "Documents",
-                                     "Virtual Box Shared Folder")  # VLF signals raw data folder
+def getRootDataFolder(featureMethod=None, signalSource='Loop Antenna With iPhone 5c', includeSamplingRate=False):
+    samplingRate = None
+    global masterFeatureMethod
+    if featureMethod is None:
+        featureMethod = masterFeatureMethod
+    else:
+        masterFeatureMethod = featureMethod
 
+    if os.name == 'nt':
+        if featureMethod in featureMethodNamesRebuildValid:
+            if signalSource == 'Loop Antenna With iPhone 4' or signalSource == 'Loop Antenna With iPhone 5c':
+                rootDataFolder = os.path.join("M:\\", "iPhoneVLFSingals")
+                samplingRate = 44100
+            elif signalSource == '3-Axis Dipole With SRI Receiver':
+                rootDataFolder = os.path.join("M:\\", "3AxisVLFSignals")
+                samplingRate = 200000
+            else:
+                raise ValueError("Signal Source of {0} is not supported".format(signalSource))
+        elif featureMethod == 'MNIST':
+            rootDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\mnist raw data folder\\"
+        elif featureMethod == 'THoR':
+            rootDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\parse NHL\\"
+        else:  # featureMethod == "Test"
+            rootDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\Spyder\\deeplearningfiles\\test raw data folder\\"
+    elif os.name == 'posix':
+        if featureMethod in featureMethodNamesRebuildValid:
+            if signalSource == 'Loop Antenna With iPhone 4' or signalSource == 'Loop Antenna With iPhone 5c':
+                rootDataFolder = os.path.join("/media", "sena", "Mystery Shack", "iPhoneVLFSignals")
+                samplingRate = 44100
+            elif signalSource == '3-Axis Dipole With SRI Receiver':
+                rootDataFolder = os.path.join("/media", "sena", "Mystery Shack", "3AxisVLFSignals")
+                samplingRate = 200000
+            else:
+                raise ValueError("Signal Source of {0} is not supported".format(signalSource))
+        elif featureMethod == 'MNIST':
+            rootDataFolder = r"/media/sena/Greed Island/Users/Joey/Documents/Python Scripts/Spyder/deeplearningfiles/mnist raw data folder/"
+        elif featureMethod == 'THoR':
+            rootDataFolder = r"/media/sena/Greed Island/Users/Joey/Documents/Python Scripts/parse NHL/"
+        else:  # featureMethod == "Test"
+            rootDataFolder = r"/media/sena/Greed Island/Users/Joey/Documents/Python Scripts/Spyder/deeplearningfiles/test raw data folder/"
     else:
         raise ValueError("This OS is not allowed")
+
+    if includeSamplingRate:
+        ret = (rootDataFolder, samplingRate)
+    else:
+        ret = rootDataFolder
+    return ret
+
+
+def getRawDataFolder():
+    rootDataFolder = getRootDataFolder()
+    rawDataFolder = os.path.join(rootDataFolder, "Raw Data")
     return rawDataFolder
+
+
+def getProcessedFeaturesFolder(featureName=None):
+    if featureName is None:
+        ret = os.path.join(getRootDataFolder(), "Processed Data Datasets")
+    else:
+        ret = os.path.join(getRootDataFolder(), "Processed Data Datasets", featureName)
+    return ret
+
+
+def getProcessedDataDatasetsFolder(datasetName=None):
+    if datasetName is None:
+        processedDataFolder = os.path.join(getRootDataFolder(), "Processed Data Datasets")
+    else:
+        processedDataFolder = os.path.join(getRootDataFolder(), "Processed Data Datasets", datasetName)
+    return processedDataFolder
+
+
+def getModelFolder(classifierType=None, classifierSetName=None):
+    if classifierType is None or classifierSetName is None:
+        modelFolder = os.path.join(getRootDataFolder(), "Processed Data Models")
+    elif classifierType is not None or classifierSetName is None:
+        modelFolder = os.path.join(getRootDataFolder(), "Processed Data Models", classifierType)
+    else:
+        modelFolder = os.path.join(getRootDataFolder(), "Processed Data Models", classifierType, classifierSetName)
+    return modelFolder
+
+
+def getExperimentFolder(featureSetName=None, datasetName=None, classifierType=None, classifierSetName=None):
+    if featureSetName is None and datasetName is None and classifierType is None and classifierSetName is None:
+        experimentFolder = os.path.join(getRawDataFolder(), "Data Experiments")
+    elif featureSetName is not None and datasetName is not None and classifierType is None and classifierSetName is None:
+        experimentFolder = os.path.join(getRawDataFolder(), "Data Experiments", featureSetName)
+    elif featureSetName is not None and datasetName is None and classifierType is None and classifierSetName is None:
+        experimentFolder = os.path.join(getRawDataFolder(), "Data Experiments", featureSetName, datasetName)
+    elif featureSetName is not None and datasetName is None and classifierType is not None and classifierSetName is None:
+        experimentFolder = os.path.join(getRawDataFolder(), "Data Experiments", featureSetName, datasetName, classifierType)
+    else:
+        experimentFolder = os.path.join(getRawDataFolder(), "Data Experiments", featureSetName, datasetName, classifierType, classifierSetName)
+    return experimentFolder
+
+
+def getImageryFolder():
+    return os.path.join(getRootDataFolder(), "Imagery")
+
+
+def getParameters(featureSetName=None, datasetName=None, classifierType=None, classifierSetName=None):
+    ret = ()
+    if featureSetName is not None:
+        featureDataFolder = getProcessedFeaturesFolder(featureName=featureSetName)
+        featureConfigFileName = os.path.join(featureDataFolder, "feature parameters.yaml")
+        with open(featureConfigFileName, 'r') as myConfigFile:
+            featureParameters = yaml.load(myConfigFile)
+        ret = ret + featureParameters
+
+    if datasetName is not None:
+        processedDataFolder = getProcessedDataDatasetsFolder(datasetName=datasetName)
+        datasetConfigFileName = os.path.join(processedDataFolder, "dataset parameters.yaml")
+        with open(datasetConfigFileName, 'r') as myConfigFile:
+            datasetParameters = yaml.load(myConfigFile)
+        ret = ret + datasetParameters
+
+    if classifierType is not None and classifierSetName is not None:
+        modelDataFolder = getModelFolder(classifierType=classifierType, classifierSetName=classifierSetName)
+        modelConfigFileName = os.path.join(modelDataFolder, "model set parameters.yaml")
+        with open(modelConfigFileName, 'r') as myConfigFile:
+            modelParameters = yaml.load(myConfigFile)
+        ret = ret + modelParameters
+    return ret
+
+
+def get3AxisCollectFolder():
+    if os.name == 'nt':
+        dataCollectFolderMain = os.path.join("L:", "Thesis Files", "afitdata")
+    elif os.name == 'posix':
+        dataCollectFolderMain = os.path.join("media", "sena", "blue", "Thesis Files", "afitdata")
+    else:
+        raise ValueError("This OS is not allowed")
+    return dataCollectFolderMain
 
 
 def sizeof_fmt(num, suffix='B'):

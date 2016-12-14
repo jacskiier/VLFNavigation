@@ -3,6 +3,7 @@ import theano.tensor as T
 import numpy as np
 import pylab as plt
 import CoordinateTransforms
+import CreateUtils
 
 doTheanoShiz = False
 doMatrixMultiplyFun = False
@@ -280,7 +281,7 @@ if doZipshiz:
     import datetime
     import re
 
-    rawDataFolder = r"E:\\Users\\Joey\Documents\\Virtual Box Shared Folder\\"  # VLF signals raw data folder
+    rawDataFolder = CreateUtils.getRawDataFolder()
     zipfilepath = os.path.join(rawDataFolder, 'bad files', '20160927_124106_3.zip')
 
     zippy = zipfile.ZipFile(zipfilepath)

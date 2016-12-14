@@ -150,8 +150,8 @@ if __name__ == '__main__':
         score = model.evaluate(X_test, y_test, batch_size=16)
         print("The final score is {0}".format(score))
     elif thingToDo == 4:
-        rawDataFolder = CreateUtils.getRawDataFolder()
-        loadWeightsFilePath = os.path.join(rawDataFolder,
+        rootDataFolder = CreateUtils.getRootDataFolder()
+        loadWeightsFilePath = os.path.join(rootDataFolder,
                                            'Data Experiments',
                                            'PatchShortTallAllFreq',
                                            'bikeneighborhoodSequenceOneFileNormCTDM',

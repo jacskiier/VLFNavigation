@@ -701,12 +701,14 @@ def makeStatisticsForModel(experimentsFolder,
                                                                         modelStoreNameType=modelStoreNameType)
         (predicted_class_master, predicted_values_master, true_class_master, classLabelsMaster, totalOuputClasses) = tupleOutputTemp
         # make EER thresholds with the dataset used in the model
+        thresholdsSaveFile = os.path.join(experimentsFolder, 'eerthresholds_{0}.yaml'.format(whichSetName))
         eerThresholdsMaster = ClassificationUtils.getEERThreshold(predicted_class_master,
                                                                   predicted_values_master,
                                                                   true_class_master,
                                                                   rogueClasses=rogueClassesMaster,
                                                                   classLabels=classLabelsMaster,
-                                                                  nTotalClassesArg=totalOuputClasses)
+                                                                  nTotalClassesArg=totalOuputClasses,
+                                                                  thresholdsSaveFile=thresholdsSaveFile)
 
         # Now get the stat set to show the results
         tupleOutputTemp = getPredictedClasses_Values_TrueClasses_Labels(datasetFileName=statDatasetFile,

@@ -3,7 +3,7 @@ import os
 import numpy as np
 import CreateUtils
 
-rawDataFolder = CreateUtils.getRawDataFolder()
+rootDataFolder = CreateUtils.getRootDataFolder()
 
 ################################
 # Parameters Begin ############
@@ -14,7 +14,6 @@ if __name__ == '__main__':
 
     classifierType = 'LSTM'
     classifierSetName = 'ClassificationAllClasses2LPlus2MLPStatefulWaveletAutoBatchDropReg2RlrRMSPropTD'
-    modelStoreFolder = os.path.join(rawDataFolder, "Processed Data Models", classifierType, classifierSetName)
 
     # classes are 0 indexed except when printed as a label!!!
     # rogueClasses = sorted(list(set(range(17)) - {1, 3, 4}))
@@ -37,7 +36,6 @@ if __name__ == '__main__':
             'classifierSetName': classifierSetName,
             'classifierType': classifierType,
             'classifierGoal': classifierGoal,
-            'modelStoreFolder': modelStoreFolder,
             'rogueClasses': rogueClasses,
 
             'learning_rate': learning_rate,
@@ -65,7 +63,6 @@ if __name__ == '__main__':
             'classifierSetName': classifierSetName,
             'classifierType': classifierType,
             'classifierGoal': classifierGoal,
-            'modelStoreFolder': modelStoreFolder,
             'rogueClasses': rogueClasses,
 
             'learning_rate': learning_rate,
@@ -99,7 +96,6 @@ if __name__ == '__main__':
             'classifierSetName': classifierSetName,
             'classifierType': classifierType,
             'classifierGoal': classifierGoal,
-            'modelStoreFolder': modelStoreFolder,
             'rogueClasses': rogueClasses,
 
             'learning_rate': learning_rate,
@@ -132,7 +128,6 @@ if __name__ == '__main__':
             'classifierSetName': classifierSetName,
             'classifierType': classifierType,
             'classifierGoal': classifierGoal,
-            'modelStoreFolder': modelStoreFolder,
             'rogueClasses': rogueClasses,
             'finetune_lr': finetune_lr,
             'pretraining_epochs': pretraining_epochs,
@@ -160,7 +155,6 @@ if __name__ == '__main__':
             'classifierSetName': classifierSetName,
             'classifierType': classifierType,
             'classifierGoal': classifierGoal,
-            'modelStoreFolder': modelStoreFolder,
             'rogueClasses': rogueClasses,
 
             'learning_rate': learning_rate,
@@ -179,7 +173,6 @@ if __name__ == '__main__':
             'classifierSetName': classifierSetName,
             'classifierType': classifierType,
             'classifierGoal': classifierGoal,
-            'modelStoreFolder': modelStoreFolder,
             'rogueClasses': rogueClasses,
 
             'treeNumber': treeNumber,
@@ -196,7 +189,6 @@ if __name__ == '__main__':
             'classifierSetName': classifierSetName,
             'classifierType': classifierType,
             'classifierGoal': classifierGoal,
-            'modelStoreFolder': modelStoreFolder,
             'rogueClasses': rogueClasses,
 
             'appendY': appendY,
@@ -213,7 +205,6 @@ if __name__ == '__main__':
             'classifierSetName': classifierSetName,
             'classifierType': classifierType,
             'classifierGoal': classifierGoal,
-            'modelStoreFolder': modelStoreFolder,
             'rogueClasses': rogueClasses,
 
             'estimators': estimators,
@@ -230,7 +221,6 @@ if __name__ == '__main__':
             'classifierSetName': classifierSetName,
             'classifierType': classifierType,
             'classifierGoal': classifierGoal,
-            'modelStoreFolder': modelStoreFolder,
             'rogueClasses': rogueClasses,
 
             'theta0': theta0,
@@ -282,7 +272,7 @@ if __name__ == '__main__':
 
         # this will only load the previous weights for the hidden and lstm layers
         loadPreviousModelWeightsForTraining = False
-        loadWeightsFilePath = os.path.join(rawDataFolder,
+        loadWeightsFilePath = os.path.join(rootDataFolder,
                                            'Data Experiments',
                                            'PatchShortTallAllFreq',
                                            'bikeneighborhoodPackFileNormParticleTDM',
@@ -296,7 +286,7 @@ if __name__ == '__main__':
         append_layers_sizes = [2]
         append_activations = 'linear'
         dropout_Append = 0.0
-        appendWeightsFile = os.path.join(rawDataFolder, "Imagery", "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
+        appendWeightsFile = os.path.join(CreateUtils.getImageryFolder(), "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
         trainAppend = True
 
         # Kalman Layer
@@ -367,7 +357,6 @@ if __name__ == '__main__':
             'classifierSetName': classifierSetName,
             'classifierType': classifierType,
             'classifierGoal': classifierGoal,
-            'modelStoreFolder': modelStoreFolder,
             'rogueClasses': rogueClasses,
 
             'lstm_layers_sizes': lstm_layers_sizes,
@@ -482,6 +471,7 @@ if __name__ == '__main__':
     # Parameters End   ############
     ################################
 
+    modelStoreFolder = os.path.join(rootDataFolder, "Processed Data Models", classifierType, classifierSetName)
     if not os.path.exists(modelStoreFolder):
         os.makedirs(modelStoreFolder)
     configFileName = os.path.join(modelStoreFolder, "model set parameters.yaml")

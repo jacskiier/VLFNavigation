@@ -15,6 +15,8 @@ import gpxpy.gpx
 import pandas as pd
 from tqdm import tqdm
 
+import CreateUtils
+
 gpxpy.gpx.DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
 import geocoder
@@ -168,9 +170,9 @@ def convertASCIIToWAVandGPX(dataCollectFolder, dataCollectBaseName, rawDataFolde
                     print ("Bad Message {0}".format(gprmcMessage))
                     continue
                 lat = (float(lonMatcher.group('degrees')) + float(latMatcher.group("minutes") + "." + latMatcher.group("decimalMinutes")) / 60.0) * (
-                -1 if gprmcSplit[4] == 'S' else 1)
+                    -1 if gprmcSplit[4] == 'S' else 1)
                 lon = (float(lonMatcher.group('degrees')) + float(lonMatcher.group("minutes") + "." + lonMatcher.group("decimalMinutes")) / 60.0) * (
-                -1 if gprmcSplit[6] == 'W' else 1)
+                    -1 if gprmcSplit[6] == 'W' else 1)
 
                 # lat = (float(gprmcSplit[3][:2]) + float(gprmcSplit[3][2:])/60) * (-1 if gprmcSplit[4] == 'S' else 1)
                 # lon = (float(gprmcSplit[5][:3]) + float(gprmcSplit[5][3:])/60) * (-1 if gprmcSplit[6] == 'W' else 1)
@@ -217,14 +219,9 @@ def convertASCIIToWAVandGPX(dataCollectFolder, dataCollectBaseName, rawDataFolde
 
 
 if __name__ == '__main__':
-    if os.name == 'nt':
-        rawDataFolderMain = os.path.join("E:", "Users", "Joey", "Documents", "DataFolder")  # 3 Axis VLF Antenna signals raw data folder
-        dataCollectFolderMain = os.path.join("L:", "Thesis Files", "afitdata")
-    elif os.name == 'posix':
-        rawDataFolder = r"/media/sena/Greed Island/Users/Joey/Documents/DataFolder/"  # 3 Axis VLF Antenna signals raw data folder
-        dataCollectFolderMain = os.path.join("media", "sena", "blue", "Thesis Files", "afitdata")
-    else:
-        raise ValueError("This OS is not allowed")
+    rootDataFolder = CreateUtils.getRootDataFolder(featureMethod='FFTWindow', signalSource='3-Axis Dipole With SRI Receiver')
+    rawDataFolder = CreateUtils.getRawDataFolder()
+    dataCollectFolderMain = CreateUtils.get3AxisCollectFolder()
 
     dataCollectBaseNames = ['afittest00000', 'cartest00000', 'cartest00001', 'hometest00000', 'hometest00001', 'hometest00002', 'hometest00003',
                             'carneighborhood00000', 'carneighborhood00001']
@@ -232,5 +229,5 @@ if __name__ == '__main__':
 
     for dataCollectBaseNameMain in dataCollectBaseNames:
         print("Starting base file {0}".format(dataCollectBaseNameMain))
-        convertASCIIToWAVandGPX(dataCollectFolderMain, dataCollectBaseNameMain, rawDataFolderMain, maxRows=None, showFigures=False,
+        convertASCIIToWAVandGPX(dataCollectFolderMain, dataCollectBaseNameMain, rawDataFolder, maxRows=None, showFigures=False,
                                 makeAndReadHF=False, saveToWAV=False, skipHighSpeedFile=True)
