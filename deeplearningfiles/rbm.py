@@ -21,7 +21,7 @@ from theano.tensor.shared_randomstreams import RandomStreams
 
 from utils import tile_raster_images
 from RegressionUtils import load_data
-
+import CreateUtils
 
 # start-snippet-1
 class RBM(object):
@@ -557,8 +557,8 @@ if __name__ == '__main__':
     staticLocations = 'staticLocations.pkl.gz'
     testData = 'testdata.pkl.gz'
     datasetMain = staticLocations
-    processedDataFolder = r"E:\\Users\\Joey\Documents\\Virtual Box Shared Folder\\"
-    datasetFilePath = os.path.join(processedDataFolder, datasetMain)
+    processedDataFolder = CreateUtils.getProcessedDataDatasetsFolder(datasetMain)
+    datasetFilePath = CreateUtils.getDatasetFile(featureSetName="DefaultPatchFeatures", datasetName=datasetMain)
     naturalWidthMain = 50
     naturalHeightMain = 15
     colorChannelsMain = 4

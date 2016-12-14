@@ -55,7 +55,7 @@ if __name__ == '__main__':
         print("The final score is {0}".format(score))
 
     elif thingToDo == 2:
-        datasetFileName = r"E:\\Users\\Joey\\Documents\\Virtual Box Shared Folder\\Processed Data Datasets\\threeClassProblemSequence\\MFCCFeaturesLargeWindowLowFreq.hf"
+        datasetFileName = CreateUtils.getDatasetFile( featureSetName="MFCCFeaturesLargeWindowLowFreq",datasetName= "threeClassProblemSequence")
         datasets, inputs, outputs, max_batch_size = load_data(datasetFileName, makeSharedData=False)
         X_train = datasets[0][0]
         y_trainLabel = datasets[0][1]
@@ -103,7 +103,7 @@ if __name__ == '__main__':
         athing1 = plot(model, to_file='model.png', show_shapes=True, show_layer_names=True)
 
     elif thingToDo == 3:
-        datasetFileName = r"E:\\Users\\Joey\\Documents\\Virtual Box Shared Folder\\Processed Data Datasets\\threeClassProblemSequence\\MFCCFeaturesLargeWindowLowFreq.hf"
+        datasetFileName = CreateUtils.getDatasetFile(featureSetName="MFCCFeaturesLargeWindowLowFreq", datasetName="threeClassProblemSequence")
         timesteps = 1000
         data_dim = 100
         datasets, inputs, outputs, max_batch_size = load_data(datasetFileName, makeSharedData=False)
@@ -151,13 +151,12 @@ if __name__ == '__main__':
         print("The final score is {0}".format(score))
     elif thingToDo == 4:
         rootDataFolder = CreateUtils.getRootDataFolder()
-        loadWeightsFilePath = os.path.join(rootDataFolder,
-                                           'Data Experiments',
-                                           'PatchShortTallAllFreq',
-                                           'bikeneighborhoodSequenceOneFileNormCTDM',
-                                           'LSTM',
-                                           'RegressionAllClasses2LPlus2MLPStatefulKalmanTrainDQ2AutoBatchDropRlrPWeightRMSPropTD',
-                                           'bestLoss_modelWeights.h5')
+        loadWeightsFilePath = os.path.join(CreateUtils.getExperimentFolder(
+            'PatchShortTallAllFreq',
+            'bikeneighborhoodSequenceOneFileNormCTDM',
+            'LSTM',
+            'RegressionAllClasses2LPlus2MLPStatefulKalmanTrainDQ2AutoBatchDropRlrPWeightRMSPropTD'),
+            'bestLoss_modelWeights.h5')
         filePatherArg = CreateUtils.convertPathToThisOS(loadWeightsFilePath)
         with pd.HDFStore(filePatherArg, 'r') as datasetStore:
             print datasetStore.root

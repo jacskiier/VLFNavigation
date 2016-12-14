@@ -18,6 +18,7 @@ from logistic_sgd import LogisticRegression, makeStatisticsForModel
 from ClassificationUtils import load_data
 from mlp import HiddenLayer
 from rbm import RBM
+import CreateUtils
 
 
 # start-snippet-1
@@ -583,16 +584,11 @@ def dbn_parameterized(featureParameters, datasetParameters, classifierParameters
 
     assert classifierParameters['classifierType'] == 'DBN', 'this config wasnt made for a Logistic Regression'
 
-    rawDataFolder = datasetParameters['rawDataFolder']
-
-    if os.path.exists(os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')
-    else:
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'],
-                                   datasetParameters['datasetName'] + '.pkl.gz')
-
-    experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureParameters['featureSetName'], datasetParameters['datasetName'],
-                                     classifierParameters['classifierType'], classifierParameters['classifierSetName'])
+    datasetFile = CreateUtils.getDatasetFile(featureSetName=featureParameters['featureSetName'], datasetName=datasetParameters['datasetName'])
+    experimentsFolder = CreateUtils.getExperimentFolder(featureParameters['featureSetName'],
+                                                        datasetParameters['datasetName'],
+                                                        classifierParameters['classifierType'],
+                                                        classifierParameters['classifierSetName'])
 
     bestModelFilePath = os.path.join(experimentsFolder, 'best_model.pkl')
     if not os.path.exists(bestModelFilePath) or forceRebuildModel:
@@ -620,20 +616,12 @@ if __name__ == '__main__':
     classifierType = 'DBN'
     classifierSetNameMain = 'AllClassesDefault'
 
-    featureDataFolderMain = os.path.join(rawDataFolderMain, "Processed Data Features", featureSetNameMain)
-    featureConfigFileName = os.path.join(featureDataFolderMain, "feature parameters.yaml")
-    with open(featureConfigFileName, 'r') as myConfigFile:
-        featureParametersDefault = yaml.load(myConfigFile)
-
-    processedDataFolderMain = os.path.join(rawDataFolderMain, "Processed Data Datasets", datasetNameMain)
-    datasetConfigFileName = os.path.join(processedDataFolderMain, "datset parameters.yaml")
-    with open(datasetConfigFileName, 'r') as myConfigFile:
-        datasetParametersDefault = yaml.load(myConfigFile)
-
-    modelStoreFolderMaster = os.path.join(rawDataFolderMain, "Processed Data Models", classifierSetNameMain)
-    modelConfigFileName = os.path.join(modelStoreFolderMaster, "model set parameters.yaml")
-    with open(modelConfigFileName, 'r') as myConfigFile:
-        modelSetParametersDefault = yaml.load(myConfigFile)
+    (featureParametersDefault,
+     datasetParametersDefault,
+     modelSetParametersDefault) = CreateUtils.getParameters(featureSetName=featureSetNameMain,
+                                                            datasetName=datasetNameMain,
+                                                            classifierType=classifierType,
+                                                            classifierSetName=classifierSetNameMain)
 
     dbn_parameterized(featureParametersDefault, datasetParametersDefault, modelSetParametersDefault, forceRebuildModel=True)
     makeStatisticsForModel(featureParametersDefault, datasetParametersDefault, modelSetParametersDefault)

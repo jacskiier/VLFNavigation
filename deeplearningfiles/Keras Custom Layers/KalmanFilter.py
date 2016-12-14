@@ -506,10 +506,11 @@ def runMain():
                                                        datasetName,
                                                        classifierType,
                                                        classifierSetName)
-    processedDataFolder = CreateUtils.convertPathToThisOS(datasetParameters['processedDataFolder'])
-    datasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')
-    experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureSetName, datasetName, classifierType,
-                                     classifierSetName)
+
+    datasetFile = CreateUtils.getDatasetFile(featureSetName=featureParameters['featureSetName'], datasetName=datasetParameters['datasetName'])
+
+    experimentsFolder = CreateUtils.getExperimentFolder(featureSetName=featureSetName, datasetName=datasetName, classifierType=classifierType,
+                                                        classifierSetName=classifierSetName)
 
     yScaleFactor = datasetParameters['y value parameters']['yScaleFactor'] if 'yScaleFactor' in datasetParameters[
         'y value parameters'] else 1.0

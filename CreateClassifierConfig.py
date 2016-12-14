@@ -272,13 +272,13 @@ if __name__ == '__main__':
 
         # this will only load the previous weights for the hidden and lstm layers
         loadPreviousModelWeightsForTraining = False
-        loadWeightsFilePath = os.path.join(rootDataFolder,
-                                           'Data Experiments',
-                                           'PatchShortTallAllFreq',
-                                           'bikeneighborhoodPackFileNormParticleTDM',
-                                           'LSTM',
-                                           'ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD',
-                                           'best_modelWeights.h5')
+
+        loadWeightsFilePath = os.path.join(CreateUtils.getExperimentFolder(
+            'PatchShortTallAllFreq',
+            'bikeneighborhoodPackFileNormParticleTDM',
+            'LSTM',
+            'ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD'),
+            'best_modelWeights.h5')
 
         # Append MLP Layers
         useAppendMLPLayers = False
@@ -376,7 +376,7 @@ if __name__ == '__main__':
             'trainLSTM': trainLSTM,
 
             'useTimeDistributedOutput': useTimeDistributedOutput,
-            'onlyBuildModel':onlyBuildModel,
+            'onlyBuildModel': onlyBuildModel,
 
             'learning_rate': learning_rate,
             'n_epochs': n_epochs,
@@ -471,10 +471,10 @@ if __name__ == '__main__':
     # Parameters End   ############
     ################################
 
-    modelStoreFolder = os.path.join(rootDataFolder, "Processed Data Models", classifierType, classifierSetName)
+    modelStoreFolder = CreateUtils.getModelFolder(classifierType=classifierType, classifierSetName=classifierSetName)
     if not os.path.exists(modelStoreFolder):
         os.makedirs(modelStoreFolder)
-    configFileName = os.path.join(modelStoreFolder, "model set parameters.yaml")
+    configFileName = CreateUtils.getModelConfigFileName(classifierType, classifierSetName)
     doesFileExist = os.path.exists(configFileName)
     if not overwriteConfigFile:
         assert not doesFileExist, 'do you want to overwirte the config file?'

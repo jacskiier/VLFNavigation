@@ -682,7 +682,7 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
 
 def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False):
     # feature variables
-    featureDataFolder = CreateUtils.convertPathToThisOS(featureParameters['featureDataFolder'])
+    featureDataFolder = CreateUtils.getProcessedFeaturesFolder(featureParameters['featureSetName'])
     featureSetName = featureParameters['featureSetName']
     imageShape = featureParameters['imageShape']
 
@@ -736,7 +736,7 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
     rngSeed = datasetParameters['rngSeed']
     np.random.seed(rngSeed)
 
-    datasetFile = os.path.join(processedDataFolder, featureSetName + '.hf')
+    datasetFile = CreateUtils.getDatasetFile(featureSetName=featureSetName, datasetName=datasetName)
     if not os.path.exists(datasetFile) or forceRefreshDataset:
         timer.tic("Build dataset {0} for feature set {1}".format(datasetName, featureSetName))
         timer.tic("Extract features from stored files")
@@ -968,7 +968,7 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
         datasetParametersToDump['xBias'] = xBias
         datasetParametersToDump['y value parameters']['yScaleFactor'] = yScaleFactor
         datasetParametersToDump['y value parameters']['yBias'] = yBias
-        configFileName = os.path.join(processedDataFolder, "dataset parameters.yaml")
+        configFileName = CreateUtils.getDatasetConfigFileName(datasetName)
         with open(configFileName, 'w') as myDatasetConfigFile:
             yaml.dump(datasetParametersToDump, myDatasetConfigFile, default_flow_style=False, width=1000)
         timer.toc()  # overall time for whole function
@@ -1102,7 +1102,9 @@ def mainRun():
 
     # filter features
     useSavedFilter = True
-    savedFilterFile = '/home/sena/MyDocuments/Virtual Box Shared Folder/Processed Data Datasets/bikeneighborhoodPackFileNormParticle/SavedFilters/FFTWindowDefault.pkl'
+    savedFilterFile = os.path.join(CreateUtils.getProcessedDataDatasetsFolder('bikeneighborhoodPackFileNormParticle'),
+                                   'SavedFilters',
+                                   'FFTWindowDefault.pkl')
 
     filterPCA = True
     filterFitSets = ["train"]  # names of the sets you want to use to filter
@@ -1282,7 +1284,7 @@ def mainRun():
     ################################
 
     processedDataFolder = CreateUtils.getProcessedDataDatasetsFolder(datasetName)
-    datasetConfigFileName = os.path.join(processedDataFolder, "dataset parameters.yaml")
+    datasetConfigFileName = CreateUtils.getDatasetConfigFileName(datasetName)
 
     # region: Make Dicts
     datasetParametersToDump = {
@@ -1385,7 +1387,7 @@ def mainRun():
         savedFilterFile = os.path.join(processedDataFolder, 'SavedFilters')
         if not os.path.exists(savedFilterFile):
             os.makedirs(savedFilterFile)
-        configFileName = os.path.join(processedDataFolder, "dataset parameters.yaml")
+        configFileName = CreateUtils.getDatasetConfigFileName(datasetName)
         if not overwriteConfigFile:
             assert not os.path.exists(configFileName), 'do you want to overwirte the config file?'
         with open(configFileName, 'w') as myConfigFile:
@@ -1413,13 +1415,11 @@ def mainRun():
         else:
             featureSetNames = list(onlyThisFeatureSetNames)
         for featureSetName in featureSetNames:
-            featureDataFolderMain = CreateUtils.getProcessedFeaturesFolder(featureSetName)
-            featureConfigFileName = os.path.join(featureDataFolderMain, "feature parameters.yaml")
+            featureConfigFileName = CreateUtils.getFeatureConfigFileName(featureSetName)
             with open(featureConfigFileName, 'r') as myConfigFile:
                 featureParametersDefault = yaml.load(myConfigFile)
             for datasetName in datasets:
-                processedDataFolder = CreateUtils.getProcessedDataDatasetsFolder(datasetName)
-                datasetConfigFileName = os.path.join(processedDataFolder, "dataset parameters.yaml")
+                datasetConfigFileName = CreateUtils.getDatasetConfigFileName(datasetName)
                 with open(datasetConfigFileName, 'r') as myConfigFile:
                     datasetParameters = yaml.load(myConfigFile)
                 if overwriteConfigFile:

@@ -97,12 +97,7 @@ rawDataFolder = CreateUtils.getRawDataFolder()
 processedDataFolderMain = CreateUtils.getProcessedDataDatasetsFolder(datasetName=datasetName)
 (featureParameters, datasetParameters) = CreateUtils.getParameters(featureSetName=featureSetName, datasetName=datasetName)
 
-if os.path.exists(os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
-    datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')
-else:
-    datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'],
-                               datasetParameters['datasetName'] + '.pkl.gz')
-
+datasetFile = CreateUtils.getDatasetFile(featureSetName=featureSetName, datasetName=datasetName)
 if datasetParameters['yValueType'] != 'gpsC':
     datasets, inputs, outputs, max_batch_size = ClassificationUtils.load_data(datasetFile,
                                                                               rogueClasses=(),
@@ -516,8 +511,7 @@ def getPredictedStuff():
                                                         datasetName=datasetModelName,
                                                         classifierType=classifierType,
                                                         classifierSetName=classifierSetName)
-    modelDataFolder = CreateUtils.getModelFolder(classifierType, classifierSetName)
-    modelConfigFileName = os.path.join(modelDataFolder, "model set parameters.yaml")
+    modelConfigFileName = CreateUtils.getModelConfigFileName(classifierType, classifierSetName)
     with open(modelConfigFileName, 'r') as myConfigFile:
         classifierParameters = yaml.load(myConfigFile)
 
@@ -608,7 +602,8 @@ if weightedPosition:
         np.savetxt(filePath, outputLabelsAsArray, fmt='%6.2f', delimiter=',', header="North, East")
 
     trueDatasetName = "bikeneighborhoodPackFileCTDM"
-    datasetFileTrue = os.path.join(CreateUtils.getProcessedDataDatasetsFolder(trueDatasetName), featureParameters['featureSetName'] + '.hf')
+
+    datasetFileTrue = CreateUtils.getDatasetFile(featureSetName=featureParameters['featureSetName'],datasetName=trueDatasetName)
     datasetsTrue, inputsTrue, outputsTrue, max_batch_sizeTrue = RegressionUtils.load_data(datasetFileTrue,
                                                                                           rogueClasses=(),
                                                                                           makeSharedData=False)

@@ -69,7 +69,7 @@ if numberOfSamples > 0:
     test_set = (fX[validSetEnd:-1, :], fY[validSetEnd:-1])
 
 outputLabelsFinal = [str(a) for a in range(outputs)]
-datasetFile = os.path.join(CreateUtils.getProcessedDataDatasetsFolder(datasetName=datasetName), 'Test.hf')
+datasetFile = CreateUtils.getDatasetFile(featureSetName="Test", datasetName=datasetName)
 with pd.HDFStore(datasetFile, 'a') as datasetStore:
     datasetStore['train_set_x'] = pd.DataFrame(train_set[0])
     datasetStore['valid_set_x'] = pd.DataFrame(valid_set[0])

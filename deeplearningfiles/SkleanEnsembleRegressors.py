@@ -6,6 +6,7 @@ import cPickle
 
 import matplotlib.pylab as plt
 import numpy as np
+import CreateUtils
 
 
 def makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featureParameters, datasetParameters, classifierParameters, valueMethod=0,
@@ -43,12 +44,7 @@ def makeStatisticsForModel(experimentsFolder, statisticsStoreFolder, featurePara
 
     setNames = ['train', 'valid', 'test']
     whichSet = setNames.index(whichSetName)
-
-    if os.path.exists(os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')
-    else:
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'],
-                                   datasetParameters['datasetName'] + '.pkl.gz')
+    datasetFile = CreateUtils.getDatasetFile(featureSetName=featureParameters['featureSetName'], datasetName=datasetParameters['datasetName'])
 
     rogueClassesMaster = classifierParameters['rogueClasses']
 
@@ -124,16 +120,11 @@ def skleanensemble_parameterized(featureParameters, datasetParameters, classifie
     :param forceRebuildModel: forces to rebuild the model and train it again
     """
 
-    rawDataFolder = datasetParameters['rawDataFolder']
-
-    if os.path.exists(os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')
-    else:
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'],
-                                   datasetParameters['datasetName'] + '.pkl.gz')
-
-    experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureParameters['featureSetName'], datasetParameters['datasetName'],
-                                     classifierParameters['classifierType'], classifierParameters['classifierSetName'])
+    datasetFile = CreateUtils.getDatasetFile(featureSetName=featureParameters['featureSetName'], datasetName=datasetParameters['datasetName'])
+    experimentsFolder = CreateUtils.getExperimentFolder(featureSetName=featureParameters['featureSetName'],
+                                                        datasetName=datasetParameters['datasetName'],
+                                                        classifierType=classifierParameters['classifierType'],
+                                                        classifierSetName=classifierParameters['classifierSetName'])
 
     bestModelFilePath = os.path.join(experimentsFolder, 'best_model.pkl')
     if not os.path.exists(bestModelFilePath) or forceRebuildModel:

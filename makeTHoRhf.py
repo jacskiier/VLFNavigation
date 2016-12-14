@@ -40,8 +40,7 @@ p_train = p[:trainSetEnd]
 p_valid = p[trainSetEnd:validSetEnd]
 p_test = p[validSetEnd:-1]
 
-processedDataFolder = CreateUtils.getProcessedDataDatasetsFolder(datasetName=datasetName)
-datasetFile = os.path.join(processedDataFolder, featureSetName + '.hf')
+datasetFile = CreateUtils.getDatasetFile(featureSetName=featureSetName, datasetName=datasetName)
 with pd.HDFStore(datasetFile, 'a') as datasetStore:
     datasetStore['train_set_x'] = pd.DataFrame(train_set[0])
     datasetStore['valid_set_x'] = pd.DataFrame(valid_set[0])

@@ -461,22 +461,13 @@ def sgd_optimization_parameterized(featureParameters, datasetParameters, classif
     :param forceRebuildModel: forces to rebuild the model and train it again
     """
 
-    assert classifierParameters[
-               'classifierType'] == 'LogisticRegression', 'this config wasnt made for a Logistic Regression'
+    assert classifierParameters['classifierType'] == 'LogisticRegression', 'this config wasnt made for a Logistic Regression'
 
-    rawDataFolder = datasetParameters['rawDataFolder']
-
-    if os.path.exists(
-            os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'],
-                                   featureParameters['featureSetName'] + '.hf')
-    else:
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'],
-                                   datasetParameters['datasetName'] + '.pkl.gz')
-
-    experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureParameters['featureSetName'],
-                                     datasetParameters['datasetName'],
-                                     classifierParameters['classifierType'], classifierParameters['classifierSetName'])
+    datasetFile = CreateUtils.getDatasetFile(featureSetName=featureParameters['featureSetName'], datasetName=datasetParameters['datasetName'])
+    experimentsFolder = CreateUtils.getExperimentFolder(featureParameters['featureSetName'],
+                                                        datasetParameters['datasetName'],
+                                                        classifierParameters['classifierType'],
+                                                        classifierParameters['classifierSetName'])
 
     bestModelFilePath = os.path.join(experimentsFolder, 'best_model.pkl')
     if not os.path.exists(bestModelFilePath) or forceRebuildModel:
@@ -527,25 +518,14 @@ def makeStatisticsForModel(experimentsFolder, statisticStoreFolder, featureParam
     """
 
     valueMethodName = ClassificationUtils.valueMethodNames[valueMethod]
-
-    if os.path.exists(
-            os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'] + '.hf')):
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'],
-                                   featureParameters['featureSetName'] + '.hf')
-    else:
-        datasetFile = os.path.join(datasetParameters['processedDataFolder'], featureParameters['featureSetName'],
-                                   datasetParameters['datasetName'] + '.pkl.gz')
+    datasetFile = CreateUtils.getDatasetFile(featureSetName=featureParameters['featureSetName'], datasetName=datasetParameters['datasetName'])
 
     # get statDatasetFile
-    statDatasetConfigFileName = os.path.join(statisticStoreFolder, 'dataset parameters.yaml')
+    statDatasetConfigFileName = CreateUtils.getDatasetStatConfigFileName(statisticsFolder=statisticStoreFolder)
     with open(statDatasetConfigFileName, 'r') as myConfigFile:
         statDatasetParameters = yaml.load(myConfigFile)
-    processedDataFolder = CreateUtils.convertPathToThisOS(statDatasetParameters['processedDataFolder'])
-    if os.path.exists(os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')):
-        statDatasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')
-    else:
-        statDatasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'],
-                                       statDatasetParameters['datasetName'] + '.pkl.gz')
+
+    statDatasetFile = CreateUtils.getDatasetFile(featureSetName=featureParameters['featureSetName'], datasetName=statDatasetParameters['datasetName'])
 
     rogueClassesMaster = classifierParameters['rogueClasses']
     # Grab the validation set in order to calculate EER thresholds
@@ -599,20 +579,12 @@ if __name__ == '__main__':
     classifierType = 'LogisticRegression'
     classifierSetNameMain = 'AllClassesDefault'
 
-    featureDataFolderMain = os.path.join(rawDataFolderMain, "Processed Data Features", featureSetNameMain)
-    featureConfigFileName = os.path.join(featureDataFolderMain, "feature parameters.yaml")
-    with open(featureConfigFileName, 'r') as myConfigFile:
-        featureParametersDefault = yaml.load(myConfigFile)
-
-    processedDataFolderMain = os.path.join(rawDataFolderMain, "Processed Data Datasets", datasetNameMain)
-    datasetConfigFileName = os.path.join(processedDataFolderMain, "datset parameters.yaml")
-    with open(datasetConfigFileName, 'r') as myConfigFile:
-        datasetParametersDefault = yaml.load(myConfigFile)
-
-    modelStoreFolderMaster = os.path.join(rawDataFolderMain, "Processed Data Models", classifierSetNameMain)
-    modelConfigFileName = os.path.join(modelStoreFolderMaster, "model set parameters.yaml")
-    with open(modelConfigFileName, 'r') as myConfigFile:
-        modelSetParametersDefault = yaml.load(myConfigFile)
+    (featureParametersDefault,
+     datasetParametersDefault,
+     modelSetParametersDefault) = CreateUtils.getParameters(featureSetName=featureSetNameMain,
+                                                            datasetName=datasetNameMain,
+                                                            classifierType=classifierType,
+                                                            classifierSetName=classifierSetNameMain)
 
     sgd_optimization_parameterized(featureParametersDefault, datasetParametersDefault, modelSetParametersDefault,
                                    forceRebuildModel=True)

@@ -393,7 +393,7 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
     # reshape predicted_probabilities to be rows and indices
     predicted_probabilities = np.reshape(predicted_probabilities,
                                          newshape=(
-                                         predicted_probabilities.shape[0] * predicted_probabilities.shape[1], predicted_probabilities.shape[2]))
+                                             predicted_probabilities.shape[0] * predicted_probabilities.shape[1], predicted_probabilities.shape[2]))
 
     trueValues = np.reshape(trueValues, (trueValues.shape[0] * trueValues.shape[1], trueValues.shape[2]))
     # trueValues = totalSamples x output data dim
@@ -639,18 +639,13 @@ def makeStatisticsForModel(experimentsFolder,
     valueMethodName = ClassificationUtils.valueMethodNames[valueMethod]
 
     # get datasetFile
-    processedDataFolder = CreateUtils.convertPathToThisOS(datasetParameters['processedDataFolder'])
-    if os.path.exists(os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')):
-        datasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')
-    else:
-        datasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'],
-                                   datasetParameters['datasetName'] + '.pkl.gz')
+    datasetFile = CreateUtils.getDatasetFile(featureSetName=featureParameters['featureSetName'], datasetName=datasetParameters['datasetName'])
 
     # get statDatasetFile
-    statDatasetConfigFileName = os.path.join(statisticStoreFolder, 'dataset parameters.yaml')
+    statDatasetConfigFileName = CreateUtils.getDatasetStatConfigFileName(statisticsFolder=statisticStoreFolder)
     with open(statDatasetConfigFileName, 'r') as myConfigFile:
         statDatasetParameters = yaml.load(myConfigFile)
-    processedDataFolder = CreateUtils.convertPathToThisOS(statDatasetParameters['processedDataFolder'])
+    processedDataFolder = CreateUtils.getProcessedDataDatasetsFolder(statDatasetParameters['datasetName'])
     if os.path.exists(os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')):
         statDatasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')
     else:
@@ -846,18 +841,12 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
     :param showModelAsFigure: do you want to show the model right before running
     """
 
-    rawDataFolder = CreateUtils.convertPathToThisOS(datasetParameters['rawDataFolder'])
-    processedDataFolder = CreateUtils.convertPathToThisOS(datasetParameters['processedDataFolder'])
+    datasetFile = CreateUtils.getDatasetFile(featureSetName=featureParameters['featureSetName'], datasetName=datasetParameters['datasetName'])
 
-    if os.path.exists(os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')):
-        datasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')
-    else:
-        datasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'],
-                                   datasetParameters['datasetName'] + '.pkl.gz')
-
-    experimentsFolder = os.path.join(rawDataFolder, "Data Experiments", featureParameters['featureSetName'],
-                                     datasetParameters['datasetName'],
-                                     classifierParameters['classifierType'], classifierParameters['classifierSetName'])
+    experimentsFolder = CreateUtils.getExperimentFolder(featureParameters['featureSetName'],
+                                                        datasetParameters['datasetName'],
+                                                        classifierParameters['classifierType'],
+                                                        classifierParameters['classifierSetName'])
 
     modelStoreWeightsBestFilePathFullTemp = os.path.join(experimentsFolder, 'best_modelWeights.h5')
     if not os.path.exists(modelStoreWeightsBestFilePathFullTemp) or forceRebuildModel:

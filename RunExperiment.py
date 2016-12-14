@@ -60,37 +60,24 @@ def runExperiment(featureSetName,
         featureSetName=featureSetName, datasetName=datasetName, classifierType=classifierType,
         classifierSetName=classifierSetName))
     # Load all the config files
-    featureDataFolder = CreateUtils.getProcessedFeaturesFolder(featureSetName)
-    featureConfigFileName = os.path.join(featureDataFolder, "feature parameters.yaml")
-    with open(featureConfigFileName, 'r') as myConfigFile:
-        featureParameters = yaml.load(myConfigFile)
-
-    processedDataFolder = CreateUtils.getProcessedDataDatasetsFolder(datasetName)
-    datasetConfigFileName = os.path.join(processedDataFolder, "dataset parameters.yaml")
-    with open(datasetConfigFileName, 'r') as myConfigFile:
-        datasetParameters = yaml.load(myConfigFile)
-
-    modelDataFolder = CreateUtils.getModelFolder(classifierType=classifierType, classifierSetName=classifierSetName)
-    modelConfigFileName = os.path.join(modelDataFolder, "model set parameters.yaml")
-    with open(modelConfigFileName, 'r') as myConfigFile:
-        modelParameters = yaml.load(myConfigFile)
-
+    (featureParameters,
+     datasetParameters,
+     modelParameters) = CreateUtils.getParameters(featureSetName=featureSetName, datasetName=datasetName,
+                                                  classifierType=classifierType,
+                                                  classifierSetName=classifierSetNameMain)
     experimentsFolder = CreateUtils.getExperimentFolder(featureSetName, datasetName, classifierType, classifierSetName)
     if not os.path.exists(experimentsFolder):
         os.makedirs(experimentsFolder)
 
-    if datasetNameStats is not None and datasetNameStats != '':
-        processedDataTestFolder = CreateUtils.getProcessedDataDatasetsFolder(datasetNameStats)
-        datasetStatsConfigFileName = os.path.join(processedDataTestFolder, "dataset parameters.yaml")
-        with open(datasetStatsConfigFileName, 'r') as myConfigFile:
-            datasetStatsParameters = yaml.load(myConfigFile)
-        statisticsStoreFolder = os.path.join(experimentsFolder, datasetNameStats, whichSetNameStat)
-    else:
-        datasetStatsParameters = datasetParameters
-        datasetStatsConfigFileName = datasetConfigFileName
-        statisticsStoreFolder = os.path.join(experimentsFolder, datasetName, whichSetNameStat)
+    # statistics name
+    if datasetNameStats is None or datasetNameStats == '':
+        datasetNameStats = datasetName
+    # create the folder
+    statisticsStoreFolder = CreateUtils.getStatisticsFolder(experimentsFolder, datasetNameStats, whichSetNameStat)
     if not os.path.exists(statisticsStoreFolder):
         os.makedirs(statisticsStoreFolder)
+    # get the parameters of the stats
+    datasetStatsParameters = CreateUtils.getParameters(datasetName=datasetNameStats)
 
     if featureParameters['feature parameters']['featureMethod'] in CreateUtils.featureMethodNamesRebuildValid:
         removeFileNumbers = datasetParameters['removeFileNumbers'] if 'removeFileNumbers' in datasetParameters else {}
@@ -103,10 +90,12 @@ def runExperiment(featureSetName,
         CreateDataset.buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=forceRefreshDataset)
 
     # Copy over config files
-    shutil.copyfile(featureConfigFileName, os.path.join(experimentsFolder, os.path.basename(featureConfigFileName)))
-    shutil.copyfile(datasetConfigFileName, os.path.join(experimentsFolder, os.path.basename(datasetConfigFileName)))
-    shutil.copyfile(modelConfigFileName, os.path.join(experimentsFolder, os.path.basename(modelConfigFileName)))
-    shutil.copyfile(datasetStatsConfigFileName, os.path.join(statisticsStoreFolder, os.path.basename(datasetStatsConfigFileName)))
+    CreateUtils.copyConfigsToExperimentsFolder(experimentsFolder=experimentsFolder,
+                                               featureSetName=featureSetName,
+                                               datasetName=datasetName,
+                                               classifierType=classifierType,
+                                               classifierSetName=classifierSetName)
+    CreateUtils.copyConfigsToExperimentsFolder(experimentsFolder=statisticsStoreFolder, datasetName=datasetNameStats)
 
     # Start Experiment
     if modelParameters['classifierType'] == 'LogisticRegression':

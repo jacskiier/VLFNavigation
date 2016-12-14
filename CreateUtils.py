@@ -2,6 +2,7 @@ import os
 import re
 import numpy as np
 import yaml
+import shutil
 
 masterFeatureMethod = 'FFTWindow'
 # Feature Statics
@@ -296,9 +297,9 @@ def getRawDataFolder():
 
 def getProcessedFeaturesFolder(featureName=None):
     if featureName is None:
-        ret = os.path.join(getRootDataFolder(), "Processed Data Datasets")
+        ret = os.path.join(getRootDataFolder(), "Processed Data Features")
     else:
-        ret = os.path.join(getRootDataFolder(), "Processed Data Datasets", featureName)
+        ret = os.path.join(getRootDataFolder(), "Processed Data Features", featureName)
     return ret
 
 
@@ -334,29 +335,44 @@ def getExperimentFolder(featureSetName=None, datasetName=None, classifierType=No
     return experimentFolder
 
 
+def getStatisticsFolder(experimentsFolder, datasetNameStats, whichSetNameStat):
+    statisticsStoreFolder = os.path.join(experimentsFolder, datasetNameStats, whichSetNameStat)
+    return statisticsStoreFolder
+
+
 def getImageryFolder():
     return os.path.join(getRootDataFolder(), "Imagery")
+
+
+def getDatasetFile(featureSetName, datasetName):
+    if os.path.exists(os.path.join(getProcessedDataDatasetsFolder(datasetName), featureSetName + '.hf')):
+        datasetFile = os.path.join(getProcessedDataDatasetsFolder(datasetName), featureSetName + '.hf')
+    elif os.path.exists(os.path.join(getProcessedDataDatasetsFolder(datasetName), featureSetName, datasetName + '.pkl.gz')):
+        datasetFile = os.path.join(getProcessedDataDatasetsFolder(datasetName), featureSetName, datasetName + '.pkl.gz')
+    else:
+        raise ValueError("The given dataset file combination does not exist")
+    return datasetFile
 
 
 def getParameters(featureSetName=None, datasetName=None, classifierType=None, classifierSetName=None):
     ret = ()
     if featureSetName is not None:
         featureDataFolder = getProcessedFeaturesFolder(featureName=featureSetName)
-        featureConfigFileName = os.path.join(featureDataFolder, "feature parameters.yaml")
+        featureConfigFileName = getFeatureConfigFileName(featureSetName)
         with open(featureConfigFileName, 'r') as myConfigFile:
             featureParameters = yaml.load(myConfigFile)
         ret = ret + featureParameters
 
     if datasetName is not None:
         processedDataFolder = getProcessedDataDatasetsFolder(datasetName=datasetName)
-        datasetConfigFileName = os.path.join(processedDataFolder, "dataset parameters.yaml")
+        datasetConfigFileName = getDatasetConfigFileName(datasetName)
         with open(datasetConfigFileName, 'r') as myConfigFile:
             datasetParameters = yaml.load(myConfigFile)
         ret = ret + datasetParameters
 
     if classifierType is not None and classifierSetName is not None:
         modelDataFolder = getModelFolder(classifierType=classifierType, classifierSetName=classifierSetName)
-        modelConfigFileName = os.path.join(modelDataFolder, "model set parameters.yaml")
+        modelConfigFileName = getModelConfigFileName(classifierType, classifierSetName)
         with open(modelConfigFileName, 'r') as myConfigFile:
             modelParameters = yaml.load(myConfigFile)
         ret = ret + modelParameters
@@ -371,6 +387,33 @@ def get3AxisCollectFolder():
     else:
         raise ValueError("This OS is not allowed")
     return dataCollectFolderMain
+
+
+def getFeatureConfigFileName(featureSetName):
+    return os.path.join(getProcessedFeaturesFolder(featureSetName), "feature parameters.yaml")
+
+
+def getDatasetConfigFileName(datasetName):
+    return os.path.join(getProcessedDataDatasetsFolder(datasetName), "dataset parameters.yaml")
+
+
+def getModelConfigFileName(classifierType, classifierSetName):
+    return os.path.join(getModelFolder(classifierType=classifierType, classifierSetName=classifierSetName), "model set parameters.yaml")
+
+
+def getDatasetStatConfigFileName(statisticsFolder):
+    return os.path.join(statisticsFolder, 'dataset parameters.yaml')
+
+def copyConfigsToExperimentsFolder(experimentsFolder, featureSetName=None, datasetName=None, classifierType=None, classifierSetName=None):
+    if featureSetName is not None:
+        featureConfigFileName = getFeatureConfigFileName(featureSetName)
+        shutil.copyfile(featureConfigFileName, os.path.join(experimentsFolder, os.path.basename(featureConfigFileName)))
+    if datasetName is not None:
+        datasetConfigFileName = getDatasetConfigFileName(datasetName)
+        shutil.copyfile(datasetConfigFileName, os.path.join(experimentsFolder, os.path.basename(datasetConfigFileName)))
+    if classifierType is not None and classifierSetName is not None:
+        modelConfigFileName = getModelConfigFileName(classifierType, classifierSetName)
+        shutil.copyfile(modelConfigFileName, os.path.join(experimentsFolder, os.path.basename(modelConfigFileName)))
 
 
 def sizeof_fmt(num, suffix='B'):

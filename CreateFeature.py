@@ -733,7 +733,7 @@ def buildFeatures(featureParameters, forceRefreshFeatures=False, showFigures=Fal
                   allBaseFileNames=None, removeFileNumbers=(), onlyFileNumbers=()):
     processedFilesCount = 0
     rawDataFolder = CreateUtils.getRawDataFolder()
-    featureDataFolder = CreateUtils.convertPathToThisOS(featureParameters['featureDataFolder'])
+    featureDataFolder = CreateUtils.getProcessedFeaturesFolder(featureParameters['featureSetName'])
     if allBaseFileNames is None:
         allBaseFileNames = CreateUtils.getAllBaseFileNames(rawDataFolder)
     if len(allBaseFileNames) == 0:
@@ -916,7 +916,7 @@ def runMain():
 
     featureParametersDefault = {}
     featureDataFolder = CreateUtils.getProcessedFeaturesFolder(featureSetName)
-    configFileName = os.path.join(featureDataFolder, "feature parameters.yaml")
+    configFileName = CreateUtils.getFeatureConfigFileName(featureSetName)
     if (not os.path.exists(configFileName)) or overwriteConfigFile:
         if featureMethod == 'Patch':
             # x matrix parameters
@@ -1177,15 +1177,13 @@ def runMain():
             featureSets = []
 
     if runNow:
-        for featureSetFolder in featureSets:
-            featureDataFolderRoot = CreateUtils.getProcessedFeaturesFolder()
-            featureConfigFileName = os.path.join(featureDataFolderRoot, "feature parameters.yaml")
-            with open(featureConfigFileName, 'r') as myConfigFile:
-                featureParametersDefault = yaml.load(myConfigFile)
+        for featureSetNameLoop in featureSets:
+            featureParametersDefault = CreateUtils.getParameters(featureSetName=featureSetNameLoop)
             # didProcessAllFiles = False
             # while not didProcessAllFiles:
             didProcessAllFiles = buildFeatures(featureParametersDefault,
-                                               forceRefreshFeatures=forceRefreshFeatures, maxFiles=maxFiles,
+                                               forceRefreshFeatures=forceRefreshFeatures,
+                                               maxFiles=maxFiles,
                                                removeFileNumbers=removeFileNumbers,
                                                onlyFileNumbers=onlyFileNumbers)
             print ("Did process all files? {0}".format(didProcessAllFiles))

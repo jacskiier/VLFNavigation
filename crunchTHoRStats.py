@@ -16,15 +16,14 @@ allStats = numpy.genfromtxt(os.path.join(rawDataFolder, 'allStats.csv'), delimit
 if len(allStats.shape) <= 1:
     allStats = numpy.expand_dims(allStats, 1)
 
-processedDataFolder = CreateUtils.getProcessedDataDatasetsFolder(datasetName)
-datasetFile = os.path.join(processedDataFolder, featureSetName + '.hf')
+datasetFile = CreateUtils.getDatasetFile(featureSetName=featureSetName, datasetName=datasetName)
 with pd.HDFStore(datasetFile, 'r') as featureStore:
     p_train = featureStore['p_train'.format(whichSet)].as_matrix()
     p_valid = featureStore['p_valid'.format(whichSet)].as_matrix()
     p_test = featureStore['p_test'.format(whichSet)].as_matrix()
     columnNames = numpy.array(featureStore['columnNames'.format(whichSet)].as_matrix(), dtype='a').squeeze()
 
-experimentStore = os.path.join(rootDataFolder, "Data Experiments", "DefaultTHoRFeatures", "THoR", "MLP", "RegressionAllClassesDefault")
+experimentStore = CreateUtils.getExperimentFolder("DefaultTHoRFeatures", "THoR", "MLP", "RegressionAllClassesDefault")
 gradFile = os.path.join(experimentStore, 'gradArray.hf')
 with pd.HDFStore(gradFile, 'r') as featureStore:
     gradArray = featureStore['gradArray{0}'.format(whichSet)].as_matrix()
