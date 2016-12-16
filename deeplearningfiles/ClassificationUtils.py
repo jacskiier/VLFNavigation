@@ -191,9 +191,10 @@ def load_data(datasetFileName,
     if re.match('''.*\.hf$''', datasetFileName):
         with pd.HDFStore(datasetFileName, 'r') as featureStore:
             for setName in setNames:
-                set_x = featureStore[setName + '_set_x'].as_matrix()
-                set_y = featureStore[setName + '_set_y'].as_matrix()
-                setDict[setName] = (set_x, set_y)
+                if setName is not None:
+                    set_x = featureStore[setName + '_set_x'].as_matrix()
+                    set_y = featureStore[setName + '_set_y'].as_matrix()
+                    setDict[setName] = (set_x, set_y)
             labels = featureStore['labels'].as_matrix()
     else:
         raise ValueError('Only .hf file types are supported')
@@ -232,41 +233,51 @@ def load_data(datasetFileName,
 
     if len(rogueClasses) > 0:
         for setName in setNames:
-            set_x = setDict[setName][0]
-            set_y = setDict[setName][1]
-            nonRogueMask = np.logical_not(np.in1d(set_y, np.array(rogueClasses)))
-            set_x = set_x[nonRogueMask]
-            set_y = set_y[nonRogueMask]
-            for rogueClass in list(np.flipud(rogueClasses)):
-                set_y[set_y > rogueClass] -= 1
-            setDict[setName] = (set_x, set_y)
+            if setName is not None:
+                set_x = setDict[setName][0]
+                set_y = setDict[setName][1]
+                nonRogueMask = np.logical_not(np.in1d(set_y, np.array(rogueClasses)))
+                set_x = set_x[nonRogueMask]
+                set_y = set_y[nonRogueMask]
+                for rogueClass in list(np.flipud(rogueClasses)):
+                    set_y[set_y > rogueClass] -= 1
+                setDict[setName] = (set_x, set_y)
 
     for setName in setNames:
-        set_x, set_y = setDict[setName]
-        if makeSequenceForX:
-            set_x = np.reshape(set_x, (set_x.shape[0], timesteps, set_x.shape[1] / timesteps))
-        if makeSequenceForY:
-            set_y = np.reshape(set_y, (set_y.shape[0], timesteps, set_y.shape[1] / timesteps))
-        setDict[setName] = (set_x, set_y)
+        if setName is not None:
+            set_x, set_y = setDict[setName]
+            if makeSequenceForX:
+                set_x = np.reshape(set_x, (set_x.shape[0], timesteps, set_x.shape[1] / timesteps))
+            if makeSequenceForY:
+                set_y = np.reshape(set_y, (set_y.shape[0], timesteps, set_y.shape[1] / timesteps))
+            setDict[setName] = (set_x, set_y)
 
     rval = []
     for setName in setNames:
-        thisSet = setDict[setName]
-        if makeSharedData:
-            thisSet = shared_dataset(thisSet)
-            setDict[setName] = thisSet
-        rval.append(thisSet)
+        if setName is not None:
+            thisSet = setDict[setName]
+            if makeSharedData:
+                thisSet = shared_dataset(thisSet)
+                setDict[setName] = thisSet
+            rval.append(thisSet)
+        else:
+            rval.append((None, None))
 
     inputFeatures = rval[0][0].shape[1]
 
-    allOutputClasses = np.concatenate([thisSet[1] for thisSet in rval], 0)
+    realSetYTuple = ()
+    for thisSet in rval:
+        if thisSet[1] is not None:
+            realSetYTuple += (thisSet[1],)
+
+    allOutputClasses = np.concatenate(realSetYTuple, 0)
     outputClassesByUnique = np.unique(allOutputClasses).shape[0]
     outputClassesByLargest = int(np.max(allOutputClasses)) + 1
     outputClassesByLabels = labels.size
     outputClassesTotal = outputClassesByLabels
     assert outputClassesTotal <= max(outputClassesByUnique, outputClassesByLargest), "Class indices are beyond total classes"
 
-    largestSampleSetPossible = min([thisSet[1].shape[0] for thisSet in rval])
+    largestSampleSetPossible = min([thisSet1.shape[0] for thisSet1 in realSetYTuple])
     print ("loading complete")
     return rval, inputFeatures, outputClassesTotal, largestSampleSetPossible
 
@@ -682,13 +693,13 @@ def plotThresholds(predicted_class,
                 if totalCountsThisClass <= 0:
                     polygons_nocounts.append(thisPatch)
 
-                # plt.text(x=xMid,
-                #          y=yMid,
-                #          s="{countsThisClass} \n{tpRateThisClass:2.2%}".format(tpRateThisClass=acc,
-                #                                                                countsThisClass=totalCountsThisClass),
-                #          size=12,
-                #          zorder=2,
-                #          color='k')
+                    # plt.text(x=xMid,
+                    #          y=yMid,
+                    #          s="{countsThisClass} \n{tpRateThisClass:2.2%}".format(tpRateThisClass=acc,
+                    #                                                                countsThisClass=totalCountsThisClass),
+                    #          size=12,
+                    #          zorder=2,
+                    #          color='k')
 
             colorMap = cm.get_cmap('coolwarm')
             patchCollection = matplotlib.collections.PatchCollection(patches=polygons, cmap=colorMap, norm=matplotlib.colors.NoNorm())

@@ -212,6 +212,7 @@ def getXYTempAndLabelsFromFile(featureStorePath,
 
     # packaging data
     rowPackagingStyle = datasetParameters['rowPackagingStyle'] if 'rowPackagingStyle' in datasetParameters else None
+    minForClassTransition = datasetParameters['minForClassTransition'] if 'minForClassTransition' in datasetParameters else 1
 
     with pd.HDFStore(featureStorePath, 'r') as featureStore:
         print (featureStorePath)
@@ -346,8 +347,54 @@ def getXYTempAndLabelsFromFile(featureStorePath,
         newGridCoordinates = particleArray[newGridCoordinates, :]
 
         # turn the positions into class indices
-        rowPackagingMetadata, rowPackagingMetadataFinal = getIndexOfLabels(newGridCoordinates,
-                                                                           rowPackagingMetadataFinal)
+        rowPackagingMetadata, rowPackagingMetadataFinal = getIndexOfLabels(newGridCoordinates, rowPackagingMetadataFinal)
+        rowPackagingMetadata = rowPackagingMetadata[:, None]
+    elif rowPackagingStyle in ['class', 'classWithClassTransitions']:
+        # turn the positions into class indices
+        rowPackagingMetadata, rowPackagingMetadataFinal = getIndexOfLabels(fYTemp, rowPackagingMetadataFinal)
+        if rowPackagingStyle == 'classWithClassTransitions':
+            currentMinLength = 1
+            assert rowPackagingMetadata.size > minForClassTransition, "min is too big for data"
+            while currentMinLength < minForClassTransition:
+                indicesOfChanges = np.where(np.concatenate(([True], rowPackagingMetadata[:-1] != rowPackagingMetadata[1:], [True])))[0]
+                lengthOfChanges = np.diff(indicesOfChanges)
+                currentMin = np.min(lengthOfChanges)
+                if currentMin > minForClassTransition:
+                    break
+                if currentMin > currentMinLength:
+                    currentMinLength = currentMin
+
+                indicesOfChanges = indicesOfChanges[:-1]
+                startNumbers = rowPackagingMetadata[indicesOfChanges[:-1]]
+
+                indicesOfThisSize = indicesOfChanges[lengthOfChanges == currentMinLength]
+                startNumbersOfThisSizeIndices = np.where(lengthOfChanges == currentMinLength)[0]
+                for i, indexOfThisSize in enumerate(indicesOfThisSize):
+                    starter = startNumbers[startNumbersOfThisSizeIndices[i] - 1] if startNumbersOfThisSizeIndices[i] - 1 > 0 else startNumbers[0]
+                    rowPackagingMetadata[indexOfThisSize:indexOfThisSize + currentMinLength] = starter
+
+            indicesOfChanges = np.where(np.concatenate(([True], rowPackagingMetadata[:-1] != rowPackagingMetadata[1:], [True])))[0]
+            lengthOfChanges = np.diff(indicesOfChanges)
+            indicesOfChanges = indicesOfChanges[:-1]
+            startNumbers = rowPackagingMetadata[indicesOfChanges[:-1]]
+            endNumbers = rowPackagingMetadata[indicesOfChanges[1:]]
+
+            transitionLabels = ["{0}->{1}".format(startClass, endClass) for (startClass, endClass) in zip(startNumbers, endNumbers)]
+
+            startEndIndices = np.vstack((indicesOfChanges[:-2], indicesOfChanges[1:-1]))
+            transitionIndices = np.array(np.floor(np.median(startEndIndices, axis=0)), dtype=np.int64)
+            transitionStartEndLengths = np.vstack((lengthOfChanges[:-1], lengthOfChanges[1:]))
+            transitionLengths = np.array(np.floor(np.mean(transitionStartEndLengths, axis=0)), dtype=np.int64)
+
+            classTransitionMask = np.zeros_like(rowPackagingMetadata, dtype='|S8')
+            classTransitionMask[:transitionIndices[0]] = transitionLabels[0]
+            classTransitionMask[transitionIndices[-1]:] = transitionLabels[-1]
+            for transitionIndex, transitionLength, transitionLabel in zip(transitionIndices, transitionLengths, transitionLabels):
+                classTransitionMask[transitionIndex:transitionIndex + transitionLength] = transitionLabel
+            classTransitionMask = classTransitionMask[:, None]
+            rowPackagingMetadataTransitions, rowPackagingMetadataFinal = getIndexOfLabels(classTransitionMask, rowPackagingMetadataFinal)
+            # Stack together both rowPackagingMetadata arrays
+            rowPackagingMetadata = np.hstack((rowPackagingMetadata, rowPackagingMetadataTransitions))
         rowPackagingMetadata = rowPackagingMetadata[:, None]
     else:
         rowPackagingMetadata = None
@@ -595,6 +642,10 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
         for setName, setValue in setDictArg.iteritems():
             rowMetadata = rowProcessingMetadataDictArg[setName]
             uniqueRows, uniqueCounts = np.unique(rowMetadata, return_counts=True)
+            # filter out numbers less than 0
+            uniqueCounts = uniqueCounts[uniqueRows > -1]
+            uniqueRows = uniqueRows[uniqueRows > -1]
+            # get the total row and column count for this set
             newRows = uniqueRows.shape[0]
             trueRowsPerSetDict[setName] = newRows
             newRowsMax = newRows if newRows > newRowsMax else newRowsMax
@@ -615,6 +666,9 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
             packagedColumnsPerSetDict[setName] = totalColumnCount
             rowMetadata = rowProcessingMetadataDictArg[setName]
             uniqueRows, uniqueCounts = np.unique(rowMetadata, return_counts=True)
+            # filter out numbers less than 0
+            uniqueCounts = uniqueCounts[uniqueRows > -1]
+            uniqueRows = uniqueRows[uniqueRows > -1]
             if allSetsSameRows is True:
                 newRows = newRowsMax
             else:
@@ -626,16 +680,16 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
             tempX = np.zeros((newRows, totalColumnsX * totalColumnCount))
             tempY = np.zeros((newRows, totalColumnsY * totalColumnCount))
             tempSets = [tempX, tempY]
-            for uniqueRowIndex in range(uniqueRows.shape[0]):
+            for uniqueRowIndex in tqdm(range(uniqueRows.shape[0]), desc="Rows for Set Name: {setName}".format(setName=setName)):
                 uniqueRow = uniqueRows[uniqueRowIndex]
                 uniqueCount = uniqueCounts[uniqueRowIndex]
                 for totalColumnsSet, setNumber in zip([totalColumnsX, totalColumnsY], [0, 1]):
                     tempSet = tempSets[setNumber]
                     sliceTo = min(uniqueCount, totalColumnCount)
-                    tempSet[uniqueRowIndex, :sliceTo * totalColumnsSet] = \
-                        setValue[setNumber][rowMetadata.squeeze() == uniqueRow, :].flatten()[:sliceTo * totalColumnsSet]
-                    if uniqueCount < totalColumnCount and (
-                                repeatRowPackageBeginningAtEnd or repeatRowPackageEndingAtEnd):
+                    setIndexer = np.mod(rowMetadata.squeeze() == uniqueRow, setValue[setNumber].shape[0])
+                    # now mask out the samples I want from setValue then flatten it and set it to the temp set
+                    tempSet[uniqueRowIndex, :sliceTo * totalColumnsSet] = setValue[setNumber][setIndexer, :].flatten()[:sliceTo * totalColumnsSet]
+                    if uniqueCount < totalColumnCount and (repeatRowPackageBeginningAtEnd or repeatRowPackageEndingAtEnd):
                         repeatTimes = totalColumnCount / uniqueCount
                         for repeatTime in range(repeatTimes):
 
@@ -736,7 +790,7 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
     rngSeed = datasetParameters['rngSeed']
     np.random.seed(rngSeed)
 
-    datasetFile = CreateUtils.getDatasetFile(featureSetName=featureSetName, datasetName=datasetName)
+    datasetFile = CreateUtils.getDatasetFile(featureSetName=featureSetName, datasetName=datasetName, checkExistence=False)
     if not os.path.exists(datasetFile) or forceRefreshDataset:
         timer.tic("Build dataset {0} for feature set {1}".format(datasetName, featureSetName))
         timer.tic("Extract features from stored files")
@@ -748,6 +802,7 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
 
         totalXColumns = None
         totalMetadataPackagingColumns = 1
+        metadataMultiplier = CreateUtils.metadataMultipliersFromRowPackagingStyle[rowPackagingStyle]
 
         rowPackagingMetadataFinal = []
         rowsPerFile = {}
@@ -826,7 +881,7 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
 
         for (setName, rowsInSet) in totalRowsInSetDict.iteritems():
             setDict[setName] = [np.zeros((rowsInSet, totalXColumns)), np.zeros((rowsInSet, totalyColumns))]
-            rowProcessingMetadataDict[setName] = np.zeros((rowsInSet, totalMetadataPackagingColumns))
+            rowProcessingMetadataDict[setName] = np.zeros((rowsInSet * metadataMultiplier, totalMetadataPackagingColumns))
         setsRowsProcessedTotal = {}
 
         for baseFileName in allBaseFileNames:
@@ -857,7 +912,11 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
                         rowsProcessedTotal = setsRowsProcessedTotal[setName]
                         setDict[setName][0][rowsProcessedTotal:(rowsProcessedTotal + fXTemp.shape[0]), :] = fXTemp
                         setDict[setName][1][rowsProcessedTotal:(rowsProcessedTotal + fYTemp.shape[0]), :] = fYTemp
-                        rowProcessingMetadataDict[setName][rowsProcessedTotal:(rowsProcessedTotal + fYTemp.shape[0]), :] = rowPackagingMetadata
+                        for mult in range(metadataMultiplier):
+                            totalRows = totalRowsInSetDict[setName]
+                            rowSlicer = slice(rowsProcessedTotal + (totalRows * mult), (rowsProcessedTotal + fYTemp.shape[0] + (totalRows * mult)))
+                            rowSlicer2 = slice(fYTemp.shape[0] * mult, fYTemp.shape[0] * (mult+1))
+                            rowProcessingMetadataDict[setName][rowSlicer, :] = rowPackagingMetadata[rowSlicer2, :]
                         setsRowsProcessedTotal[setName] += fXTemp.shape[0]
                     gc.collect()
                 gc.collect()
@@ -1043,8 +1102,9 @@ def getStatisticsOnSet(datasetParameters, featureParameters, allBaseFileNames=No
 
 
 def mainRun():
-    rootDataFolder = CreateUtils.getRootDataFolder()
-    rawDataFolder = CreateUtils.getRawDataFolder()
+    # this line sets the root folder for future calls
+    CreateUtils.getRootDataFolder(featureMethod="SignalPlaceholder")
+
     # Run Parameters   ############
     runNow = True
     forceRefreshFeatures = False
@@ -1056,7 +1116,7 @@ def mainRun():
     removeFileNumbers = {}
     onlyFileNumbers = {}
     removeFeatureSetNames = []
-    onlyThisFeatureSetNames = ['FFTWindowDefault']
+    onlyThisFeatureSetNames = ['FFTWindowLowFreq']
     showFigures = True
 
     # Parameters Begin ############
@@ -1067,9 +1127,27 @@ def mainRun():
 
     setFractions = []
     # setFractions = [("train", "valid", 1.0 / 7), ("train", "test", 1.0 / 7)]
+    timeDistributedY = True
 
-    # X value changes ######################################################
-    # Sequences
+    # metadata features ###############################################
+    useMetadata = False
+    metadataList = ['CadenceBike', 'CrankRevolutions', 'SpeedInstant', 'WheelRevolutions', 'DayPercent']
+    metadataShape = (len(metadataList),)
+    assert len(set(metadataList).union(CreateUtils.allMetadataNamesSet)) == len(
+        CreateUtils.allMetadataNamesList), "You are using a metadata name not in the master list"
+
+    # y Value type Specific variables #################################
+    # gps variables
+    includeAltitude = False
+    decimalPrecision = (4, 4, -1)  # precision for lat, lon, and altitude to round to a grid
+    gridSize = (20, 20, 1000)  # size of the grid used for gps discrete blocks
+    # localLevelOriginInECEF = [506052.051626,-4882162.055080,4059778.630410] # AFIT
+    localLevelOriginInECEF = [507278.89822834, -4884824.02376298, 4056425.76820216]  # Neighborhood Center
+
+    # particle variables
+    particleFilePath = os.path.join(CreateUtils.getImageryFolder(), "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
+
+    # Sequences ########################################################
     makeSequences = False
     timestepsPerSequence = 1000  # if None use longest file timesteps
     offsetBetweenSequences = 1000  # negative or 0 will mean use random start locations
@@ -1083,25 +1161,8 @@ def mainRun():
     assert not (repeatSequenceBeginningAtEnd and repeatSequenceEndingAtEnd), \
         "you can't have both repeatSequenceBeginningAtEnd and repeatSequenceEndingAtEnd"
 
-    # Packaging
-    rowPackagingStyle = 'BaseFileNameWithNumber'  # None, 'BaseFileNameWithNumber', 'gpsD', 'particle'
-    padRowPackageWithZeros = True
-    repeatRowPackageBeginningAtEnd = False
-    repeatRowPackageEndingAtEnd = True
-    assert not (repeatRowPackageBeginningAtEnd and repeatRowPackageEndingAtEnd), \
-        "you can't have both repeatRowPackageBeginningAtEnd and repeatRowPackageEndingAtEnd"
-    allSetsSameRows = True
-    # packing parameters based on type of pack
-    gridSizePackage = (100, 100, 1000)
-    particlePackFilePath = os.path.join(CreateUtils.getImageryFolder(), "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
-    # keras packaging
-    alternateRowsForKeras = True
-    timestepsPerKerasBatchRow = 100
-    assert not (not allSetsSameRows and alternateRowsForKeras), \
-        "You must keep all sets same rows for keras packging to work in keras"
-
-    # filter features
-    useSavedFilter = True
+    # filter features ###################################################
+    useSavedFilter = False
     savedFilterFile = os.path.join(CreateUtils.getProcessedDataDatasetsFolder('bikeneighborhoodPackFileNormParticle'),
                                    'SavedFilters',
                                    'FFTWindowDefault.pkl')
@@ -1117,32 +1178,30 @@ def mainRun():
     xBias = 0.0
     xNormalized = False
 
-    # y value changes #######################################################
-    timeDistributedY = True
     # y scale factor for continuous sets
     yScaleFactor = 1.0
     yBias = 0.0
     yNormalized = False
 
-    # yvalue by gps variables
-    includeAltitude = False
-    # precision for lat, lon, and altitude to round to a grid
-    decimalPrecision = (4, 4, -1)
-    # size of the grid used for gps discrete blocks
-    gridSize = (20, 20, 1000)
-    # localLevelOriginInECEF = [506052.051626,-4882162.055080,4059778.630410] # AFIT
-    localLevelOriginInECEF = [507278.89822834, -4884824.02376298, 4056425.76820216]  # Neighborhood Center
+    # Packaging ########################################################
+    rowPackagingStyle = 'particle'  # None, 'BaseFileNameWithNumber', 'gpsD', 'particle', 'class', 'classWithClassTransitions'
+    padRowPackageWithZeros = True
+    repeatRowPackageBeginningAtEnd = False
+    repeatRowPackageEndingAtEnd = True
+    assert not (repeatRowPackageBeginningAtEnd and repeatRowPackageEndingAtEnd), \
+        "you can't have both repeatRowPackageBeginningAtEnd and repeatRowPackageEndingAtEnd"
+    allSetsSameRows = True
+    # packing parameters based on type of pack
+    gridSizePackage = (100, 100, 1000)
+    particlePackFilePath = os.path.join(CreateUtils.getImageryFolder(), "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
+    minForClassTransition = 50
+    # keras packaging
+    alternateRowsForKeras = True
+    timestepsPerKerasBatchRow = 100
+    assert not (not allSetsSameRows and alternateRowsForKeras), \
+        "You must keep all sets same rows for keras packging to work in keras"
 
-    # particle variables
-    particleFilePath = os.path.join(CreateUtils.getImageryFolder(), "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
-
-    # metadata features
-    useMetadata = False
-    metadataList = ['CadenceBike', 'CrankRevolutions', 'SpeedInstant', 'WheelRevolutions', 'DayPercent']
-    metadataShape = (len(metadataList),)
-
-    assert len(set(metadataList).union(CreateUtils.allMetadataNamesSet)) == len(
-        CreateUtils.allMetadataNamesList), "You are using a metadata name not in the master list"
+    # Set Definitions ################################################
     # region Other Datasets ###
     ######################
 
@@ -1254,13 +1313,13 @@ def mainRun():
 
     # endregion
 
-    datasetName = 'walkneighborhoodPackFileNormC'
-    allBaseFileNames = ["walkneighborhood"]
-    yValueType = 'gpsC'
-    onlyFileNumbers = {"walkneighborhood": []}
-    removeFileNumbers = {"walkneighborhood": [0]}
-    defaultSetName = "normal"
-    fileNamesNumbersToSets = [("crazy", "walkneighborhood", [1])]
+    # datasetName = 'walkneighborhoodPackClassNormParticle'
+    # allBaseFileNames = ["walkneighborhood"]
+    # yValueType = 'particle'
+    # onlyFileNumbers = {"walkneighborhood": []}
+    # removeFileNumbers = {"walkneighborhood": [0]}
+    # defaultSetName = "normal"
+    # fileNamesNumbersToSets = [("crazy", "walkneighborhood", [1])]
 
     # datasetName = 'bikeneighborhoodExamPackFileNormC'
     # allBaseFileNames = ["bikeneighborhood"]
@@ -1270,14 +1329,13 @@ def mainRun():
     # defaultSetName = "normal"
     # fileNamesNumbersToSets = [("crazy", "bikeneighborhood", [32])]
 
-    # datasetName = 'bikeneighborhoodPackFileNormC'
-    # allBaseFileNames = ["bikeneighborhood"]
-    # yValueType = 'gpsC'
-    # onlyFileNumbers = {"bikeneighborhood": range(33)}
-    # removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 29]}
-    # defaultSetName = "train"
-    # fileNamesNumbersToSets = [("valid", "bikeneighborhood", [12, 14, 16, 18, 20, 22, 24, 26, 28]),
-    #                           ('test', "bikeneighborhood", [8, 31, 32]), ]
+    datasetName = 'bikeneighborhoodPackParticleNormParticleTest'
+    allBaseFileNames = ["bikeneighborhood"]
+    yValueType = 'particle'
+    onlyFileNumbers = {"bikeneighborhood": range(33)}
+    removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 29, 8, 31, 32]}
+    defaultSetName = "train"
+    fileNamesNumbersToSets = [("valid", "bikeneighborhood", [12, 14, 16, 18, 20, 22, 24, 26, 28]), ]
 
     ################################
     # Parameters End   ############
@@ -1336,9 +1394,11 @@ def mainRun():
             'repeatRowPackageEndingAtEnd': repeatRowPackageEndingAtEnd,
         }
         if rowPackagingStyle == 'gpsD':
-            packageDict.update({'gridSizePackage': gridSizePackage})
+            gridDict = {'gridSizePackage': gridSizePackage}
+            packageDict.update(gridDict)
         if rowPackagingStyle == 'particle':
-            packageDict.update({'particlePackFilePath': particlePackFilePath})
+            particleFilePathDict = {'particlePackFilePath': particlePackFilePath}
+            packageDict.update(particleFilePathDict)
         if alternateRowsForKeras:
             kerasDict = {
                 'alternateRowsForKeras': alternateRowsForKeras,
@@ -1346,6 +1406,11 @@ def mainRun():
                 'allSetsSameRows': allSetsSameRows,
             }
             packageDict.update(kerasDict)
+        if rowPackagingStyle == 'classWithClassTransitions':
+            minForClassDict = {'minForClassTransition': minForClassTransition}
+            packageDict.update(minForClassDict)
+        if rowPackagingStyle in ['class', 'classWithClassTransitions']:
+            assert yValueType in CreateUtils.yValueDiscreteTypes, "class packing only valid with discrete"
         datasetParametersToDump.update(packageDict)
     if useSavedFilter:
         filterDict = {
@@ -1378,7 +1443,6 @@ def mainRun():
             'localLevelOriginInECEF': localLevelOriginInECEF
         }}
         datasetParametersToDump['y value parameters'].update(yValueByGPS_parameters_dict)
-
     # endregion
 
     if (not os.path.exists(datasetConfigFileName)) or overwriteConfigFile:

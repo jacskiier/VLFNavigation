@@ -72,10 +72,10 @@ def load_data(datasetFileName,
     if re.match('''.*\.hf$''', datasetFileName):
         with pd.HDFStore(datasetFileName, 'r') as featureStore:
             for setName in setNames:
-                set_x = featureStore[setName + '_set_x'].as_matrix()
-                set_y = featureStore[setName + '_set_y'].as_matrix()
-                setDict[setName] = (set_x, set_y)
-
+                if setNames is not None:
+                    set_x = featureStore[setName + '_set_x'].as_matrix()
+                    set_y = featureStore[setName + '_set_y'].as_matrix()
+                    setDict[setName] = (set_x, set_y)
     else:
         raise ValueError('Only .hf file types are supported')
 
@@ -113,30 +113,41 @@ def load_data(datasetFileName,
 
     if len(rogueClasses) > 0:
         for setName in setNames:
-            thisSet = setDict[setName]
-            nonRogueMask = np.logical_not(np.in1d(thisSet[1], np.array(rogueClasses)))
-            thisSet = (thisSet[0][nonRogueMask], thisSet[1][nonRogueMask])
-            for rogueClass in list(np.flipud(rogueClasses)):
-                thisSet[1][thisSet[1] > rogueClass] -= 1
-            setDict[setName] = thisSet
+            if setName is not None:
+                thisSet = setDict[setName]
+                nonRogueMask = np.logical_not(np.in1d(thisSet[1], np.array(rogueClasses)))
+                thisSet = (thisSet[0][nonRogueMask], thisSet[1][nonRogueMask])
+                for rogueClass in list(np.flipud(rogueClasses)):
+                    thisSet[1][thisSet[1] > rogueClass] -= 1
+                setDict[setName] = thisSet
 
     for setName in setNames:
-        set_x, set_y = setDict[setName]
-        if makeSequenceForX:
-            set_x = np.reshape(set_x, (set_x.shape[0], timesteps, set_x.shape[1] / timesteps))
-        if makeSequenceForY:
-            set_y = np.reshape(set_y, (set_y.shape[0], timesteps, set_y.shape[1] / timesteps))
-        setDict[setName] = (set_x, set_y)
+        if setName is not None:
+            set_x, set_y = setDict[setName]
+            if makeSequenceForX:
+                set_x = np.reshape(set_x, (set_x.shape[0], timesteps, set_x.shape[1] / timesteps))
+            if makeSequenceForY:
+                set_y = np.reshape(set_y, (set_y.shape[0], timesteps, set_y.shape[1] / timesteps))
+            setDict[setName] = (set_x, set_y)
 
     rval = []
     for setName in setNames:
-        thisSet = setDict[setName]
-        if makeSharedData:
-            thisSet = shared_dataset(thisSet)
-        rval.append(thisSet)
+        if setName is not None:
+            thisSet = setDict[setName]
+            if makeSharedData:
+                thisSet = shared_dataset(thisSet)
+            rval.append(thisSet)
+        else:
+            rval.append((None, None))
+
+    realSetYTuple = ()
+    for thisSet in rval:
+        if thisSet[1] is not None:
+            realSetYTuple += (thisSet[1],)
+
     inputFeatures = rval[0][0].shape[1]
     outputFeatures = rval[0][1].shape[1]
-    largestSampleSetPossible = min([thisSet[1].shape[0] for thisSet in rval])
+    largestSampleSetPossible = min([thisSet1.shape[0] for thisSet1 in realSetYTuple])
     print ("loading complete")
     return rval, inputFeatures, outputFeatures, largestSampleSetPossible
 

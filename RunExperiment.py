@@ -13,12 +13,12 @@ import CreateFeature
 import CreateDataset
 import CreateUtils
 
-featureMethod = "FFTWindow"
-featureSetNameMain = 'FFTWindowDefault'
-datasetNameMain = ['bikeneighborhoodPackParticleNormParticle']
+featureMethod = "SignalPlaceholder"
+featureSetNameMain = 'FFTWindowLowFreq'
+datasetNameMain = ['bikeneighborhoodPackClassNormParticle']
 classifierTypeMain = ['LSTM']
 classifierSetNameMain = ['ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD']
-datasetNameStatsMain = 'bikeneighborhoodPackFileNormParticle'  # for right now you only get one
+datasetNameStatsMain = ''  # for right now you only get one
 
 # per run variables
 forceRefreshFeatures = False
@@ -43,9 +43,10 @@ onlyPreviousExperiments = True  # only works if the last wild card is 1
 showKerasFigure = False
 modelStoreNameType = "best"
 
+trainValidTestSetNames = ('train', 'valid', None)
+
 # this line sets the root folder for future calls
 rootDataFolder = CreateUtils.getRootDataFolder(featureMethod=featureMethod)
-
 
 def runExperiment(featureSetName,
                   datasetName,
@@ -55,7 +56,8 @@ def runExperiment(featureSetName,
                   whichSetNameStat='valid',
                   showFiguresArg=(False, False),
                   datasetNameStats=None,
-                  modelStoreNameTypeArg="best"):
+                  modelStoreNameTypeArg="best",
+                  trainValidTestSetNames=('train', 'valid', 'test')):
     # statistics name
     if datasetNameStats is None or datasetNameStats == '':
         datasetNameStats = datasetName
@@ -153,7 +155,8 @@ def runExperiment(featureSetName,
                                                        datasetParameters,
                                                        modelParameters,
                                                        forceRebuildModel=forceRefreshModel,
-                                                       showModelAsFigure=showFiguresArg[1])
+                                                       showModelAsFigure=showFiguresArg[1],
+                                                       trainValidTestSetNames=trainValidTestSetNames)
 
     # Make the statistics on the experiment
     if not os.path.exists(os.path.join(experimentsFolder, 'results.yaml')) or forceRefreshStats:
@@ -252,4 +255,5 @@ if __name__ == '__main__':
                                   whichSetNameStat=whichSetNameStats,
                                   showFiguresArg=(showFigures, showKerasFigure),
                                   datasetNameStats=datasetNameStatsMain,
-                                  modelStoreNameTypeArg=modelStoreNameType)
+                                  modelStoreNameTypeArg=modelStoreNameType,
+                                  trainValidTestSetNames=trainValidTestSetNames)

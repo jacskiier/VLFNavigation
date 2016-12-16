@@ -645,12 +645,7 @@ def makeStatisticsForModel(experimentsFolder,
     statDatasetConfigFileName = CreateUtils.getDatasetStatConfigFileName(statisticsFolder=statisticStoreFolder)
     with open(statDatasetConfigFileName, 'r') as myConfigFile:
         statDatasetParameters = yaml.load(myConfigFile)
-    processedDataFolder = CreateUtils.getProcessedDataDatasetsFolder(statDatasetParameters['datasetName'])
-    if os.path.exists(os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')):
-        statDatasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'] + '.hf')
-    else:
-        statDatasetFile = os.path.join(processedDataFolder, featureParameters['featureSetName'],
-                                       statDatasetParameters['datasetName'] + '.pkl.gz')
+    statDatasetFile = CreateUtils.getDatasetFile(featureParameters['featureSetName'], statDatasetParameters['datasetName'])
 
     rogueClassesMaster = classifierParameters['rogueClasses']
     if classifierParameters['classifierGoal'] == 'regression':
@@ -748,16 +743,19 @@ def makeStatisticsForModel(experimentsFolder,
 
 
 def convertIndicesToOneHots(y_trainLabel, totalClasses):
-    if len(y_trainLabel.shape) == 2:
-        y_train = np.zeros((y_trainLabel.shape[0], totalClasses))
-        for rower in np.arange(y_trainLabel.shape[0]):
-            y_train[rower, y_trainLabel[rower]] = 1
+    if y_trainLabel is not None:
+        if len(y_trainLabel.shape) == 2:
+            y_train = np.zeros((y_trainLabel.shape[0], totalClasses))
+            for rower in np.arange(y_trainLabel.shape[0]):
+                y_train[rower, y_trainLabel[rower]] = 1
+        else:
+            y_train = np.zeros((y_trainLabel.shape[0], y_trainLabel.shape[1], totalClasses))
+            for rower in np.arange(y_trainLabel.shape[0]):
+                for timestep in np.arange(y_trainLabel.shape[1]):
+                    y_train[rower, timestep, int(y_trainLabel[rower, timestep, 0])] = 1
+        return y_train
     else:
-        y_train = np.zeros((y_trainLabel.shape[0], y_trainLabel.shape[1], totalClasses))
-        for rower in np.arange(y_trainLabel.shape[0]):
-            for timestep in np.arange(y_trainLabel.shape[1]):
-                y_train[rower, timestep, int(y_trainLabel[rower, timestep, 0])] = 1
-    return y_train
+        return None
 
 
 def getListParameterAndPadLength(parameterName, padLength, classifierParameters, default=0.0):
@@ -820,8 +818,12 @@ def changeBatchInputShapeOfModel(model_json_string, newBatchSize):
     return json.dumps(modelJson)
 
 
-def kerasClassifier_parameterized(featureParameters, datasetParameters, classifierParameters, forceRebuildModel=False,
-                                  showModelAsFigure=False):
+def kerasClassifier_parameterized(featureParameters,
+                                  datasetParameters,
+                                  classifierParameters,
+                                  forceRebuildModel=False,
+                                  showModelAsFigure=False,
+                                  trainValidTestSetNames=('train','valid', 'test')):
     """
     Train a Logistic Regression model using the features, datset, and classifier parameters given
 
@@ -874,7 +876,8 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
                                                          makeSharedData=False,
                                                          makeSequenceForX=makeSequencesForX,
                                                          makeSequenceForY=useTimeDistributedOutput,
-                                                         timesteps=timesteps)
+                                                         timesteps=timesteps,
+                                                         setNames=trainValidTestSetNames)
             (X_train, X_valid, X_test) = (datasets[0][0], datasets[1][0], datasets[2][0])
             (y_train, y_valid, y_test) = (datasets[0][1], datasets[1][1], datasets[2][1])
         else:
@@ -886,7 +889,8 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
                                                              makeSharedData=False,
                                                              makeSequenceForX=makeSequencesForX,
                                                              makeSequenceForY=useTimeDistributedOutput,
-                                                             timesteps=timesteps)
+                                                             timesteps=timesteps,
+                                                             setNames=trainValidTestSetNames)
             (X_train, X_valid, X_test) = (datasets[0][0], datasets[1][0], datasets[2][0])
             lossType = classifierParameters['lossType']
             if lossType in ['falsePositiveRate']:
@@ -895,6 +899,7 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
                 y_train = convertIndicesToOneHots(datasets[0][1], outputs)
                 y_valid = convertIndicesToOneHots(datasets[1][1], outputs)
                 y_test = convertIndicesToOneHots(datasets[2][1], outputs)
+        assert X_train is not None and y_train is not None, "You didn't select any training data"
 
         imageShape = featureParameters['imageShape']
         useMetadata = datasetParameters['useMetadata'] if 'useMetadata' in datasetParameters else False
@@ -978,7 +983,12 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
                                                  name="Wavelet Layer")
             model.add(waveletLayer)
             # I am padding out the input_channel dimension to be 1 because I only have one input channel
-            (X_train, X_valid, X_test) = (X_train[:, :, None, :], X_valid[:, :, None, :], X_test[:, :, None, :])
+            if X_train is not None:
+                X_train = X_train[:, :, None, :]
+            if X_valid is not None:
+                X_valid = X_valid[:, :, None, :]
+            if X_test is not None:
+                X_test= X_test[:, :, None, :]
 
         for layerIndex in range(1, 1 + len(lstm_layers_sizes)):
             lstmIndex = layerIndex - 1
@@ -1151,11 +1161,12 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
         # Callbacks
         myCallbacks = []
         # Best Val_loss model
-        modelStoreWeightsBestFilePathFullTemp = os.path.join(experimentsFolder, 'best_modelWeights.h5')
-        checkpointerBest = keras.callbacks.ModelCheckpoint(filepath=modelStoreWeightsBestFilePathFullTemp,
-                                                           verbose=1,
-                                                           save_best_only=True)
-        myCallbacks.append(checkpointerBest)
+        if X_valid is not None and y_valid is not None:
+            modelStoreWeightsBestFilePathFullTemp = os.path.join(experimentsFolder, 'best_modelWeights.h5')
+            checkpointerBest = keras.callbacks.ModelCheckpoint(filepath=modelStoreWeightsBestFilePathFullTemp,
+                                                               verbose=1,
+                                                               save_best_only=True)
+            myCallbacks.append(checkpointerBest)
         # Best Loss model
         modelStoreWeightsBestLossFilePathFullTemp = os.path.join(experimentsFolder, 'bestLoss_modelWeights.h5')
         checkpointerBestLoss = keras.callbacks.ModelCheckpoint(filepath=modelStoreWeightsBestLossFilePathFullTemp,
@@ -1191,10 +1202,13 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
             myCallbacks.append(rlrCallback)
         if not onlyBuildModel:
             try:
+                validation_data = None
+                if X_valid is not None and y_valid is not None:
+                    validation_data = (X_valid, y_valid)
                 model.fit(X_train, y_train,
                           batch_size=batch_size,
                           nb_epoch=n_epochs,
-                          validation_data=(X_valid, y_valid),
+                          validation_data=validation_data,
                           callbacks=myCallbacks,
                           verbose=2)
             except KeyboardInterrupt:
@@ -1204,5 +1218,6 @@ def kerasClassifier_parameterized(featureParameters, datasetParameters, classifi
             model.save_weights(modelStoreWeightsBestLossFilePathFullTemp, overwrite=True)
             model.save_weights(modelStoreWeightsLastFilePathFullTemp, overwrite=True)
 
-        score = model.evaluate(X_test, y_test, batch_size=batch_size, verbose=2)
-        print("The final test score is {0}".format(score))
+        if X_test is not None and y_test is not None:
+            score = model.evaluate(X_test, y_test, batch_size=batch_size, verbose=2)
+            print("The final test score is {0}".format(score))

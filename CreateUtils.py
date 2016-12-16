@@ -4,11 +4,11 @@ import numpy as np
 import yaml
 import shutil
 
-masterFeatureMethod = 'FFTWindow'
+masterFeatureMethod = 'SignalPlaceholder'
 # Feature Statics
 signalSources = ['Loop Antenna with iPhone 4', '3-Axis Dipole With SRI Receiver']
 featureMethodNames = ['Patch', 'Covariance', 'MFCC', 'FFT', 'FFTWindow', 'RawAmplitude' 'MNIST', 'Test', 'THoR']
-featureMethodNamesRebuildValid = ['Patch', 'Covariance', 'MFCC', 'FFT', 'FFTWindow', 'RawAmplitude']
+featureMethodNamesRebuildValid = ['Patch', 'Covariance', 'MFCC', 'FFT', 'FFTWindow', 'RawAmplitude', 'SignalPlaceholder']
 # Patch Specific
 statOrderNames = ['mean', 'variance', 'standard deviation', 'skewness', 'kurtosis']
 # FFT Window Specific
@@ -20,6 +20,16 @@ yValueGPSTypes = ['gpsD', 'gpsC', 'gpsPolar', 'particle']
 yValueDiscreteTypes = ['file', 'gpsD', 'time', 'particle']
 yValueContinuousTypes = ['gpsC', 'gpsPolar']
 assert len(set(yValueContinuousTypes + yValueDiscreteTypes)) == len(yValueTypes), "Not all sets accounted for in yValueTypes"
+
+rowPackagingTypes = [None, 'BaseFileNameWithNumber', 'gpsD', 'particle', 'class', 'classWithClassTransitions']
+metadataMultipliersFromRowPackagingStyle = {
+    None: 1,
+    'BaseFileNameWithNumber': 1,
+    'gpsD': 1,
+    'particle': 1,
+    'class': 1,
+    'classWithClassTransitions': 2
+}
 
 # Classifier Statics
 classifierTypes = ['LogisticRegression', 'MLP', 'ConvolutionalMLP', 'DBN', 'RandomForest', 'ADABoost']
@@ -314,7 +324,7 @@ def getProcessedDataDatasetsFolder(datasetName=None):
 def getModelFolder(classifierType=None, classifierSetName=None):
     if classifierType is None or classifierSetName is None:
         modelFolder = os.path.join(getRootDataFolder(), "Processed Data Models")
-    elif classifierType is not None or classifierSetName is None:
+    elif classifierType is not None and classifierSetName is None:
         modelFolder = os.path.join(getRootDataFolder(), "Processed Data Models", classifierType)
     else:
         modelFolder = os.path.join(getRootDataFolder(), "Processed Data Models", classifierType, classifierSetName)
@@ -344,13 +354,20 @@ def getImageryFolder():
     return os.path.join(getRootDataFolder(), "Imagery")
 
 
-def getDatasetFile(featureSetName, datasetName):
-    if os.path.exists(os.path.join(getProcessedDataDatasetsFolder(datasetName), featureSetName + '.hf')):
-        datasetFile = os.path.join(getProcessedDataDatasetsFolder(datasetName), featureSetName + '.hf')
-    elif os.path.exists(os.path.join(getProcessedDataDatasetsFolder(datasetName), featureSetName, datasetName + '.pkl.gz')):
-        datasetFile = os.path.join(getProcessedDataDatasetsFolder(datasetName), featureSetName, datasetName + '.pkl.gz')
+def getDatasetFile(featureSetName, datasetName, baseFolder=None, checkExistence=True):
+    if baseFolder is None:
+        processedDataFolder = getProcessedDataDatasetsFolder(datasetName)
     else:
-        raise ValueError("The given dataset file combination does not exist")
+        processedDataFolder = baseFolder
+    if checkExistence is False:
+        datasetFile = os.path.join(processedDataFolder, featureSetName + '.hf')
+    else:
+        if os.path.exists(os.path.join(processedDataFolder, featureSetName + '.hf')):
+            datasetFile = os.path.join(processedDataFolder, featureSetName + '.hf')
+        elif os.path.exists(os.path.join(processedDataFolder, featureSetName, datasetName + '.pkl.gz')):
+            datasetFile = os.path.join(processedDataFolder, featureSetName, datasetName + '.pkl.gz')
+        else:
+            raise ValueError("The given dataset file combination does not exist")
     return datasetFile
 
 
