@@ -15,7 +15,7 @@ import CreateUtils
 
 featureMethod = "SignalPlaceholder"
 featureSetNameMain = 'FFTWindowLowFreq'
-datasetNameMain = ['bikeneighborhoodPackClassNormParticle']
+datasetNameMain = ['bikeneighborhoodPackClassWCTNormParticle']
 classifierTypeMain = ['LSTM']
 classifierSetNameMain = ['ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD']
 datasetNameStatsMain = ''  # for right now you only get one

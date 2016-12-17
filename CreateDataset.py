@@ -686,7 +686,7 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
                 for totalColumnsSet, setNumber in zip([totalColumnsX, totalColumnsY], [0, 1]):
                     tempSet = tempSets[setNumber]
                     sliceTo = min(uniqueCount, totalColumnCount)
-                    setIndexer = np.mod(rowMetadata.squeeze() == uniqueRow, setValue[setNumber].shape[0])
+                    setIndexer = np.mod(np.where(rowMetadata.squeeze() == uniqueRow)[0], setValue[setNumber].shape[0])
                     # now mask out the samples I want from setValue then flatten it and set it to the temp set
                     tempSet[uniqueRowIndex, :sliceTo * totalColumnsSet] = setValue[setNumber][setIndexer, :].flatten()[:sliceTo * totalColumnsSet]
                     if uniqueCount < totalColumnCount and (repeatRowPackageBeginningAtEnd or repeatRowPackageEndingAtEnd):
@@ -915,7 +915,7 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
                         for mult in range(metadataMultiplier):
                             totalRows = totalRowsInSetDict[setName]
                             rowSlicer = slice(rowsProcessedTotal + (totalRows * mult), (rowsProcessedTotal + fYTemp.shape[0] + (totalRows * mult)))
-                            rowSlicer2 = slice(fYTemp.shape[0] * mult, fYTemp.shape[0] * (mult+1))
+                            rowSlicer2 = slice(fYTemp.shape[0] * mult, fYTemp.shape[0] * (mult + 1))
                             rowProcessingMetadataDict[setName][rowSlicer, :] = rowPackagingMetadata[rowSlicer2, :]
                         setsRowsProcessedTotal[setName] += fXTemp.shape[0]
                     gc.collect()
@@ -975,28 +975,32 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
         print("Output Dim per set {0}".format(totalyColumns))
         if yValueType in CreateUtils.yValueDiscreteTypes:
             print("Output Classes: {0}".format(len(outputLabelsFinal)))
-        outputString = '\n'.join(['\t{setName}: {rows}'.format(setName=setName, rows=rows) for setName, rows in trueRowsPerSetDict.iteritems()])
-        print("True Rows Per Set\n{0}".format(outputString))
-        print("Keras Row Multiplier: {kerasRowMultiplier}".format(kerasRowMultiplier=kerasRowMultiplier))
-        bytesPerBatchX = packagedRowsPerSetDict[defaultSetName] * np.prod(setDict[defaultSetName][0].shape) / setDict[defaultSetName][0].shape[0] * 4
-        bytesPerBatchY = packagedRowsPerSetDict[defaultSetName] * np.prod(setDict[defaultSetName][1].shape) / setDict[defaultSetName][1].shape[0] * 4
-        print("Bytes per batch:\n\tX: {0} \n\tY: {1} \n\tTotal: {2}".format(CreateUtils.sizeof_fmt(bytesPerBatchX),
-                                                                            CreateUtils.sizeof_fmt(bytesPerBatchY),
-                                                                            CreateUtils.sizeof_fmt(bytesPerBatchX + bytesPerBatchY)))
+        if rowPackagingStyle is not None:
+            outputString = '\n'.join(['\t{setName}: {rows}'.format(setName=setName, rows=rows) for setName, rows in trueRowsPerSetDict.iteritems()])
+            print("True Rows Per Set\n{0}".format(outputString))
+            print("Keras Row Multiplier: {kerasRowMultiplier}".format(kerasRowMultiplier=kerasRowMultiplier))
+            bytesPerArrayEntry = 4
+            bytesPerBatchX = bytesPerArrayEntry * np.prod(setDict[defaultSetName][0].shape) / kerasRowMultiplier
+            bytesPerBatchY = bytesPerArrayEntry * np.prod(setDict[defaultSetName][1].shape) / kerasRowMultiplier
+            formatString = "Bytes per batch:\n\tX:     {0:>8} \n\tY:     {1:>8} \n\tTotal: {2:>8}"
+            print(formatString.format(CreateUtils.sizeof_fmt(bytesPerBatchX),
+                                      CreateUtils.sizeof_fmt(bytesPerBatchY),
+                                      CreateUtils.sizeof_fmt(
+                                          bytesPerBatchX + bytesPerBatchY)))
 
+        formatString = '{setName:>15}|{xbytes:>8}|{ybytes:>8}|{totalbytes:>8}'
         outputString = '\n'.join(
-            ['{setName:>15}|{xbytes:>8}|{ybytes:>8}|{totalbytes:>8}'.format(setName=setName,
-                                                                            xbytes=CreateUtils.sizeof_fmt(setValue[0].nbytes),
-                                                                            ybytes=CreateUtils.sizeof_fmt(setValue[1].nbytes),
-                                                                            totalbytes=CreateUtils.sizeof_fmt(
-                                                                                setValue[0].nbytes + setValue[1].nbytes))
+            [formatString.format(setName=setName,
+                                 xbytes=CreateUtils.sizeof_fmt(setValue[0].nbytes),
+                                 ybytes=CreateUtils.sizeof_fmt(setValue[1].nbytes),
+                                 totalbytes=CreateUtils.sizeof_fmt(setValue[0].nbytes + setValue[1].nbytes))
              for setName, setValue in setDict.iteritems()])
-
-        print("Size of each set: \n{setName:^15}|{xbytes:^8}|{ybytes:^8}|{totalbytes:^8}\n{outputString}".format(setName="Set Name",
-                                                                                                                 xbytes="X",
-                                                                                                                 ybytes="Y",
-                                                                                                                 totalbytes="Total",
-                                                                                                                 outputString=outputString))
+        formatString = "Size of each set: \n{setName:^15}|{xbytes:^8}|{ybytes:^8}|{totalbytes:^8}\n{outputString}"
+        print(formatString.format(setName="Set Name",
+                                  xbytes="X",
+                                  ybytes="Y",
+                                  totalbytes="Total",
+                                  outputString=outputString))
 
         timer.tic("Save datasets and labels")
         # no package
@@ -1184,7 +1188,7 @@ def mainRun():
     yNormalized = False
 
     # Packaging ########################################################
-    rowPackagingStyle = 'particle'  # None, 'BaseFileNameWithNumber', 'gpsD', 'particle', 'class', 'classWithClassTransitions'
+    rowPackagingStyle = 'classWithClassTransitions'  # None, 'BaseFileNameWithNumber', 'gpsD', 'particle', 'class', 'classWithClassTransitions'
     padRowPackageWithZeros = True
     repeatRowPackageBeginningAtEnd = False
     repeatRowPackageEndingAtEnd = True
@@ -1329,7 +1333,7 @@ def mainRun():
     # defaultSetName = "normal"
     # fileNamesNumbersToSets = [("crazy", "bikeneighborhood", [32])]
 
-    datasetName = 'bikeneighborhoodPackParticleNormParticleTest'
+    datasetName = 'bikeneighborhoodPackClassWCTNormParticle'
     allBaseFileNames = ["bikeneighborhood"]
     yValueType = 'particle'
     onlyFileNumbers = {"bikeneighborhood": range(33)}

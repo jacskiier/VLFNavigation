@@ -23,7 +23,7 @@ assert len(set(yValueContinuousTypes + yValueDiscreteTypes)) == len(yValueTypes)
 
 rowPackagingTypes = [None, 'BaseFileNameWithNumber', 'gpsD', 'particle', 'class', 'classWithClassTransitions']
 metadataMultipliersFromRowPackagingStyle = {
-    None: 1,
+    None: 0,
     'BaseFileNameWithNumber': 1,
     'gpsD': 1,
     'particle': 1,

@@ -46,8 +46,8 @@ if os.name == 'nt':
 
 # stats model parameters
 featureMethod = 'FFTWindow'
-featureSetName = 'FFTWindowDefault'
-datasetName = "bikeneighborhoodPackFileNormC"
+featureSetName = 'FFTWindowLowFreq'
+datasetName = "bikeneighborhoodTest"
 
 whichSetName = 'valid'
 downsample = None
@@ -66,8 +66,8 @@ makeAnimation = False
 # Y Visuals
 makeYScatterPlot = False
 makeYScatterPlotColorOnY = False
-showPathPerRowOfPackagedFile = True
-gpsGrid = False
+showPathPerRowOfPackagedFile = False
+gpsGrid = True
 
 # Calculate Stats
 calculatex_t0andP_t0 = False
@@ -91,6 +91,7 @@ makeLocallyLinearEmbeddingYRegression = False
 makeTSNEPlotX = False
 makeTSNEPlotYRegression = False
 
+# Start Main Program ######################################################
 # Load all the config files
 rootDataFolder = CreateUtils.getRootDataFolder(featureMethod=featureMethod)
 rawDataFolder = CreateUtils.getRawDataFolder()
@@ -119,7 +120,7 @@ timestepsPerSequence = datasetParameters[
 rowPackagingStyle = datasetParameters['rowPackagingStyle'] if 'rowPackagingStyle' in datasetParameters else None
 packagedRowsPerSetDict = datasetParameters['packagedRowsPerSetDict'] \
     if 'packagedRowsPerSetDict' in datasetParameters else {}
-packagedRows = packagedRowsPerSetDict[whichSetName]
+packagedRows = packagedRowsPerSetDict[whichSetName] if whichSetName in packagedRowsPerSetDict else {}
 oneSequencePerFile = datasetParameters['oneSequencePerFile'] if 'oneSequencePerFile' in datasetParameters else False
 
 totalXColumns = datasetParameters['totalXColumns']
