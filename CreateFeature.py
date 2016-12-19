@@ -7,7 +7,6 @@ Created on Tue Oct 20 09:29:50 2015
 import os
 import re
 import gc
-import yaml
 
 import numpy as np
 import numpy.random
@@ -1157,13 +1156,12 @@ def runMain():
         doesFileAlreadyExist = os.path.exists(configFileName)
         if not overwriteConfigFile:
             assert not doesFileAlreadyExist, 'do you want to overwirte the config file?'
-        with open(configFileName, 'w') as myConfigFile:
-            print("Set Name: {0}".format(featureSetName))
-            yaml.dump(featureParametersDefault, myConfigFile, default_flow_style=False, width=1000)
-            if doesFileAlreadyExist:
-                print("Overwrote Feature config file {0}".format(configFileName))
-            else:
-                print("Wrote Feature config file {0}".format(configFileName))
+        print("Set Name: {0}".format(featureSetName))
+        CreateUtils.makeConfigFile(configFileName, featureParametersDefault)
+        if doesFileAlreadyExist:
+            print("Overwrote Feature config file {0}".format(configFileName))
+        else:
+            print("Wrote Feature config file {0}".format(configFileName))
         featureSets = [featureSetName]
     else:
         if rebuildAllFromConfig:

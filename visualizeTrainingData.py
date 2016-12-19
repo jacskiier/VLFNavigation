@@ -5,7 +5,6 @@ Created on Thu Oct 29 14:05:37 2015
 @author: jacsk
 """
 import os
-import yaml
 import StringIO
 import time
 
@@ -513,8 +512,7 @@ def getPredictedStuff():
                                                         classifierType=classifierType,
                                                         classifierSetName=classifierSetName)
     modelConfigFileName = CreateUtils.getModelConfigFileName(classifierType, classifierSetName)
-    with open(modelConfigFileName, 'r') as myConfigFile:
-        classifierParameters = yaml.load(myConfigFile)
+    classifierParameters = CreateUtils.loadConfigFile(modelConfigFileName)
 
     tupleOutputTemp = getPredictedClasses_Values_TrueClasses_Labels(datasetFileName=datasetFile,
                                                                     experimentStoreFolder=experimentsFolder,

@@ -11,7 +11,6 @@ from sklearn.externals import joblib
 
 from scipy.spatial.distance import cdist
 
-import yaml
 import pandas as pd
 from tqdm import tqdm
 
@@ -1032,8 +1031,7 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
         datasetParametersToDump['y value parameters']['yScaleFactor'] = yScaleFactor
         datasetParametersToDump['y value parameters']['yBias'] = yBias
         configFileName = CreateUtils.getDatasetConfigFileName(datasetName)
-        with open(configFileName, 'w') as myDatasetConfigFile:
-            yaml.dump(datasetParametersToDump, myDatasetConfigFile, default_flow_style=False, width=1000)
+        CreateUtils.makeConfigFile(configFileName, datasetParametersToDump)
         timer.toc()  # overall time for whole function
         print ("######## Make Dataset Complete ############")
 
@@ -1188,7 +1186,7 @@ def mainRun():
     yNormalized = False
 
     # Packaging ########################################################
-    rowPackagingStyle = 'classWithClassTransitions'  # None, 'BaseFileNameWithNumber', 'gpsD', 'particle', 'class', 'classWithClassTransitions'
+    rowPackagingStyle = 'class'  # None, 'BaseFileNameWithNumber', 'gpsD', 'particle', 'class', 'classWithClassTransitions'
     padRowPackageWithZeros = True
     repeatRowPackageBeginningAtEnd = False
     repeatRowPackageEndingAtEnd = True
@@ -1196,14 +1194,16 @@ def mainRun():
         "you can't have both repeatRowPackageBeginningAtEnd and repeatRowPackageEndingAtEnd"
     allSetsSameRows = True
     # packing parameters based on type of pack
+    #   gpsD
     gridSizePackage = (100, 100, 1000)
+    #   particle
     particlePackFilePath = os.path.join(CreateUtils.getImageryFolder(), "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
+    #   classWithClassTransition
     minForClassTransition = 50
     # keras packaging
     alternateRowsForKeras = True
-    timestepsPerKerasBatchRow = 100
-    assert not (not allSetsSameRows and alternateRowsForKeras), \
-        "You must keep all sets same rows for keras packging to work in keras"
+    timestepsPerKerasBatchRow = 200
+    assert not (not allSetsSameRows and alternateRowsForKeras), "You must keep all sets same rows for keras packging to work in keras"
 
     # Set Definitions ################################################
     # region Other Datasets ###
@@ -1333,7 +1333,7 @@ def mainRun():
     # defaultSetName = "normal"
     # fileNamesNumbersToSets = [("crazy", "bikeneighborhood", [32])]
 
-    datasetName = 'bikeneighborhoodPackClassWCTNormParticle'
+    datasetName = 'bikeneighborhoodPackClassNormParticle'
     allBaseFileNames = ["bikeneighborhood"]
     yValueType = 'particle'
     onlyFileNumbers = {"bikeneighborhood": range(33)}
@@ -1458,8 +1458,7 @@ def mainRun():
         configFileName = CreateUtils.getDatasetConfigFileName(datasetName)
         if not overwriteConfigFile:
             assert not os.path.exists(configFileName), 'do you want to overwirte the config file?'
-        with open(configFileName, 'w') as myConfigFile:
-            yaml.dump(datasetParametersToDump, myConfigFile, default_flow_style=False, width=1000)
+        CreateUtils.makeConfigFile(configFileName, datasetParametersToDump)
         datasets = [datasetName]
     else:
         if rebuildAllFromConfig:
@@ -1484,12 +1483,10 @@ def mainRun():
             featureSetNames = list(onlyThisFeatureSetNames)
         for featureSetName in featureSetNames:
             featureConfigFileName = CreateUtils.getFeatureConfigFileName(featureSetName)
-            with open(featureConfigFileName, 'r') as myConfigFile:
-                featureParametersDefault = yaml.load(myConfigFile)
+            featureParametersDefault = CreateUtils.loadConfigFile(featureConfigFileName)
             for datasetName in datasets:
                 datasetConfigFileName = CreateUtils.getDatasetConfigFileName(datasetName)
-                with open(datasetConfigFileName, 'r') as myConfigFile:
-                    datasetParameters = yaml.load(myConfigFile)
+                datasetParameters = CreateUtils.loadConfigFile(datasetConfigFileName)
                 if overwriteConfigFile:
                     dictDiffer = CreateUtils.DictDiffer(datasetParameters, datasetParametersToDump)
                     print(dictDiffer.printAllDiff())

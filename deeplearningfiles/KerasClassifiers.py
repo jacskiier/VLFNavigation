@@ -4,7 +4,6 @@ import csv
 import warnings
 from collections import Iterable, OrderedDict
 import shutil
-import yaml
 import json
 
 import matplotlib.pylab as plt
@@ -643,8 +642,7 @@ def makeStatisticsForModel(experimentsFolder,
 
     # get statDatasetFile
     statDatasetConfigFileName = CreateUtils.getDatasetStatConfigFileName(statisticsFolder=statisticStoreFolder)
-    with open(statDatasetConfigFileName, 'r') as myConfigFile:
-        statDatasetParameters = yaml.load(myConfigFile)
+    statDatasetParameters = CreateUtils.loadConfigFile(statDatasetConfigFileName)
     statDatasetFile = CreateUtils.getDatasetFile(featureParameters['featureSetName'], statDatasetParameters['datasetName'])
 
     rogueClassesMaster = classifierParameters['rogueClasses']
@@ -823,7 +821,8 @@ def kerasClassifier_parameterized(featureParameters,
                                   classifierParameters,
                                   forceRebuildModel=False,
                                   showModelAsFigure=False,
-                                  trainValidTestSetNames=('train','valid', 'test')):
+                                  trainValidTestSetNames=('train', 'valid', 'test'),
+                                  experimentsFolder=None):
     """
     Train a Logistic Regression model using the features, datset, and classifier parameters given
 
@@ -845,10 +844,11 @@ def kerasClassifier_parameterized(featureParameters,
 
     datasetFile = CreateUtils.getDatasetFile(featureSetName=featureParameters['featureSetName'], datasetName=datasetParameters['datasetName'])
 
-    experimentsFolder = CreateUtils.getExperimentFolder(featureParameters['featureSetName'],
-                                                        datasetParameters['datasetName'],
-                                                        classifierParameters['classifierType'],
-                                                        classifierParameters['classifierSetName'])
+    if experimentsFolder is None:
+        experimentsFolder = CreateUtils.getExperimentFolder(featureParameters['featureSetName'],
+                                                            datasetParameters['datasetName'],
+                                                            classifierParameters['classifierType'],
+                                                            classifierParameters['classifierSetName'])
 
     modelStoreWeightsBestFilePathFullTemp = os.path.join(experimentsFolder, 'best_modelWeights.h5')
     if not os.path.exists(modelStoreWeightsBestFilePathFullTemp) or forceRebuildModel:
@@ -988,7 +988,7 @@ def kerasClassifier_parameterized(featureParameters,
             if X_valid is not None:
                 X_valid = X_valid[:, :, None, :]
             if X_test is not None:
-                X_test= X_test[:, :, None, :]
+                X_test = X_test[:, :, None, :]
 
         for layerIndex in range(1, 1 + len(lstm_layers_sizes)):
             lstmIndex = layerIndex - 1
@@ -1200,6 +1200,7 @@ def kerasClassifier_parameterized(featureParameters,
                                             mode='auto',
                                             epsilon=rlrEpsilon, cooldown=rlrCooldown)
             myCallbacks.append(rlrCallback)
+        didFinishTraining = True
         if not onlyBuildModel:
             try:
                 validation_data = None
@@ -1212,6 +1213,7 @@ def kerasClassifier_parameterized(featureParameters,
                           callbacks=myCallbacks,
                           verbose=2)
             except KeyboardInterrupt:
+                didFinishTraining = False
                 print ("\nUser stopped training")
         else:
             model.save_weights(modelStoreWeightsBestFilePathFullTemp, overwrite=True)
@@ -1221,3 +1223,4 @@ def kerasClassifier_parameterized(featureParameters,
         if X_test is not None and y_test is not None:
             score = model.evaluate(X_test, y_test, batch_size=batch_size, verbose=2)
             print("The final test score is {0}".format(score))
+        return didFinishTraining

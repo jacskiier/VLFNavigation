@@ -321,13 +321,17 @@ def getProcessedDataDatasetsFolder(datasetName=None):
     return processedDataFolder
 
 
-def getModelFolder(classifierType=None, classifierSetName=None):
-    if classifierType is None or classifierSetName is None:
-        modelFolder = os.path.join(getRootDataFolder(), "Processed Data Models")
-    elif classifierType is not None and classifierSetName is None:
-        modelFolder = os.path.join(getRootDataFolder(), "Processed Data Models", classifierType)
+def getModelFolder(classifierType=None, classifierSetName=None, baseFolder=None):
+    if baseFolder is None:
+        rootFolder = getRootDataFolder()
     else:
-        modelFolder = os.path.join(getRootDataFolder(), "Processed Data Models", classifierType, classifierSetName)
+        rootFolder = baseFolder
+    if classifierType is None or classifierSetName is None:
+        modelFolder = os.path.join(rootFolder, "Processed Data Models")
+    elif classifierType is not None and classifierSetName is None:
+        modelFolder = os.path.join(rootFolder, "Processed Data Models", classifierType)
+    else:
+        modelFolder = os.path.join(rootFolder, "Processed Data Models", classifierType, classifierSetName)
     return modelFolder
 
 
@@ -343,6 +347,34 @@ def getExperimentFolder(featureSetName=None, datasetName=None, classifierType=No
     else:
         experimentFolder = os.path.join(getRootDataFolder(), "Data Experiments", featureSetName, datasetName, classifierType, classifierSetName)
     return experimentFolder
+
+
+def getRandomExperimentBaseFolder(featureSetName=None, datasetName=None, classifierType=None, classifierSetName=None, randomName=None):
+    experimentFolder = getExperimentFolder(featureSetName=featureSetName,
+                                           datasetName=datasetName,
+                                           classifierType=classifierType,
+                                           classifierSetName=classifierSetName)
+    baseRandomName = "Random" if randomName is None else "Random {0}".format(randomName)
+    randomExperimentFolder = os.path.join(experimentFolder, baseRandomName)
+    return randomExperimentFolder
+
+
+def getRandomExperimentFolder(randomSeedString, featureSetName=None, datasetName=None, classifierType=None, classifierSetName=None, randomName=None):
+    experimentFolder = getRandomExperimentBaseFolder(featureSetName=featureSetName,
+                                                     datasetName=datasetName,
+                                                     classifierType=classifierType,
+                                                     classifierSetName=classifierSetName,
+                                                     randomName=randomName)
+    randomExperimentFolder = os.path.join(experimentFolder, randomSeedString)
+    return randomExperimentFolder
+
+
+def getRandomConfigFileName(featureSetName=None, datasetName=None, classifierType=None, classifierSetName=None, randomName=None, baseFolder=None):
+    if baseFolder is None:
+        randomExperimentBaseFolder = getRandomExperimentBaseFolder(featureSetName, datasetName, classifierType, classifierSetName, randomName)
+    else:
+        randomExperimentBaseFolder = baseFolder
+    return os.path.join(randomExperimentBaseFolder, "random parameters.yaml")
 
 
 def getStatisticsFolder(experimentsFolder, datasetNameStats, whichSetNameStat):
@@ -411,20 +443,24 @@ def getFeatureConfigFileName(featureSetName, baseFolder=None):
     return featureConfigFileName
 
 
-def getDatasetConfigFileName(datasetName, baseFolder=None):
-    if baseFolder is None:
+def getDatasetConfigFileName(datasetName=None, baseFolder=None):
+    if datasetName is not None:
         datasetConfigFileName = os.path.join(getProcessedDataDatasetsFolder(datasetName), "dataset parameters.yaml")
-    else:
+    elif baseFolder is not None:
         datasetConfigFileName = os.path.join(baseFolder, "dataset parameters.yaml")
+    else:
+        raise ValueError("One parameter must be supplied")
     return datasetConfigFileName
 
 
-def getModelConfigFileName(classifierType, classifierSetName, baseFolder=None):
-    if baseFolder is None:
+def getModelConfigFileName(classifierType=None, classifierSetName=None, baseFolder=None):
+    if classifierType is not None and classifierSetName is not None:
         modelConfigFileName = os.path.join(getModelFolder(classifierType=classifierType, classifierSetName=classifierSetName),
                                            "model set parameters.yaml")
-    else:
+    elif baseFolder is not None:
         modelConfigFileName = os.path.join(baseFolder, "model set parameters.yaml")
+    else:
+        raise ValueError("Some arguments must be given")
     return modelConfigFileName
 
 
@@ -442,6 +478,18 @@ def copyConfigsToExperimentsFolder(experimentsFolder, featureSetName=None, datas
     if classifierType is not None and classifierSetName is not None:
         modelConfigFileName = getModelConfigFileName(classifierType, classifierSetName)
         shutil.copyfile(modelConfigFileName, os.path.join(experimentsFolder, os.path.basename(modelConfigFileName)))
+
+
+def makeConfigFile(configFileName, configDict):
+    with open(configFileName, 'w') as myConfigFile:
+        yaml.dump(configDict, myConfigFile, default_flow_style=False, width=1000)
+    return
+
+
+def loadConfigFile(configFileName):
+    with open(configFileName, 'r') as myConfigFile:
+        parameters = yaml.load(myConfigFile)
+    return parameters
 
 
 def sizeof_fmt(num, suffix='B'):

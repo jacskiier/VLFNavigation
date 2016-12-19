@@ -1,19 +1,66 @@
-import yaml
 import os
 import numpy as np
 import CreateUtils
+import math
 
-rootDataFolder = CreateUtils.getRootDataFolder()
+
+def uniformLog(start, stop, base=10):
+    startLog = math.log(start, base)
+    stopLog = math.log(stop, base)
+    randomNumberLog = np.random.uniform(startLog, stopLog)
+    randomNumber = base ** randomNumberLog
+    return randomNumber
+
+
+def randomizeParameters(seed, classifierParameters, randRangeDict):
+    np.random.seed(seed)
+    for parameterNameRand, typeDict in randRangeDict.iteritems():
+        if parameterNameRand in classifierParameters:
+            if typeDict['type'] == 'log':
+                classifierParameters[parameterNameRand] = uniformLog(typeDict['start'], typeDict['stop'])
+            if typeDict['type'] == 'lin':
+                classifierParameters[parameterNameRand] = np.random.uniform(typeDict['start'], typeDict['stop'])
+            if typeDict['type'] == 'linD':
+                classifierParameters[parameterNameRand] = np.random.randint(typeDict['start'], typeDict['stop'])
+            if typeDict['type'] == 'linlin':
+                classifierParameters[parameterNameRand] = np.random.uniform(typeDict['start'], typeDict['stop'],
+                                                                            size=np.random.uniform(typeDict['listStart'],
+                                                                                                   typeDict['listStop'])).tolist()
+            if typeDict['type'] == 'linDlinD':
+                randList = np.random.randint(low=typeDict['start'],
+                                             high=typeDict['stop'],
+                                             size=np.random.randint(typeDict['listStart'], typeDict['listStop']))
+                classifierParameters[parameterNameRand] = randList.tolist()
+            if typeDict['type'] == 'linDlinDInc':
+                randList = np.array([10, 1])
+                while not (np.diff(randList) < 0).any():
+                    randList = np.random.randint(low=typeDict['start'],
+                                                 high=typeDict['stop'],
+                                                 size=np.random.randint(typeDict['listStart'], typeDict['listStop']))
+                classifierParameters[parameterNameRand] = randList.tolist()
+            if typeDict['type'] == 'linDlinDDec':
+                randList = np.array([1, 10])
+                while (np.diff(randList) > 0).any():
+                    randList = np.random.randint(low=typeDict['start'],
+                                                 high=typeDict['stop'],
+                                                 size=np.random.randint(typeDict['listStart'], typeDict['listStop']))
+                classifierParameters[parameterNameRand] = randList.tolist()
+            if typeDict['type'] == 'list':
+                values = typeDict['values']
+                classifierParameters[parameterNameRand] = values[np.random.randint(0, len(values))]
+    return classifierParameters
+
 
 ################################
 # Parameters Begin ############
-################################
+# ################################
 
 if __name__ == '__main__':
+    rootDataFolder = CreateUtils.getRootDataFolder()
     overwriteConfigFile = True
 
     classifierType = 'LSTM'
-    classifierSetName = 'ClassificationAllClasses2LPlus2MLPStatefulWaveletAutoBatchDropReg2RlrRMSPropTD'
+    classifierSetName = 'ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RMSPropTD'
 
     # classes are 0 indexed except when printed as a label!!!
     # rogueClasses = sorted(list(set(range(17)) - {1, 3, 4}))
@@ -23,6 +70,7 @@ if __name__ == '__main__':
     rogueClasses = tuple(rogueClasses)
 
     configDict = {}
+    # region Other Classifiers
     if classifierType == 'LogisticRegression':
         learning_rate = 0.13
         n_epochs = 1000
@@ -228,27 +276,28 @@ if __name__ == '__main__':
             'thetaU': thetaU,
             'rngSeed': rngSeed,
         }
+    # endregion
     elif classifierType == 'LSTM':
         classifierGoal = 'classification'
 
         # Wavelet Layer
-        useWaveletTransform = True
+        useWaveletTransform = False
         waveletBanks = 100
         maxWindowSize = 4410
         kValues = None
         sigmaValues = None
 
         # LSTM
-        lstm_layers_sizes = [500, 500]
+        lstm_layers_sizes = [1000, 1000, 1000]
         dropout_W = 0.5
         dropout_U = 0.5
         dropout_LSTM = 0.0
         W_regularizer_l1_LSTM = 0.0001
         U_regularizer_l1_LSTM = 0.0001
-        b_regularizer_l1_LSTM = 0.0
-        W_regularizer_l2_LSTM = 0.0
-        U_regularizer_l2_LSTM = 0.0
-        b_regularizer_l2_LSTM = 0.0
+        b_regularizer_l1_LSTM = 0.0001
+        W_regularizer_l2_LSTM = 0.0001
+        U_regularizer_l2_LSTM = 0.0001
+        b_regularizer_l2_LSTM = 0.0001
         activations = 'tanh'
         inner_activations = 'hard_sigmoid'
         stateful = True
@@ -256,13 +305,13 @@ if __name__ == '__main__':
         trainLSTM = True
 
         # MLP
-        hidden_layers_sizes = [500, 500]
+        hidden_layers_sizes = [1000, 1000, 1000]
         hidden_activations = 'tanh'
         dropout_Hidden = 0.5
         W_regularizer_l1_hidden = 0.0001
-        b_regularizer_l1_hidden = 0.0
-        W_regularizer_l2_hidden = 0.0
-        b_regularizer_l2_hidden = 0.0
+        b_regularizer_l1_hidden = 0.0001
+        W_regularizer_l2_hidden = 0.0001
+        b_regularizer_l2_hidden = 0.0001
         finalActivationType = 'softmax'
         trainMLP = True
 
@@ -331,10 +380,10 @@ if __name__ == '__main__':
         learning_rate = 0.001
         epsilon = 1e-8
         decay = 0.0
-        n_epochs = 2000
+        n_epochs = 50
         batch_size = 13
         auto_stateful_batch = True
-        reduceLearningRate = True
+        reduceLearningRate = False
         rlrMonitor = 'loss'
         rlrFactor = 0.8
         rlrPatience = 10
@@ -353,6 +402,8 @@ if __name__ == '__main__':
         beta_1 = 0.9  # how much accumulation do you want?
         beta_2 = 0.999  # how much accumulation do you want? (using the RMS of the gradient)
 
+        # random Specific
+        addAllOptimizerParams = True
         configDict = {
             'classifierSetName': classifierSetName,
             'classifierType': classifierType,
@@ -360,15 +411,6 @@ if __name__ == '__main__':
             'rogueClasses': rogueClasses,
 
             'lstm_layers_sizes': lstm_layers_sizes,
-            'dropout_W': dropout_W,
-            'dropout_U': dropout_U,
-            'dropout_LSTM': dropout_LSTM,
-            'W_regularizer_l1_LSTM': W_regularizer_l1_LSTM,
-            'U_regularizer_l1_LSTM': U_regularizer_l1_LSTM,
-            'b_regularizer_l1_LSTM': b_regularizer_l1_LSTM,
-            'W_regularizer_l2_LSTM': W_regularizer_l2_LSTM,
-            'U_regularizer_l2_LSTM': U_regularizer_l2_LSTM,
-            'b_regularizer_l2_LSTM': b_regularizer_l2_LSTM,
             'activations': activations,
             'inner_activations': inner_activations,
             'stateful': stateful,
@@ -388,11 +430,26 @@ if __name__ == '__main__':
 
             'epsilon': epsilon,
         }
+        if dropout_W > 0:
+            configDict.update({'dropout_W': dropout_W})
+        if dropout_U > 0:
+            configDict.update({'dropout_U': dropout_U})
+        if dropout_LSTM > 0:
+            configDict.update({'dropout_LSTM': dropout_LSTM})
+        if W_regularizer_l1_LSTM > 0:
+            configDict.update({'W_regularizer_l1_LSTM': W_regularizer_l1_LSTM})
+        if U_regularizer_l1_LSTM > 0:
+            configDict.update({'U_regularizer_l1_LSTM': U_regularizer_l1_LSTM})
+        if b_regularizer_l1_LSTM > 0:
+            configDict.update({'b_regularizer_l1_LSTM': b_regularizer_l1_LSTM})
+        if W_regularizer_l2_LSTM > 0:
+            configDict.update({'W_regularizer_l2_LSTM': W_regularizer_l2_LSTM})
+        if U_regularizer_l2_LSTM > 0:
+            configDict.update({'U_regularizer_l2_LSTM': U_regularizer_l2_LSTM})
+        if b_regularizer_l2_LSTM > 0:
+            configDict.update({'b_regularizer_l2_LSTM': b_regularizer_l2_LSTM})
         if stateful:
-            auto_stateful_batchDict = {
-                'auto_stateful_batch': auto_stateful_batch,
-            }
-            configDict.update(auto_stateful_batchDict)
+            configDict.update({'auto_stateful_batch': auto_stateful_batch, })
         if loadPreviousModelWeightsForTraining:
             previousDict = {
                 'loadPreviousModelWeightsForTraining': loadPreviousModelWeightsForTraining,
@@ -402,15 +459,20 @@ if __name__ == '__main__':
         if len(hidden_layers_sizes) > 0:
             hiddenDict = {
                 'hidden_layers_sizes': hidden_layers_sizes,
-                'dropout_Hidden': dropout_Hidden,
-                'W_regularizer_l1_hidden': W_regularizer_l1_hidden,
-                'b_regularizer_l1_hidden': b_regularizer_l1_hidden,
-                'W_regularizer_l2_hidden': W_regularizer_l2_hidden,
-                'b_regularizer_l2_hidden': b_regularizer_l2_hidden,
                 'hidden_activations': hidden_activations,
                 'finalActivationType': finalActivationType,
                 'trainMLP': trainMLP,
             }
+            if dropout_Hidden > 0:
+                configDict.update({'dropout_Hidden': dropout_Hidden})
+            if W_regularizer_l1_hidden > 0:
+                configDict.update({'W_regularizer_l1_hidden': W_regularizer_l1_hidden})
+            if b_regularizer_l1_hidden > 0:
+                configDict.update({'b_regularizer_l1_hidden': b_regularizer_l1_hidden})
+            if W_regularizer_l2_hidden > 0:
+                configDict.update({'W_regularizer_l2_hidden': W_regularizer_l2_hidden})
+            if b_regularizer_l2_hidden > 0:
+                configDict.update({'b_regularizer_l2_hidden': b_regularizer_l2_hidden})
             configDict.update(hiddenDict)
         if useKalman:
             kalmanDict = {
@@ -459,9 +521,9 @@ if __name__ == '__main__':
                 'rlrEpsilon': rlrEpsilon,
             }
             configDict.update(rlrDict)
-        if optimizerType == 'rmsprop':
+        if optimizerType == 'rmsprop' or addAllOptimizerParams:
             configDict.update({'rho': rho})
-        if optimizerType == 'adam':
+        if optimizerType == 'adam' or addAllOptimizerParams:
             adamDict = {
                 'beta_1': beta_1,
                 'beta_2': beta_2,
@@ -479,13 +541,11 @@ if __name__ == '__main__':
     if not overwriteConfigFile:
         assert not doesFileExist, 'do you want to overwirte the config file?'
     if doesFileExist:
-        with open(configFileName, 'r') as myConfigFile:
-            configDictLoaded = yaml.load(myConfigFile)
-            dictDiffer = CreateUtils.DictDiffer(configDictLoaded, configDict)
-            print(dictDiffer.printAllDiff())
-    with open(configFileName, 'w') as myConfigFile:
-        yaml.dump(configDict, myConfigFile, default_flow_style=False, width=1000)
-        if doesFileExist:
-            print("Overwrote file {0}".format(configFileName))
-        else:
-            print("Wrote file {0}".format(configFileName))
+        configDictLoaded = CreateUtils.loadConfigFile(configFileName)
+        dictDiffer = CreateUtils.DictDiffer(configDictLoaded, configDict)
+        print(dictDiffer.printAllDiff())
+    CreateUtils.makeConfigFile(configFileName, configDict)
+    if doesFileExist:
+        print("Overwrote file {0}".format(configFileName))
+    else:
+        print("Wrote file {0}".format(configFileName))
