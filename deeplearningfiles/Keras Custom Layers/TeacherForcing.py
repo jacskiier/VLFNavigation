@@ -4,15 +4,16 @@ import keras.backend as K
 from keras.engine.topology import Layer
 from keras.engine import InputSpec, Input
 from keras.models import Sequential, Model
-from keras.layers import Dense, Merge, TimeDistributed, InputLayer
+from keras.layers import Dense, Merge, TimeDistributed, InputLayer, Dropout
 
-from KerasClassifiers import showModel
+import KerasClassifiers
 
 
 class TeacherForcingTopLevel(Merge):
     levelCounter = 0
 
-    def __init__(self, input_dim=None, batch_size=None, final_output_dim=None, makeTimeDistributed=False, time_steps=1, **kwargs):
+    def __init__(self, input_dim=None, batch_size=None, final_output_dim=None, makeTimeDistributed=False, time_steps=1, last_layer_dropout_p=0.,
+                 **kwargs):
         assert input_dim is not None, "Must give an input_dim"
         assert batch_size is not None, "Must give batch_size"
         assert final_output_dim is not None, "Must give final_output_dim"
@@ -44,11 +45,16 @@ class TeacherForcingTopLevel(Merge):
         lastInitialVal = np.zeros(batch_input_shape_LastEst, dtype=np.float32)
         self.lastOutputLayerVariable = K.variable(value=lastInitialVal, name="lastOutputLayer")
         self.teacherLayer = TeacherForcingInputLayer(final_output_dim,
+                                                     p=last_layer_dropout_p,
                                                      lastLayerOutputVariable=self.lastOutputLayerVariable,
                                                      batch_input_shape=batch_input_shape_Teacher,
                                                      name="Last Output Layer of " + myName)
+        if 0. < last_layer_dropout_p < 1.:
+            teacherLayeName = "Teacher Input From Last (Dropout {0:3.2f})".format(last_layer_dropout_p)
+        else:
+            teacherLayeName = "Teacher Input From Last"
+        self.teacherLayer.create_input_layer(self.teacherLayer.batch_input_shape, name=teacherLayeName)
         right_branch_layer = self.teacherLayer
-        self.teacherLayer.create_input_layer(self.teacherLayer.batch_input_shape, name="Teacher Input")
 
         self.left_branch = left_branch
         self.right_branch = right_branch_layer
@@ -66,7 +72,8 @@ class TeacherForcingTopLevel(Merge):
 
 
 class TeacherForcingInputLayer(Layer):
-    def __init__(self, output_dim=None, lastLayerOutputVariable=None, **kwargs):
+    def __init__(self, output_dim=None, lastLayerOutputVariable=None, p=0., **kwargs):
+        self.p = p
         assert output_dim is not None, "Must give output_dim"
         self.output_dim = output_dim
         self.input_dim = None
@@ -75,10 +82,12 @@ class TeacherForcingInputLayer(Layer):
         self.stateful = True
         self.uses_learning_phase = True
 
+        self.supports_masking = True
         super(TeacherForcingInputLayer, self).__init__(**kwargs)
 
     def get_config(self):
-        config = {'output_dim': self.output_dim}
+        config = {'output_dim': self.output_dim,
+                  'p': self.p}
         base_config = super(TeacherForcingInputLayer, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
@@ -88,7 +97,10 @@ class TeacherForcingInputLayer(Layer):
 
     def call(self, x, mask=None):
         assert self.lastLayerOutput is not None, "lastLayerOutput was never setup"
-        xOut = K.in_train_phase(x, self.lastLayerOutput)
+        if 0. < self.p < 1.:
+            xOut = K.in_train_phase(K.dropout(x, self.p), self.lastLayerOutput)
+        else:
+            xOut = K.in_train_phase(x, self.lastLayerOutput)
         return xOut
 
 
@@ -131,8 +143,25 @@ class TeacherForcingOutputLayer(Layer):
         return x
 
 
+def get_y_last(y, batch_size, kerasRowMultiplier, time_steps, final_output_dim, y_0=None):
+    # reshape the output to not have keras row batches
+    y_reshaped = np.reshape(y, (batch_size, kerasRowMultiplier, time_steps, final_output_dim), order='F')
+    y_reshaped = np.reshape(y_reshaped, (batch_size, time_steps * kerasRowMultiplier, final_output_dim), order='C')
+
+    # shift the output and assign to y_train_last
+    y_train_last = np.zeros_like(y_reshaped)
+    y_train_last[:, 1:] = y_reshaped[:, :-1]
+    if y_0 is not None:
+        y_train_last[:, 0] = y_0
+
+    # reshape shifted output to the original shape
+    y_train_last = np.reshape(y_train_last, (batch_size, kerasRowMultiplier, time_steps, final_output_dim), order='C')
+    y_train_last = np.reshape(y_train_last, (batch_size * kerasRowMultiplier, time_steps, final_output_dim), order='F')
+    return y_train_last
+
+
 class TeacherForcingModel(Model):
-    def __init__(self, original_model, **kwargs):
+    def __init__(self, original_model, last_layer_dropout_p=0., **kwargs):
         """
         The init function for the teacher forcing wrapper
 
@@ -162,13 +191,15 @@ class TeacherForcingModel(Model):
                                       final_output_dim=self.final_output_dim,
                                       makeTimeDistributed=self.makeTimeDistributed,
                                       time_steps=time_steps,
+                                      last_layer_dropout_p=last_layer_dropout_p,
                                       name="Teacher Forcing Top Level")
         TFTLTensor = TFTL.get_output_at(0)
 
         originalOutTensor = original_model(TFTLTensor)
 
         # make the last layer catch the final output to give back to the top layer in test time
-        TFOL = TeacherForcingOutputLayer(self.final_output_dim, lastLayerOutputVariable=TFTL.lastOutputLayerVariable,
+        TFOL = TeacherForcingOutputLayer(self.final_output_dim,
+                                         lastLayerOutputVariable=TFTL.lastOutputLayerVariable,
                                          name="Teacher Forcing Output Layer")
         output = TFOL(originalOutTensor)
 
@@ -190,7 +221,8 @@ class TeacherForcingModel(Model):
         TFTLTensor = TFTL.get_output_at(0)
         originalOutTensor = self.original_model(TFTLTensor)
         # make the last layer catch the final output to give back to the top layer in test time
-        TFOL = TeacherForcingOutputLayer(self.final_output_dim, lastLayerOutputVariable=TFTL.lastOutputLayerVariable,
+        TFOL = TeacherForcingOutputLayer(self.final_output_dim,
+                                         lastLayerOutputVariable=TFTL.lastOutputLayerVariable,
                                          name="Teacher Forcing Output Layer")
         output = TFOL(originalOutTensor)
         self.oneTimestepModel = Model(input=[TFTL.left_branch.input, TFTL.right_branch.input], output=[output])
@@ -199,35 +231,62 @@ class TeacherForcingModel(Model):
         self.oneTimestepModelCompileKwargs = kwargs
         super(TeacherForcingModel, self).compile(**kwargs)
 
-    def fit(self, x, y, batch_size=32, y_0=None, **kwargs):
+    def fit(self, x, y, batch_size=32, y_0=None, y_0_valid=None, validation_data=None, **kwargs):
         if not isinstance(x, (list, tuple)):
             x = [x]
+
         if self.makeTimeDistributed is False:
             y_train_last = np.zeros_like(y)
             y_train_last[1:] = y[:-1]
             if y_0 is not None:
                 y_train_last[:, 0] = y_0
+
+            if validation_data is not None:
+                if not isinstance(validation_data[0], (list, tuple)):
+                    x_valid = [validation_data[0]]
+                else:
+                    x_valid = validation_data[0]
+                y_valid = validation_data[1]
+                y_valid_last = np.zeros_like(y_valid)
+                y_valid_last[1:] = y_valid[:-1]
+                if y_0_valid is not None:
+                    y_valid_last[:, 0] = y_0_valid
+                validation_data = (x_valid + [y_valid_last], validation_data[1])
         else:
             # get numbers for reshaping
             time_steps = x[0].shape[1]
             final_output_dim = y.shape[-1]
             kerasRowMultiplier = x[0].shape[0] / batch_size
 
-            # reshape the output to not have keras row batches
-            y_reshaped = np.reshape(y, (batch_size, kerasRowMultiplier, time_steps, final_output_dim), order='F')
-            y_reshaped = np.reshape(y_reshaped, (batch_size, time_steps * kerasRowMultiplier, final_output_dim), order='C')
+            y_train_last = get_y_last(y=y,
+                                      batch_size=batch_size,
+                                      kerasRowMultiplier=kerasRowMultiplier,
+                                      time_steps=time_steps,
+                                      final_output_dim=final_output_dim,
+                                      y_0=y_0)
+            if validation_data is not None:
+                if not isinstance(validation_data[0], (list, tuple)):
+                    x_valid = [validation_data[0]]
+                else:
+                    x_valid = validation_data[0]
+                y_valid = validation_data[1]
+                # get numbers for reshaping
+                time_steps = x_valid[0].shape[1]
+                final_output_dim = y_valid.shape[-1]
+                kerasRowMultiplier = x_valid[0].shape[0] / batch_size
 
-            # shift the output and assign to y_train_last
-            y_train_last = np.zeros_like(y_reshaped)
-            y_train_last[:, 1:] = y_reshaped[:, :-1]
-            if y_0 is not None:
-                y_train_last[:, 0] = y_0
-
-            # reshape shifted output to the original shape
-            y_train_last = np.reshape(y_train_last, (batch_size, kerasRowMultiplier, time_steps, final_output_dim), order='C')
-            y_train_last = np.reshape(y_train_last, (batch_size * kerasRowMultiplier, time_steps, final_output_dim), order='F')
-
-        super(TeacherForcingModel, self).fit(x=x + [y_train_last], y=y, batch_size=batch_size, **kwargs)
+                y_valid_last = get_y_last(y=y_valid,
+                                          batch_size=batch_size,
+                                          kerasRowMultiplier=kerasRowMultiplier,
+                                          time_steps=time_steps,
+                                          final_output_dim=final_output_dim,
+                                          y_0=y_0_valid)
+                validation_data = (x_valid + [y_valid_last], validation_data[1])
+        super(TeacherForcingModel, self).fit(x=x + [y_train_last],
+                                             y=y,
+                                             validation_data=validation_data,
+                                             batch_size=batch_size,
+                                             **kwargs)
 
     def evaluate(self, x, y, batch_size=32, **kwargs):
         # y_last was for testing only
@@ -393,6 +452,7 @@ def testTimeDistributed():
     time_steps = 100
     n_epochs = 1000
     kerasRowMultiplier = 5
+    last_layer_dropout_p = 0.5
 
     # generate dummy data that is related to the last sample
     np.random.seed(0)
@@ -420,17 +480,23 @@ def testTimeDistributed():
     original_model.add(thisDenseTD)
 
     # Wrap the teacher forcing model around the original model
-    final_model = TeacherForcingModel(original_model=original_model)
+    final_model = TeacherForcingModel(original_model=original_model,
+                                      last_layer_dropout_p=last_layer_dropout_p)
 
     # compile our model
     final_model.compile(optimizer='rmsprop',
                         loss='mse',
                         metrics=['mse'])
 
-    # showModel(final_model)
+    KerasClassifiers.showModel(original_model)
+    KerasClassifiers.showModel(final_model)
 
     # train our model using the actual last values
-    final_model.fit(x=x_train, y=y_train, nb_epoch=n_epochs, batch_size=batch_size, verbose=2)
+    final_model.fit(x=x_train,
+                    y=y_train,
+                    nb_epoch=n_epochs,
+                    batch_size=batch_size,
+                    verbose=2)
 
     final_model.reset_states()
     score = final_model.evaluate(x=x_train, y=y_train, batch_size=batch_size, verbose=2)
@@ -465,5 +531,5 @@ def testTimeDistributed():
 
 
 if __name__ == '__main__':
-    testClass()
+    # testClass()
     testTimeDistributed()

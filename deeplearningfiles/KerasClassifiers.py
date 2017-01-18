@@ -15,6 +15,7 @@ import keras.callbacks
 from keras.callbacks import Callback
 from keras.models import Sequential, model_from_json
 from keras.layers import Dense, Dropout, Activation, TimeDistributed, LSTM
+from keras.engine.topology import Container
 from keras.optimizers import rmsprop, adam
 from keras.regularizers import WeightRegularizer
 import keras.constraints
@@ -25,7 +26,92 @@ import RegressionUtils
 from KalmanFilter import getDiscreteSystem
 from KalmanFilter import KalmanFilterLayer
 from WaveletTransformLayer import WaveletTransformLayer
+from TeacherForcing import TeacherForcingModel
 import CreateUtils
+import tictoc
+
+timer = tictoc.tictoc()
+
+try:
+    # pydot-ng is a fork of pydot that is better maintained
+    import pydot_ng as pydot
+except ImportError:
+    # fall back on pydot if necessary
+    import pydot
+if not pydot.find_graphviz():
+    raise RuntimeError('Failed to import pydot. You must install pydot'
+                       ' and graphviz for `pydotprint` to work.')
+
+
+def getContainerLayers(layer):
+    if issubclass(type(layer), Container):
+        subLayers = []
+        for lay in layer.layers:
+            subLayers += getContainerLayers(lay)
+    else:
+        subLayers = [layer]
+    return subLayers
+
+
+def model_to_dot2(model, show_shapes=False, show_layer_names=True, expand_containers=False):
+    dot = pydot.Dot()
+    dot.set('rankdir', 'TB')
+    dot.set('concentrate', True)
+    dot.set_node_defaults(shape='record')
+
+    if model.__class__.__name__ == 'Sequential':
+        if not model.built:
+            model.build()
+        model = model.model
+    if not expand_containers:
+        layers = model.layers
+    else:
+        layers = getContainerLayers(model)
+
+    # first, populate the nodes of the graph
+    for layer in layers:
+        layer_id = str(id(layer))
+        if show_layer_names:
+            label = str(layer.name) + ' (' + layer.__class__.__name__ + ')'
+        else:
+            label = layer.__class__.__name__
+
+        if show_shapes:
+            # Build the label that will actually contain a table with the
+            # input/output
+            try:
+                outputlabels = str(layer.output_shape)
+            except:
+                outputlabels = 'multiple'
+            if hasattr(layer, 'input_shape'):
+                inputlabels = str(layer.input_shape)
+            elif hasattr(layer, 'input_shapes'):
+                inputlabels = ', '.join(
+                    [str(ishape) for ishape in layer.input_shapes])
+            else:
+                inputlabels = 'multiple'
+            label = '%s\n|{input:|output:}|{{%s}|{%s}}' % (label, inputlabels, outputlabels)
+
+        node = pydot.Node(layer_id, label=label)
+        dot.add_node(node)
+
+    # second, add the edges
+    for layer in layers:
+        layer_id = str(id(layer))
+        for i, node in enumerate(layer.inbound_nodes):
+            node_key = layer.name + '_ib-' + str(i)
+            if node_key in model.container_nodes:
+                # add edges
+                for inbound_layer in node.inbound_layers:
+                    inbound_layer_id = str(id(inbound_layer))
+                    layer_id = str(id(layer))
+                    dot.add_edge(pydot.Edge(inbound_layer_id, layer_id))
+    return dot
+
+
+def plot2(model, to_file='model.png', show_shapes=False, show_layer_names=True, expand_containers=False):
+    dot = model_to_dot2(model, show_shapes, show_layer_names, expand_containers=expand_containers)
+    dot.write_png(to_file)
 
 
 def showModel(modelArg):
@@ -809,7 +895,7 @@ modelJsonExample = {"class_name": "Sequential", "keras_version": "1.1.0", "confi
 
 def changeBatchInputShapeOfModel(model_json_string, newBatchSize):
     modelJson = json.loads(model_json_string)
-    layerArray = modelJson['config']
+    layerArray = modelJson['config']['layers']
     for layer in layerArray:
         if 'batch_input_shape' in layer['config']:
             layer['config']['batch_input_shape'][0] = newBatchSize
@@ -866,6 +952,8 @@ def kerasClassifier_parameterized(featureParameters,
             makeSequencesForX = False
         useTimeDistributedOutput = classifierParameters['useTimeDistributedOutput'] if 'useTimeDistributedOutput' in classifierParameters else False
         onlyBuildModel = classifierParameters['onlyBuildModel'] if 'onlyBuildModel' in classifierParameters else False
+        useTeacherForcing = classifierParameters['useTeacherForcing'] if 'useTeacherForcing' in classifierParameters else False
+        teacherForcingDropout = classifierParameters['teacherForcingDropout'] if 'teacherForcingDropout' in classifierParameters else 0.
 
         if classifierParameters['classifierGoal'] == 'regression':
             (datasets,
@@ -901,11 +989,15 @@ def kerasClassifier_parameterized(featureParameters,
                 y_test = convertIndicesToOneHots(datasets[2][1], outputs)
         assert X_train is not None and y_train is not None, "You didn't select any training data"
 
+        final_output_dim = outputs
+
         imageShape = featureParameters['imageShape']
         useMetadata = datasetParameters['useMetadata'] if 'useMetadata' in datasetParameters else False
         metadataShape = datasetParameters['metadataShape'] if 'metadataShape' in datasetParameters else (0,)
         metadata_dim = np.product(metadataShape) if useMetadata else 0
         data_dim = np.product(imageShape) + metadata_dim
+        if useTeacherForcing:
+            data_dim += final_output_dim
 
         lstm_layers_sizes = classifierParameters['lstm_layers_sizes']
         n_epochs = classifierParameters['n_epochs']
@@ -1142,16 +1234,28 @@ def kerasClassifier_parameterized(featureParameters,
         # else:
         #     (x_t0, P_t0, phi, B, C, D, Q, H, R) = [None, ] * 9
 
+        if useTeacherForcing:
+            # if showModelAsFigure:
+            #     showModel(model)
+            #     modelImage = os.path.join(experimentsFolder, 'modelImageOriginal.png')
+            #     saveModelToFile(model, modelImage)
+            model = TeacherForcingModel(original_model=model,
+                                        last_layer_dropout_p=teacherForcingDropout)
+        #########################
+        # Model Building Complete
+        #########################
+
         # Visualizations
         if showModelAsFigure:
             showModel(model)
         modelImage = os.path.join(experimentsFolder, 'modelImage.png')
         saveModelToFile(model, modelImage)
 
-        print ("Compiling Model")
+        timer.tic("Compiling Model")
         compileAModel(model,
                       classifierParameters=classifierParameters,
                       datasetParameters=datasetParameters)
+        timer.toc()
 
         modelStoreFilePathFullTemp = os.path.join(experimentsFolder, 'model.json')
         with open(modelStoreFilePathFullTemp, 'w') as modelStoreFile:
@@ -1167,6 +1271,7 @@ def kerasClassifier_parameterized(featureParameters,
                                                                verbose=1,
                                                                save_best_only=True)
             myCallbacks.append(checkpointerBest)
+            model.save_weights(modelStoreWeightsBestFilePathFullTemp, True)
         # Best Loss model
         modelStoreWeightsBestLossFilePathFullTemp = os.path.join(experimentsFolder, 'bestLoss_modelWeights.h5')
         checkpointerBestLoss = keras.callbacks.ModelCheckpoint(filepath=modelStoreWeightsBestLossFilePathFullTemp,
@@ -1174,12 +1279,14 @@ def kerasClassifier_parameterized(featureParameters,
                                                                save_best_only=True,
                                                                monitor='loss')
         myCallbacks.append(checkpointerBestLoss)
+        model.save_weights(modelStoreWeightsBestLossFilePathFullTemp, True)
         # Last model
         modelStoreWeightsLastFilePathFullTemp = os.path.join(experimentsFolder, 'last_modelWeights.h5')
         checkpointerLast = keras.callbacks.ModelCheckpoint(filepath=modelStoreWeightsLastFilePathFullTemp,
                                                            verbose=0,
                                                            save_best_only=False)
         myCallbacks.append(checkpointerLast)
+        model.save_weights(modelStoreWeightsLastFilePathFullTemp, True)
         # Logging
         csvFilePathFull = os.path.join(experimentsFolder, 'trainingLog.csv')
         csvLoggerCallback = CSVLogger(csvFilePathFull, separator=',', append=False)
@@ -1202,11 +1309,13 @@ def kerasClassifier_parameterized(featureParameters,
             myCallbacks.append(rlrCallback)
         didFinishTraining = True
         if not onlyBuildModel:
+            print("Begin training")
             try:
                 validation_data = None
                 if X_valid is not None and y_valid is not None:
                     validation_data = (X_valid, y_valid)
-                model.fit(X_train, y_train,
+                model.fit(x=X_train,
+                          y=y_train,
                           batch_size=batch_size,
                           nb_epoch=n_epochs,
                           validation_data=validation_data,
@@ -1215,12 +1324,9 @@ def kerasClassifier_parameterized(featureParameters,
             except KeyboardInterrupt:
                 didFinishTraining = False
                 print ("\nUser stopped training")
-        else:
-            model.save_weights(modelStoreWeightsBestFilePathFullTemp, overwrite=True)
-            model.save_weights(modelStoreWeightsBestLossFilePathFullTemp, overwrite=True)
-            model.save_weights(modelStoreWeightsLastFilePathFullTemp, overwrite=True)
 
         if X_test is not None and y_test is not None:
+            model.reset_states()
             score = model.evaluate(X_test, y_test, batch_size=batch_size, verbose=2)
             print("The final test score is {0}".format(score))
         return didFinishTraining

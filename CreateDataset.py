@@ -1186,7 +1186,7 @@ def mainRun():
     yNormalized = False
 
     # Packaging ########################################################
-    rowPackagingStyle = 'class'  # None, 'BaseFileNameWithNumber', 'gpsD', 'particle', 'class', 'classWithClassTransitions'
+    rowPackagingStyle = 'BaseFileNameWithNumber'  # None, 'BaseFileNameWithNumber', 'gpsD', 'particle', 'class', 'classWithClassTransitions'
     padRowPackageWithZeros = True
     repeatRowPackageBeginningAtEnd = False
     repeatRowPackageEndingAtEnd = True
@@ -1333,7 +1333,7 @@ def mainRun():
     # defaultSetName = "normal"
     # fileNamesNumbersToSets = [("crazy", "bikeneighborhood", [32])]
 
-    datasetName = 'bikeneighborhoodPackClassNormParticle'
+    datasetName = 'bikeneighborhoodPackFileNormParticle'
     allBaseFileNames = ["bikeneighborhood"]
     yValueType = 'particle'
     onlyFileNumbers = {"bikeneighborhood": range(33)}

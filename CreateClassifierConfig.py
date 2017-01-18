@@ -60,7 +60,7 @@ if __name__ == '__main__':
     overwriteConfigFile = True
 
     classifierType = 'LSTM'
-    classifierSetName = 'ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RMSPropTD'
+    classifierSetName = 'ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTDTF'
 
     # classes are 0 indexed except when printed as a label!!!
     # rogueClasses = sorted(list(set(range(17)) - {1, 3, 4}))
@@ -288,16 +288,16 @@ if __name__ == '__main__':
         sigmaValues = None
 
         # LSTM
-        lstm_layers_sizes = [1000, 1000, 1000]
+        lstm_layers_sizes = [500, 500]
         dropout_W = 0.5
         dropout_U = 0.5
         dropout_LSTM = 0.0
         W_regularizer_l1_LSTM = 0.0001
         U_regularizer_l1_LSTM = 0.0001
-        b_regularizer_l1_LSTM = 0.0001
-        W_regularizer_l2_LSTM = 0.0001
-        U_regularizer_l2_LSTM = 0.0001
-        b_regularizer_l2_LSTM = 0.0001
+        b_regularizer_l1_LSTM = 0.
+        W_regularizer_l2_LSTM = 0.
+        U_regularizer_l2_LSTM = 0.
+        b_regularizer_l2_LSTM = 0.
         activations = 'tanh'
         inner_activations = 'hard_sigmoid'
         stateful = True
@@ -305,19 +305,21 @@ if __name__ == '__main__':
         trainLSTM = True
 
         # MLP
-        hidden_layers_sizes = [1000, 1000, 1000]
+        hidden_layers_sizes = [500, 500]
         hidden_activations = 'tanh'
         dropout_Hidden = 0.5
         W_regularizer_l1_hidden = 0.0001
-        b_regularizer_l1_hidden = 0.0001
-        W_regularizer_l2_hidden = 0.0001
-        b_regularizer_l2_hidden = 0.0001
+        b_regularizer_l1_hidden = 0.
+        W_regularizer_l2_hidden = 0.
+        b_regularizer_l2_hidden = 0.
         finalActivationType = 'softmax'
         trainMLP = True
 
         # Model
         useTimeDistributedOutput = True
         onlyBuildModel = False
+        useTeacherForcing = True
+        teacherForcingDropout = 0.5
 
         # this will only load the previous weights for the hidden and lstm layers
         loadPreviousModelWeightsForTraining = False
@@ -380,10 +382,10 @@ if __name__ == '__main__':
         learning_rate = 0.001
         epsilon = 1e-8
         decay = 0.0
-        n_epochs = 50
-        batch_size = 13
+        n_epochs = 2000
+        batch_size = 0
         auto_stateful_batch = True
-        reduceLearningRate = False
+        reduceLearningRate = True
         rlrMonitor = 'loss'
         rlrFactor = 0.8
         rlrPatience = 10
@@ -419,6 +421,7 @@ if __name__ == '__main__':
 
             'useTimeDistributedOutput': useTimeDistributedOutput,
             'onlyBuildModel': onlyBuildModel,
+            'useTeacherForcing': useTeacherForcing,
 
             'learning_rate': learning_rate,
             'n_epochs': n_epochs,
@@ -430,6 +433,9 @@ if __name__ == '__main__':
 
             'epsilon': epsilon,
         }
+        if useTeacherForcing:
+            configDict.update({'teacherForcingDropout': teacherForcingDropout})
+
         if dropout_W > 0:
             configDict.update({'dropout_W': dropout_W})
         if dropout_U > 0:

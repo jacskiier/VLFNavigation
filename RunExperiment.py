@@ -30,8 +30,8 @@ def runExperiment(featureSetName,
                   forceRefreshModel=False,
                   forceRefreshStats=False,
                   useLabels=True,
-                  randomName=None):
-    randomModelSeedNumber = None
+                  randomName=None,
+                  randomModelSeedNumber=None):
     # statistics name
     if datasetNameStats is None or datasetNameStats == '':
         datasetNameStats = datasetName
@@ -47,8 +47,9 @@ def runExperiment(featureSetName,
     if randomName is None:
         experimentsFolder = CreateUtils.getExperimentFolder(featureSetName, datasetName, classifierType, classifierSetName)
     else:
-        np.random.seed()
-        randomModelSeedNumber = np.random.randint(0, 4294967295)
+        if randomModelSeedNumber is None:
+            np.random.seed()
+            randomModelSeedNumber = np.random.randint(0, 4294967295)
         print("Random name: {randomName} with seed: {seed}".format(randomName=randomName, seed=randomModelSeedNumber))
         experimentsFolder = CreateUtils.getRandomExperimentFolder(str(randomModelSeedNumber),
                                                                   featureSetName,
@@ -216,9 +217,9 @@ def runMain():
     featureSetNameMain = 'FFTWindowLowFreq'
     datasetNameMain = ['bikeneighborhoodPackClassNormParticle']
     classifierTypeMain = ['LSTM']
-    classifierSetNameMain = ['ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RMSPropTD']
-    datasetNameStats = ''  # for right now you only get one
-    trainValidTestSetNames = ('train', 'valid', None)
+    classifierSetNameMain = ['ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTDTF']
+    datasetNameStats = 'bikeneighborhoodPackFileNormParticle'  # for right now you only get one
+    trainValidTestSetNames = ('train', None, None)
 
     # per run variables
     forceRefreshFeatures = False
@@ -246,6 +247,10 @@ def runMain():
     removeClassifierSetNames = []
     wildCards = (0, 0, 0, 0)
     onlyPreviousExperiments = True  # only works if the last wild card is 1
+
+    # random Parameters
+    randomName = None
+    randomModelSeedNumber = None
 
     # start wildcard loops
     featureDataFolderMain = CreateUtils.getProcessedFeaturesFolder()
@@ -301,7 +306,8 @@ def runMain():
                                   forceRefreshModel=forceRefreshModel,
                                   forceRefreshStats=forceRefreshStats,
                                   useLabels=useLabels,
-                                  )
+                                  randomName=randomName,
+                                  randomModelSeedNumber=randomModelSeedNumber)
 
 
 def runRandom():
@@ -332,6 +338,7 @@ def runRandom():
 
     # random parameters
     randomName = 'default'
+    randomModelSeedNumber = None
     dropoutMin = 0.1
     dropoutMax = 0.9
     l1Min = 1e-5
@@ -387,7 +394,7 @@ def runRandom():
     CreateUtils.makeConfigFile(randomConfigFileName, randRangeDict)
 
     tzinfo = pytz.timezone('US/Eastern')
-    timeoutDate = datetime.datetime(year=2016, month=12, day=19, hour=17, minute=0, second=0, microsecond=0, tzinfo=tzinfo)
+    timeoutDate = datetime.datetime(year=2017, month=1, day=2, hour=18, minute=0, second=0, microsecond=0, tzinfo=tzinfo)
     didFinish = True
     while timeoutDate > datetime.datetime.now(tz=tzinfo) and didFinish:
         didFinish = runExperiment(featureSetName,
@@ -405,9 +412,10 @@ def runRandom():
                                   forceRefreshModel=forceRefreshModel,
                                   forceRefreshStats=forceRefreshStats,
                                   useLabels=useLabels,
-                                  randomName=randomName)
+                                  randomName=randomName,
+                                  randomModelSeedNumber=randomModelSeedNumber)
 
 
 if __name__ == '__main__':
-    # runMain()
-    runRandom()
+    runMain()
+    # runRandom()

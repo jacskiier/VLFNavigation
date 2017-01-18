@@ -19,8 +19,6 @@ import CreateUtils
 
 plt.close("all")
 
-fftPower = 10
-
 rawDataFolder = CreateUtils.getRawDataFolder()
 
 # fileName = 'algebra00004.wav'
@@ -31,7 +29,7 @@ rawDataFolder = CreateUtils.getRawDataFolder()
 # fileName = 'afittest00000.wav'
 # fileName = 'carsound00000.wav'
 # fileName = 'biketest00001.wav'
-fileName = 'bikeneighborhood00029.wav'
+fileName = 'afitmap00003.wav'
 
 rawDataFile = os.path.join(rawDataFolder, fileName)
 
@@ -45,6 +43,7 @@ plotFFT = False
 plotSpecgram = True
 plotCovariance = False
 mfccView = False
+plotSemiVariogram = False
 
 if plotAmplitude:
     print("Plot out actual amplitudes")
@@ -67,6 +66,8 @@ if plotCorrelation:
     plt.title('Correlation')
     plt.xlabel('time shift(s)')
     plt.ylabel('magnitude of correlation')
+    plt.semilogy()
+    plt.show()
 
 if plotFFT:
     print("Performing DFFT")
@@ -89,14 +90,24 @@ if plotFFT:
 Pxx = None
 freqs = None
 bins = None
+fftPower = 30
 if plotSpecgram:
-    print("Computing specgram with {0} point FFT".format(fftPower))
     plt.figure(4)
-    Pxx, freqs, bins, im = plt.specgram(actualDataY, NFFT=2 ** fftPower, Fs=1 / timeStep, noverlap=2 ** (fftPower - 1),
-                                        cmap=cm.get_cmap("gist_heat"))
-
-    # plt.pcolormesh(bins,freqs,10*np.log10(Pxx),cmap=cm.get_cmap("gist_heat"))
-    # plt.imshow(10*np.log10(Pxx),interpolation = 'nearest',cmap = cm.get_cmap("gist_heat"),aspect = 'auto')
+    windowSizeInSeconds = 0.1
+    NFFT = int(windowSizeInSeconds * samplingRate)
+    noverlap = NFFT/2
+    print("Computing specgram with 2 power of {0}".format(np.log2(NFFT)))
+    print("Computing specgram with {0} points".format(NFFT))
+    windowType = mlab.window_hanning  # mlab.window_none, mlab.window_hanning
+    Pxx, freqs, bins, im = plt.specgram(actualDataY,
+                                        window=windowType,
+                                        NFFT=NFFT,
+                                        Fs=samplingRate,
+                                        noverlap=noverlap,
+                                        cmap=cm.get_cmap("gist_heat"),
+                                        mode='psd',
+                                        scale='dB',
+                                        **{'interpolation': 'nearest', })
     plt.title("Specgram of {0}".format(fileName))
     plt.xlabel("time (s)")
     plt.ylabel("Frequency (Hz)")
@@ -107,17 +118,26 @@ if plotCovariance:
     # covarianceArray = np.cov(Pxx[:,:Pxx.shape[1]/10.0],ddof = 0)
 
     totalSlices = 10
+    windowSizeInSeconds = 0.1
+    NFFT = int(windowSizeInSeconds * samplingRate)
+    noverlap = 0
+    scale = 'linear'
     if Pxx is None:
-        (Pxx, freqs, bins) = mlab.specgram(actualDataY, NFFT=2 ** fftPower, Fs=1 / timeStep,
-                                           noverlap=2 ** (fftPower - 1))
+        (Pxx, freqs, bins) = mlab.specgram(actualDataY,
+                                           window=mlab.window_none,
+                                           NFFT=NFFT,
+                                           Fs=samplingRate,
+                                           noverlap=noverlap)
+
     # print ("Freqs: {0}".format(freqs.shape[0]))
     # print ("Expected Freqs: {0}".format(2**(fftPower - 1) + 1))
     for sliceIndex in range(totalSlices - 1):
         plt.figure(5 + sliceIndex)
         print ('Doing Slice {0}'.format(sliceIndex))
-        covarianceArray = np.corrcoef(
-            Pxx[:, Pxx.shape[1] * sliceIndex / float(totalSlices):Pxx.shape[1] * (sliceIndex + 1) / float(totalSlices)])
-        plt.imshow(covarianceArray, interpolation='nearest', extent=[0, freqs[-1], freqs[-1], 0])
+        covarianceArray = np.corrcoef(Pxx[:, Pxx.shape[1] * sliceIndex / float(totalSlices):Pxx.shape[1] * (sliceIndex + 1) / float(totalSlices)])
+        if scale == 'dB':
+            covarianceArray = 10 * np.log10(covarianceArray)
+        plt.imshow(covarianceArray, interpolation='nearest', extent=[0, freqs[-1], freqs[-1], 0], cmap=cm.get_cmap("gist_heat"))
         plt.title('Covariance Matrix for frequency bins')
         plt.ylabel('Frequency (Hz)')
         plt.xlabel('Frequency (Hz)')
@@ -141,3 +161,47 @@ if mfccView:
     plt.ylabel('Mel Cepstral Coefficient')
     plt.xlabel('Feature Sample')
     plt.show()
+
+if plotSemiVariogram:
+    windowSizeInSeconds = 1.
+    timeStepsPerWindow = int(windowSizeInSeconds * samplingRate)
+    hs = np.arange(timeStepsPerWindow)
+    hsValues = np.zeros_like(hs)
+    for h in hs:
+        if h == 0:
+            firstVals = actualDataY
+            secondVals = actualDataY
+        else:
+            firstVals = actualDataY[:-h]
+            secondVals = actualDataY[h:]
+        hsValues[h] = np.mean(np.square(firstVals - secondVals))
+    plt.plot(hs * timeStep, hsValues)
+    plt.ylabel('Semivariance')
+    plt.xlabel('Lag (s)')
+    plt.show()
+
+
+def SVh(P, h, bw):
+    """
+    Experimental semivariogram for a single lag
+    """
+    from scipy.spatial.distance import pdist, squareform
+    pd = squareform(pdist(P[:, :2]))
+    N = pd.shape[0]
+    Z = list()
+    for i in range(N):
+        for j in range(i + 1, N):
+            if (pd[i, j] >= h - bw) and (pd[i, j] <= h + bw):
+                Z.append((P[i, 2] - P[j, 2]) ** 2.0)
+    return np.sum(Z) / (2.0 * len(Z))
+
+
+def SV(P, hs, bw):
+    """
+    Experimental variogram for a collection of lags
+    """
+    sv = list()
+    for h in hs:
+        sv.append(SVh(P, h, bw))
+    sv = [[hs[i], sv[i]] for i in range(len(hs)) if sv[i] > 0]
+    return np.array(sv).T
