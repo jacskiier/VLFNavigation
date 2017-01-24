@@ -45,10 +45,10 @@ if os.name == 'nt':
 
 # stats model parameters
 featureMethod = 'FFTWindow'
-featureSetName = 'FFTWindowLowFreq'
-datasetName = "bikeneighborhoodTest"
+featureSetName = 'FFTWindowDefault'
+datasetName = "bikeneighborhoodExamPackFileNormCShuffle"
 
-whichSetName = 'valid'
+whichSetName = 'normal'
 downsample = None
 
 # prediction model parameters
@@ -65,8 +65,8 @@ makeAnimation = False
 # Y Visuals
 makeYScatterPlot = False
 makeYScatterPlotColorOnY = False
-showPathPerRowOfPackagedFile = False
-gpsGrid = True
+showPathPerRowOfPackagedFile = True
+gpsGrid = False
 
 # Calculate Stats
 calculatex_t0andP_t0 = False

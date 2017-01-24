@@ -6,6 +6,7 @@ import numpy.random
 
 import matplotlib.pylab as plt
 
+import sklearn
 from sklearn import decomposition
 from sklearn.externals import joblib
 
@@ -629,6 +630,7 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
     timestepsPerKerasBatchRow = datasetParameters[
         'timestepsPerKerasBatchRow'] if 'timestepsPerKerasBatchRow' in datasetParameters else 1
     allSetsSameRows = datasetParameters['allSetsSameRows'] if 'allSetsSameRows' in datasetParameters else False
+    shuffleSamplesAfterRepackaging = datasetParameters['shuffleSamplesAfterRepackaging'] if 'shuffleSamplesAfterRepackaging' in datasetParameters else False
 
     packagedRowsPerSetDict = {}
     packagedColumnsPerSetDict = {}
@@ -728,6 +730,13 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
                     #     for runNumber in range(newRows):
                     #         print("After Keras packaging setName {0} runNumber {1}".format(setName, runNumber))
                     #         plotYKeras(tempSet, newRows, runNumber, True)
+            if shuffleSamplesAfterRepackaging:
+                timer.tic("Shuffle After Repackaging {0} Set".format(setName))
+                if not doScaryShuffle:
+                    (tempSets[0], tempSets[1]) = shuffle_in_unison_inplace(tempSets[0], tempSets[1])
+                else:
+                    shuffle_in_unison_scary(tempSets[0], tempSets[1])
+                timer.toc()
             setValue[0] = tempSets[0]
             setValue[1] = tempSets[1]
     return setDictArg, trueRowsPerSetDict, trueColumnsPerSetDict, packagedRowsPerSetDict, packagedColumnsPerSetDict, kerasRowMultiplier
@@ -925,7 +934,7 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
         timer.tic("Filtering Sets")
         if filterFitSets is None:
             filterFitSets = [defaultSetName]
-        savedFilterFile = os.path.join(processedDataFolder, "SavedFilters", featureSetName + '.pkl')
+        savedFilterFile = os.path.join(processedDataFolder, "SavedFilters", featureSetName + '(sklearn-' + sklearn.__version__ + ').pkl')
         (setDict, xScaleFactor, xBias, yScaleFactor, yBias) = finalFilteringSets(setDict,
                                                                                  datasetParameters,
                                                                                  filterFitSets,
@@ -1118,13 +1127,15 @@ def mainRun():
     removeFileNumbers = {}
     onlyFileNumbers = {}
     removeFeatureSetNames = []
-    onlyThisFeatureSetNames = ['FFTWindowLowFreq']
+    onlyThisFeatureSetNames = ['FFTWindowDefault']
     showFigures = True
 
     # Parameters Begin ############
-    shuffleFinalSamples = False
-    shuffleSamplesPerFile = False
     rngSeed = 0
+    shuffleFinalSamples = False  # done after sequencing and filtering but before repackaging
+    shuffleSamplesAfterRepackaging = True  # done after repackaging
+    # per file parameters
+    shuffleSamplesPerFile = False
     maxSamplesPerFile = 0
 
     setFractions = []
@@ -1170,7 +1181,7 @@ def mainRun():
                                    'FFTWindowDefault.pkl')
 
     filterPCA = True
-    filterFitSets = ["train"]  # names of the sets you want to use to filter
+    filterFitSets = ["normal"]  # names of the sets you want to use to filter
     filterPCAn_components = None
     filterPCAwhiten = True
     filterXToUpperDiagonal = False
@@ -1202,7 +1213,7 @@ def mainRun():
     minForClassTransition = 50
     # keras packaging
     alternateRowsForKeras = True
-    timestepsPerKerasBatchRow = 200
+    timestepsPerKerasBatchRow = 100
     assert not (not allSetsSameRows and alternateRowsForKeras), "You must keep all sets same rows for keras packging to work in keras"
 
     # Set Definitions ################################################
@@ -1325,21 +1336,22 @@ def mainRun():
     # defaultSetName = "normal"
     # fileNamesNumbersToSets = [("crazy", "walkneighborhood", [1])]
 
-    # datasetName = 'bikeneighborhoodExamPackFileNormC'
-    # allBaseFileNames = ["bikeneighborhood"]
-    # yValueType = 'gpsC'
-    # onlyFileNumbers = {"bikeneighborhood": [31, 32]}
-    # removeFileNumbers = {"bikeneighborhood": []}
-    # defaultSetName = "normal"
-    # fileNamesNumbersToSets = [("crazy", "bikeneighborhood", [32])]
-
-    datasetName = 'bikeneighborhoodPackFileNormParticle'
+    datasetName = 'bikeneighborhoodExamPackFileNormParticleShuffle'
     allBaseFileNames = ["bikeneighborhood"]
     yValueType = 'particle'
-    onlyFileNumbers = {"bikeneighborhood": range(33)}
-    removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 29, 8, 31, 32]}
-    defaultSetName = "train"
-    fileNamesNumbersToSets = [("valid", "bikeneighborhood", [12, 14, 16, 18, 20, 22, 24, 26, 28]), ]
+    onlyFileNumbers = {"bikeneighborhood": [31, ]}
+    removeFileNumbers = {"bikeneighborhood": []}
+    defaultSetName = "normal"
+    # fileNamesNumbersToSets = [("crazy", "bikeneighborhood", [32])]
+    fileNamesNumbersToSets = []
+
+    # datasetName = 'bikeneighborhoodPackFileNormParticle'
+    # allBaseFileNames = ["bikeneighborhood"]
+    # yValueType = 'particle'
+    # onlyFileNumbers = {"bikeneighborhood": range(33)}
+    # removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 29, 8, 31, 32]}
+    # defaultSetName = "train"
+    # fileNamesNumbersToSets = [("valid", "bikeneighborhood", [12, 14, 16, 18, 20, 22, 24, 26, 28]), ]
 
     ################################
     # Parameters End   ############
@@ -1361,6 +1373,7 @@ def mainRun():
         },
         'allBaseFileNames': allBaseFileNames,
         'shuffleFinalSamples': shuffleFinalSamples,
+        'shuffleSamplesAfterRepackaging': shuffleSamplesAfterRepackaging,
         'shuffleSamplesPerFile': shuffleSamplesPerFile,
         'rngSeed': rngSeed,
         'maxSamplesPerFile': maxSamplesPerFile,

@@ -444,7 +444,6 @@ def getPredictedClasses_Values_TrueClasses_Labels(datasetFileName='mnist.pkl.gz'
     stateful = classifierParameters['stateful'] if 'stateful' in classifierParameters else False
 
     if stateful:
-
         auto_stateful_batch = classifierParameters['auto_stateful_batch'] if 'auto_stateful_batch' in classifierParameters else False
         if auto_stateful_batch:
             batch_size = packagedRows
@@ -895,7 +894,8 @@ modelJsonExample = {"class_name": "Sequential", "keras_version": "1.1.0", "confi
 
 def changeBatchInputShapeOfModel(model_json_string, newBatchSize):
     modelJson = json.loads(model_json_string)
-    layerArray = modelJson['config']['layers']
+    # if I am using the teacher forcing it wraps the config in a layers key
+    layerArray = modelJson['config']['layers'] if 'layers' in modelJson else modelJson['config']
     for layer in layerArray:
         if 'batch_input_shape' in layer['config']:
             layer['config']['batch_input_shape'][0] = newBatchSize

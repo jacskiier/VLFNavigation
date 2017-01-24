@@ -5,7 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/deeplearningfiles" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/deeplearningfiles/Keras Custom Layers" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 2.7.12 (~/anaconda2/bin/python2.7)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 2.7.10 (C:\SciSoft\Anaconda\python.exe)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">

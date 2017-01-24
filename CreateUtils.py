@@ -155,6 +155,12 @@ Changed:   {changed}""".format(added=self.added(), removed=self.removed(), chang
                                unchanged=self.unchanged())
 
 
+def getPathRelativeToRoot(abspath):
+    rootDataFolder = getRootDataFolder()
+    relpath = os.path.relpath(abspath, rootDataFolder)
+    return relpath
+
+
 def convertPathToThisOS(path):
     isNT = re.match(r"\S:[\\]+", path)
     isPOSIX = re.match(r"/[^/]+", path)
