@@ -29,7 +29,7 @@ rawDataFolder = CreateUtils.getRawDataFolder()
 # fileName = 'afittest00000.wav'
 # fileName = 'carsound00000.wav'
 # fileName = 'biketest00001.wav'
-fileName = 'afitmap00003.wav'
+fileName = 'afitmap00008.wav'
 
 rawDataFile = os.path.join(rawDataFolder, fileName)
 
@@ -98,7 +98,7 @@ if plotSpecgram:
     noverlap = NFFT/2
     print("Computing specgram with 2 power of {0}".format(np.log2(NFFT)))
     print("Computing specgram with {0} points".format(NFFT))
-    windowType = mlab.window_hanning  # mlab.window_none, mlab.window_hanning
+    windowType = mlab.window_none  # mlab.window_none, mlab.window_hanning
     Pxx, freqs, bins, im = plt.specgram(actualDataY,
                                         window=windowType,
                                         NFFT=NFFT,
