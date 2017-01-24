@@ -270,7 +270,7 @@ def getXYTempAndLabelsFromFile(featureStorePath,
             # force the Y output to be a number of a grid location
             fYTemp = deterineYValuesGridByGPSArrayInLocalLevelCoords(fYTemp, gridSize)
         if yValueType == 'particle':
-            particleFilePath = datasetParameters['y value parameters']['particleFilePath']
+            particleFilePath = CreateUtils.getAbsolutePath(datasetParameters['y value parameters']['particleFilePath'])
             # the file should be in North x East with the same local level coord
             particleArray = np.genfromtxt(particleFilePath, delimiter=',', skip_header=1)
             distArray = cdist(fYTemp, particleArray, metric='euclidean')
@@ -329,7 +329,7 @@ def getXYTempAndLabelsFromFile(featureStorePath,
         rowPackagingMetadata = rowPackagingMetadata[:, None]
     elif rowPackagingStyle == 'particle':
         # pull out variables for packing
-        particlePackFilePath = datasetParameters['particlePackFilePath']
+        particlePackFilePath = CreateUtils.getAbsolutePath(datasetParameters['particlePackFilePath'])
         # the file should be in North x East with the same local level coord
         particleArray = np.genfromtxt(particlePackFilePath, delimiter=',', skip_header=1)
 
@@ -467,7 +467,7 @@ def finalFilteringSets(setDictArg, datasetParameters, filterFitSets, yValueType,
 
     # Saved Filter parameters
     useSavedFilter = datasetParameters['useSavedFilter'] if 'useSavedFilter' in datasetParameters else False
-    savedFilterFile = datasetParameters['savedFilterFile'] if 'savedFilterFile' in datasetParameters else ''
+    savedFilterFile = CreateUtils.getAbsolutePath(datasetParameters['savedFilterFile']) if 'savedFilterFile' in datasetParameters else ''
     # Filter parameters
     filterPCA = datasetParameters['filterPCA'] if 'filterPCA' in datasetParameters else False
     filterPCAn_components = datasetParameters[
@@ -630,7 +630,8 @@ def repackageSets(setDictArg, datasetParameters, rowProcessingMetadataDictArg):
     timestepsPerKerasBatchRow = datasetParameters[
         'timestepsPerKerasBatchRow'] if 'timestepsPerKerasBatchRow' in datasetParameters else 1
     allSetsSameRows = datasetParameters['allSetsSameRows'] if 'allSetsSameRows' in datasetParameters else False
-    shuffleSamplesAfterRepackaging = datasetParameters['shuffleSamplesAfterRepackaging'] if 'shuffleSamplesAfterRepackaging' in datasetParameters else False
+    shuffleSamplesAfterRepackaging = datasetParameters[
+        'shuffleSamplesAfterRepackaging'] if 'shuffleSamplesAfterRepackaging' in datasetParameters else False
 
     packagedRowsPerSetDict = {}
     packagedColumnsPerSetDict = {}
@@ -822,7 +823,7 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
 
         outputLabelsFinal = []
         if yValueType == 'particle':
-            particleFilePath = datasetParameters['y value parameters']['particleFilePath']
+            particleFilePath = CreateUtils.getAbsolutePath(datasetParameters['y value parameters']['particleFilePath'])
             # the file should be in North x East with the same local level coord
             particleArray = np.genfromtxt(particleFilePath, delimiter=',', skip_header=1)
             labelIndices, outputLabelsFinal = getIndexOfLabels(particleArray, outputLabelsFinal)
@@ -1158,7 +1159,8 @@ def mainRun():
     localLevelOriginInECEF = [507278.89822834, -4884824.02376298, 4056425.76820216]  # Neighborhood Center
 
     # particle variables
-    particleFilePath = os.path.join(CreateUtils.getImageryFolder(), "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
+    particleFilePath = CreateUtils.getPathRelativeToRoot(
+        os.path.join(CreateUtils.getImageryFolder(), "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv"))
 
     # Sequences ########################################################
     makeSequences = False
@@ -1176,9 +1178,10 @@ def mainRun():
 
     # filter features ###################################################
     useSavedFilter = False
-    savedFilterFile = os.path.join(CreateUtils.getProcessedDataDatasetsFolder('bikeneighborhoodPackFileNormParticle'),
-                                   'SavedFilters',
-                                   'FFTWindowDefault.pkl')
+    savedFilterFile = CreateUtils.getPathRelativeToRoot(
+        os.path.join(CreateUtils.getProcessedDataDatasetsFolder('bikeneighborhoodPackFileNormParticle'),
+                     'SavedFilters',
+                     'FFTWindowDefault(sklearn-0.18).pkl'))
 
     filterPCA = True
     filterFitSets = ["normal"]  # names of the sets you want to use to filter
@@ -1208,7 +1211,8 @@ def mainRun():
     #   gpsD
     gridSizePackage = (100, 100, 1000)
     #   particle
-    particlePackFilePath = os.path.join(CreateUtils.getImageryFolder(), "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
+    particlePackFilePath = CreateUtils.getPathRelativeToRoot(
+        os.path.join(CreateUtils.getImageryFolder(), "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv"))
     #   classWithClassTransition
     minForClassTransition = 50
     # keras packaging

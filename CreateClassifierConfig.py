@@ -60,7 +60,7 @@ if __name__ == '__main__':
     overwriteConfigFile = True
 
     classifierType = 'LSTM'
-    classifierSetName = 'ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTDTF'
+    classifierSetName = 'ClassificationAllClasses3LPlus3MLP1000StatefulAutoBatchDropRegRlrRMSPropTD'
 
     # classes are 0 indexed except when printed as a label!!!
     # rogueClasses = sorted(list(set(range(17)) - {1, 3, 4}))
@@ -278,7 +278,32 @@ if __name__ == '__main__':
         }
     # endregion
     elif classifierType == 'LSTM':
+        # Training
         classifierGoal = 'classification'
+        learning_rate = 0.001
+        epsilon = 1e-8
+        decay = 0.0
+        n_epochs = 2000
+        batch_size = 0
+        auto_stateful_batch = True
+        reduceLearningRate = True
+        rlrMonitor = 'loss'
+        rlrFactor = 0.8
+        rlrPatience = 10
+        rlrCooldown = 10
+        rlrEpsilon = 1e-4
+
+        lossType = 'categorical_crossentropy'  # ['mse', 'categorical_crossentropy', 'falsePositiveRate']
+        # ['root_mean_squared_error', 'root_mean_squared_error_unscaled', 'categorical_accuracy', 'falsePositiveRate']
+        metrics = ['categorical_accuracy']
+        optimizerType = 'rmsprop'
+
+        # rmsprop specific
+        rho = 0.9  # how much accumulation do you want? (using the RMS of the gradient)
+
+        # adam specific
+        beta_1 = 0.9  # how much accumulation do you want?
+        beta_2 = 0.999  # how much accumulation do you want? (using the RMS of the gradient)
 
         # Wavelet Layer
         useWaveletTransform = False
@@ -288,7 +313,7 @@ if __name__ == '__main__':
         sigmaValues = None
 
         # LSTM
-        lstm_layers_sizes = [500, 500]
+        lstm_layers_sizes = [1000, 1000, 1000]
         dropout_W = 0.5
         dropout_U = 0.5
         dropout_LSTM = 0.0
@@ -305,7 +330,7 @@ if __name__ == '__main__':
         trainLSTM = True
 
         # MLP
-        hidden_layers_sizes = [500, 500]
+        hidden_layers_sizes = [1000, 1000, 1000]
         hidden_activations = 'tanh'
         dropout_Hidden = 0.5
         W_regularizer_l1_hidden = 0.0001
@@ -315,21 +340,30 @@ if __name__ == '__main__':
         finalActivationType = 'softmax'
         trainMLP = True
 
+        # Maxout
+        maxout_layers_sizes = [100, 100]
+        dropout_Maxout = 0.5
+        W_regularizer_l1_maxout = 0.0001
+        b_regularizer_l1_maxout = 0.
+        W_regularizer_l2_maxout = 0.
+        b_regularizer_l2_maxout = 0.
+        trainMaxout = True
+
         # Model
         useTimeDistributedOutput = True
         onlyBuildModel = False
-        useTeacherForcing = True
+        useTeacherForcing = False
         teacherForcingDropout = 0.5
 
         # this will only load the previous weights for the hidden and lstm layers
         loadPreviousModelWeightsForTraining = False
 
-        loadWeightsFilePath = os.path.join(CreateUtils.getExperimentFolder(
+        loadWeightsFilePath = CreateUtils.getPathRelativeToRoot(os.path.join(CreateUtils.getExperimentFolder(
             'PatchShortTallAllFreq',
             'bikeneighborhoodPackFileNormParticleTDM',
             'LSTM',
             'ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD'),
-            'best_modelWeights.h5')
+            'best_modelWeights.h5'))
 
         # Append MLP Layers
         useAppendMLPLayers = False
@@ -337,7 +371,8 @@ if __name__ == '__main__':
         append_layers_sizes = [2]
         append_activations = 'linear'
         dropout_Append = 0.0
-        appendWeightsFile = os.path.join(CreateUtils.getImageryFolder(), "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv")
+        appendWeightsFile = CreateUtils.getPathRelativeToRoot(
+            os.path.join(CreateUtils.getImageryFolder(), "bikeneighborhoodPackFileNormParticleTDMparticleLocationsFromDataset.csv"))
         trainAppend = True
 
         # Kalman Layer
@@ -377,32 +412,6 @@ if __name__ == '__main__':
         trainMatrices = {'statesX': False, 'PMatrix': False, 'phiMatrix': False, 'BMatrix': False, 'CMatrix': False,
                          'DMatrix': False, 'QMatrix': True, 'HMatrix': False, 'RMatrix': False}
         matrixIsDiscrete = {'plantMatrices': False, 'QMatrix': False}
-
-        # Training
-        learning_rate = 0.001
-        epsilon = 1e-8
-        decay = 0.0
-        n_epochs = 2000
-        batch_size = 0
-        auto_stateful_batch = True
-        reduceLearningRate = True
-        rlrMonitor = 'loss'
-        rlrFactor = 0.8
-        rlrPatience = 10
-        rlrCooldown = 10
-        rlrEpsilon = 1e-4
-
-        lossType = 'categorical_crossentropy'  # ['mse', 'categorical_crossentropy', 'falsePositiveRate']
-        # ['root_mean_squared_error', 'root_mean_squared_error_unscaled', 'categorical_accuracy', 'falsePositiveRate']
-        metrics = ['categorical_accuracy']
-        optimizerType = 'rmsprop'
-
-        # rmsprop specific
-        rho = 0.9  # how much accumulation do you want? (using the RMS of the gradient)
-
-        # adam specific
-        beta_1 = 0.9  # how much accumulation do you want?
-        beta_2 = 0.999  # how much accumulation do you want? (using the RMS of the gradient)
 
         # random Specific
         addAllOptimizerParams = True

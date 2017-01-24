@@ -14,7 +14,7 @@ import theano.tensor as T
 import keras.callbacks
 from keras.callbacks import Callback
 from keras.models import Sequential, model_from_json
-from keras.layers import Dense, Dropout, Activation, TimeDistributed, LSTM
+from keras.layers import Dense, Dropout, Activation, TimeDistributed, LSTM, MaxoutDense
 from keras.engine.topology import Container
 from keras.optimizers import rmsprop, adam
 from keras.regularizers import WeightRegularizer
@@ -1000,14 +1000,17 @@ def kerasClassifier_parameterized(featureParameters,
             data_dim += final_output_dim
 
         lstm_layers_sizes = classifierParameters['lstm_layers_sizes']
-        n_epochs = classifierParameters['n_epochs']
-        batch_size = min(classifierParameters['batch_size'], max_batch_size)
         hidden_layers_sizes = classifierParameters['hidden_layers_sizes']
         finalActivationType = classifierParameters['finalActivationType']
+        maxout_layers_sizes = classifierParameters['maxout_layers_sizes']
+
+        n_epochs = classifierParameters['n_epochs']
+        batch_size = min(classifierParameters['batch_size'], max_batch_size)
         stateful = classifierParameters['stateful'] if 'stateful' in classifierParameters else False
         consume_less = classifierParameters['consume_less'] if 'consume_less' in classifierParameters else 'cpu'
         trainLSTM = classifierParameters['trainLSTM'] if 'trainLSTM' in classifierParameters else True
         trainMLP = classifierParameters['trainMLP'] if 'trainMLP' in classifierParameters else True
+        trainMaxout = classifierParameters['trainMaxout'] if 'trainMaxout' in classifierParameters else True
 
         useKalman = classifierParameters['useKalman'] if 'useKalman' in classifierParameters else False
 
@@ -1022,6 +1025,7 @@ def kerasClassifier_parameterized(featureParameters,
         dropout_U = getListParameterAndPadLength('dropout_U', lstm_layers_sizes, classifierParameters)
         dropout_LSTM = getListParameterAndPadLength('dropout_LSTM', lstm_layers_sizes, classifierParameters)
         dropout_Hidden = getListParameterAndPadLength('dropout_Hidden', hidden_layers_sizes, classifierParameters)
+        dropout_Maxout = getListParameterAndPadLength('dropout_Maxout', maxout_layers_sizes, classifierParameters)
 
         W_regularizer_l1_LSTM = getListParameterAndPadLength('W_regularizer_l1)LSTM', lstm_layers_sizes,
                                                              classifierParameters)
@@ -1043,6 +1047,15 @@ def kerasClassifier_parameterized(featureParameters,
         W_regularizer_l2_hidden = getListParameterAndPadLength("W_regularizer_l2_hidden", hidden_layers_sizes,
                                                                classifierParameters)
         b_regularizer_l2_hidden = getListParameterAndPadLength("b_regularizer_l2_hidden", hidden_layers_sizes,
+                                                               classifierParameters)
+
+        W_regularizer_l1_maxout = getListParameterAndPadLength("W_regularizer_l1_maxout", maxout_layers_sizes,
+                                                               classifierParameters)
+        b_regularizer_l1_maxout = getListParameterAndPadLength("b_regularizer_l1_maxout", maxout_layers_sizes,
+                                                               classifierParameters)
+        W_regularizer_l2_maxout = getListParameterAndPadLength("W_regularizer_l2_maxout", maxout_layers_sizes,
+                                                               classifierParameters)
+        b_regularizer_l2_maxout = getListParameterAndPadLength("b_regularizer_l2_maxout", maxout_layers_sizes,
                                                                classifierParameters)
 
         if stateful:
@@ -1082,8 +1095,13 @@ def kerasClassifier_parameterized(featureParameters,
             if X_test is not None:
                 X_test = X_test[:, :, None, :]
 
+        # LSTM
         for layerIndex in range(1, 1 + len(lstm_layers_sizes)):
             lstmIndex = layerIndex - 1
+
+            if (dropout_LSTM[lstmIndex]) > 0:
+                model.add(Dropout(dropout_LSTM[lstmIndex], name="Dropout Layer {0}".format(layerIndex)))
+
             return_sequences = (layerIndex != len(lstm_layers_sizes)) or useTimeDistributedOutput
             W_regularizer_LSTM = WeightRegularizer(l1=W_regularizer_l1_LSTM[lstmIndex],
                                                    l2=W_regularizer_l2_LSTM[lstmIndex])
@@ -1106,11 +1124,14 @@ def kerasClassifier_parameterized(featureParameters,
                      b_regularizer=b_regularizer_LSTM,
                      trainable=trainLSTM,
                      name="LSTM Layer {0}".format(layerIndex)))
-            if (dropout_LSTM[lstmIndex]) > 0:
-                model.add(Dropout(dropout_LSTM[lstmIndex], name="Dropout Layer {0}".format(layerIndex)))
 
+        # MLP
         for layerIndex in range(1 + len(lstm_layers_sizes), 1 + len(lstm_layers_sizes) + len(hidden_layers_sizes)):
             hiddenIndex = layerIndex - (1 + len(lstm_layers_sizes))
+
+            if (dropout_Hidden[hiddenIndex]) > 0:
+                model.add(Dropout(dropout_Hidden[hiddenIndex], name="Dropout Layer {0}".format(layerIndex)))
+
             W_regularizer_hidden = WeightRegularizer(l1=W_regularizer_l1_hidden[hiddenIndex],
                                                      l2=W_regularizer_l2_hidden[hiddenIndex])
             b_regularizer_hidden = WeightRegularizer(l1=b_regularizer_l1_hidden[hiddenIndex],
@@ -1124,25 +1145,45 @@ def kerasClassifier_parameterized(featureParameters,
             if useTimeDistributedOutput:
                 thisDenseLayer = TimeDistributed(thisDenseLayer, name="TD {0}".format(thisDenseLayer.name))
             model.add(thisDenseLayer)
-            if (dropout_Hidden[hiddenIndex]) > 0:
-                model.add(Dropout(dropout_Hidden[hiddenIndex], name="Dropout Layer {0}".format(layerIndex)))
 
+        # Maxout Dense
+        for layerIndex in range(1 + len(lstm_layers_sizes) + len(hidden_layers_sizes), 1 + len(lstm_layers_sizes),
+                                len(hidden_layers_sizes) + len(maxout_layers_sizes)):
+            maxoutIndex = layerIndex - (1 + len(lstm_layers_sizes) + len(hidden_layers_sizes))
+            if (dropout_Maxout[maxoutIndex]) > 0:
+                model.add(Dropout(dropout_Maxout[maxoutIndex], name="Dropout Layer {0}".format(layerIndex)))
+
+            W_regularizer_maxout = WeightRegularizer(l1=W_regularizer_l1_maxout[maxoutIndex],
+                                                     l2=W_regularizer_l2_maxout[maxoutIndex])
+            b_regularizer_maxout = WeightRegularizer(l1=b_regularizer_l1_maxout[maxoutIndex],
+                                                     l2=b_regularizer_l2_maxout[maxoutIndex])
+            thisMaxoutLayer = MaxoutDense(maxout_layers_sizes[maxoutIndex],
+                                          W_regularizer=W_regularizer_maxout,
+                                          b_regularizer=b_regularizer_maxout,
+                                          trainable=trainMaxout)
+            if useTimeDistributedOutput:
+                thisMaxoutLayer = TimeDistributed(thisMaxoutLayer, name="TD {0}".format(thisMaxoutLayer.name))
+            model.add(thisMaxoutLayer)
+
+        # Final dense layer to match expected output
         if useAppendMLPLayers:
             finalOutputDataDimension = appendExpectedInput
         else:
             finalOutputDataDimension = y_train.shape[1] if useTimeDistributedOutput is False else y_train.shape[2]
         lastDenseLayer = Dense(finalOutputDataDimension,
                                trainable=trainMLP,
+                               activation=finalActivationType,
                                name="Dense Layer Output")
         if useTimeDistributedOutput:
             lastDenseLayer = TimeDistributed(lastDenseLayer, name="TD {0}".format(lastDenseLayer.name))
         model.add(lastDenseLayer)
-        model.add(Activation(finalActivationType, name="{0} Layer Output".format(finalActivationType)))
 
+        # load previous weights to the LSTM and Dense Layers
         loadPreviousModelWeightsForTraining = classifierParameters['loadPreviousModelWeightsForTraining'] \
             if 'loadPreviousModelWeightsForTraining' in classifierParameters else False
         if loadPreviousModelWeightsForTraining:
-            loadWeightsFilePath = classifierParameters['loadWeightsFilePath'] if 'loadWeightsFilePath' in classifierParameters else ''
+            loadWeightsFilePath = CreateUtils.getAbsolutePath(
+                classifierParameters['loadWeightsFilePath']) if 'loadWeightsFilePath' in classifierParameters else ''
             if loadWeightsFilePath == '':
                 loadWeightsFilePath = os.path.join(experimentsFolder, 'best_modelWeights.h5')
             previousWeightsPath = loadWeightsFilePath
@@ -1177,6 +1218,7 @@ def kerasClassifier_parameterized(featureParameters,
             else:
                 raise ValueError("The previous weights file does not exist \n{0}".format(previousWeightsPath))
 
+        # Append one more Dense layer with usually predefined weights
         if useAppendMLPLayers:
             append_layers_sizes = classifierParameters['append_layers_sizes']
             append_activations = getListParameterAndPadLength('append_activations', append_layers_sizes, classifierParameters)
@@ -1184,12 +1226,13 @@ def kerasClassifier_parameterized(featureParameters,
             appendWeightsFile = getListParameterAndPadLength('appendWeightsFile', append_layers_sizes, classifierParameters, default=None)
             trainAppend = classifierParameters['trainAppend']
 
-            totalLayersSoFar = 1 + len(lstm_layers_sizes) + len(hidden_layers_sizes)
+            totalLayersSoFar = 1 + len(lstm_layers_sizes) + len(hidden_layers_sizes) + len(maxout_layers_sizes)
             for layerIndex in range(totalLayersSoFar, totalLayersSoFar + len(append_layers_sizes)):
                 appendIndex = layerIndex - totalLayersSoFar
 
                 if appendWeightsFile[appendIndex] is not None:
-                    thisWeights = np.genfromtxt(appendWeightsFile[appendIndex], delimiter=',', skip_header=1)
+                    appendWeightsFileAbsolute = CreateUtils.getAbsolutePath(appendWeightsFile[appendIndex])
+                    thisWeights = np.genfromtxt(appendWeightsFileAbsolute, delimiter=',', skip_header=1)
                     thisBiases = np.zeros((thisWeights.shape[1]))
                     thisWeightsList = [thisWeights, thisBiases]
                 else:

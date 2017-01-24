@@ -214,11 +214,11 @@ def runExperiment(featureSetName,
 def runMain():
     # run experiment parameters
     featureMethod = "SignalPlaceholder"
-    featureSetNameMain = 'FFTWindowDefault'
-    datasetNameMain = ['bikeneighborhoodPackFileNormParticle']
+    featureSetNameMain = 'FFTWindowLowFreq'
+    datasetNameMain = ['bikeneighborhoodPackParticleNormParticle']
     classifierTypeMain = ['LSTM']
-    classifierSetNameMain = ['ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD']
-    datasetNameStats = 'bikeneighborhoodExamPackFileNormParticleShuffle'  # for right now you only get one
+    classifierSetNameMain = ['ClassificationAllClasses3LPlus3MLP1000StatefulAutoBatchDropRegRlrRMSPropTD']
+    datasetNameStats = 'bikeneighborhoodPackFileNormParticle'  # for right now you only get one
     trainValidTestSetNames = ('train', None, None)
 
     # per run variables

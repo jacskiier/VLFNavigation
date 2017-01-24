@@ -161,6 +161,13 @@ def getPathRelativeToRoot(abspath):
     return relpath
 
 
+def getAbsolutePath(path):
+    if os.path.isabs(path):
+        return path
+    else:
+        return os.path.join(getRootDataFolder(), path)
+
+
 def convertPathToThisOS(path):
     isNT = re.match(r"\S:[\\]+", path)
     isPOSIX = re.match(r"/[^/]+", path)
@@ -263,40 +270,30 @@ def getRootDataFolder(featureMethod=None, signalSource='Loop Antenna With iPhone
     else:
         masterFeatureMethod = featureMethod
 
+    # get source root based on OS
     if os.name == 'nt':
-        if featureMethod in featureMethodNamesRebuildValid:
-            if signalSource == 'Loop Antenna With iPhone 4' or signalSource == 'Loop Antenna With iPhone 5c':
-                rootDataFolder = os.path.join("M:\\", "iPhoneVLFSignals")
-                samplingRate = 44100
-            elif signalSource == '3-Axis Dipole With SRI Receiver':
-                rootDataFolder = os.path.join("M:\\", "3AxisVLFSignals")
-                samplingRate = 200000
-            else:
-                raise ValueError("Signal Source of {0} is not supported".format(signalSource))
-        elif featureMethod == 'MNIST':
-            rootDataFolder = r"M:\\MNIST Data Root\\"
-        elif featureMethod == 'THoR':
-            rootDataFolder = r"E:\\Users\\Joey\\Documents\\Python Scripts\\parse NHL\\"
-        else:  # featureMethod == "Test"
-            rootDataFolder = r"M:\\Test Data Root\\"
+        sourceRoot = "M:\\"
     elif os.name == 'posix':
-        if featureMethod in featureMethodNamesRebuildValid:
-            if signalSource == 'Loop Antenna With iPhone 4' or signalSource == 'Loop Antenna With iPhone 5c':
-                rootDataFolder = os.path.join("/media", "sena", "Mystery Shack", "iPhoneVLFSignals")
-                samplingRate = 44100
-            elif signalSource == '3-Axis Dipole With SRI Receiver':
-                rootDataFolder = os.path.join("/media", "sena", "Mystery Shack", "3AxisVLFSignals")
-                samplingRate = 200000
-            else:
-                raise ValueError("Signal Source of {0} is not supported".format(signalSource))
-        elif featureMethod == 'MNIST':
-            rootDataFolder = os.path.join("/media", "sena", "Mystery Shack", "MNIST Data Root")
-        elif featureMethod == 'THoR':
-            rootDataFolder = r"/media/sena/Greed Island/Users/Joey/Documents/Python Scripts/parse NHL/"
-        else:  # featureMethod == "Test"
-            rootDataFolder = os.path.join("/media", "sena", "Mystery Shack", "Test Data Root")
+        sourceRoot = os.path.join("/media", "sena", "Mystery Shack")
     else:
         raise ValueError("This OS is not allowed")
+
+    # get the root data folder based on the feature method
+    if featureMethod in featureMethodNamesRebuildValid:
+        if signalSource == 'Loop Antenna With iPhone 4' or signalSource == 'Loop Antenna With iPhone 5c':
+            rootDataFolder = os.path.join(sourceRoot, "iPhoneVLFSignals")
+            samplingRate = 44100
+        elif signalSource == '3-Axis Dipole With SRI Receiver':
+            rootDataFolder = os.path.join(sourceRoot, "3AxisVLFSignals")
+            samplingRate = 200000
+        else:
+            raise ValueError("Signal Source of {0} is not supported".format(signalSource))
+    elif featureMethod == 'MNIST':
+        rootDataFolder = os.path.join(sourceRoot, "MNIST Data Root")
+    elif featureMethod == 'THoR':
+        rootDataFolder = os.path.join(sourceRoot, "THoR Data Root")
+    else:  # featureMethod == "Test"
+        rootDataFolder = os.path.join(sourceRoot, "Test Data Root")
 
     if includeSamplingRate:
         ret = (rootDataFolder, samplingRate)
