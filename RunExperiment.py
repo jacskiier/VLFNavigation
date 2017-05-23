@@ -214,12 +214,12 @@ def runExperiment(featureSetName,
 def runMain():
     # run experiment parameters
     featureMethod = "SignalPlaceholder"
-    featureSetNameMain = 'FFTWindowLowFreq'
-    datasetNameMain = ['bikeneighborhoodPackParticleNormParticle']
+    featureSetNameMain = 'FFTWindowDefault'
+    datasetNameMain = ['bikeneighborhoodPackFileNormParticle']
     classifierTypeMain = ['LSTM']
-    classifierSetNameMain = ['ClassificationAllClasses3LPlus3MLP1000StatefulAutoBatchDropRegRlrRMSPropTD']
+    classifierSetNameMain = ['ClassificationAllClasses2LPlus2MLPStatefulAutoBatchDropReg2RlrRMSPropTD']
     datasetNameStats = 'bikeneighborhoodPackFileNormParticle'  # for right now you only get one
-    trainValidTestSetNames = ('train', None, None)
+    trainValidTestSetNames = ('train', 'valid', None)
 
     # per run variables
     forceRefreshFeatures = False
@@ -231,7 +231,7 @@ def runMain():
     useLabels = True
     showFigures = True
     whichSetNameModel = 'valid'
-    whichSetNameStats = 'normal'
+    whichSetNameStats = 'valid'
 
     # keras specific parameters
     showKerasFigure = False

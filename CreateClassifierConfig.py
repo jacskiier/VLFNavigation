@@ -341,7 +341,7 @@ if __name__ == '__main__':
         trainMLP = True
 
         # Maxout
-        maxout_layers_sizes = [100, 100]
+        maxout_layers_sizes = []
         dropout_Maxout = 0.5
         W_regularizer_l1_maxout = 0.0001
         b_regularizer_l1_maxout = 0.
@@ -478,6 +478,7 @@ if __name__ == '__main__':
                 'finalActivationType': finalActivationType,
                 'trainMLP': trainMLP,
             }
+            configDict.update(hiddenDict)
             if dropout_Hidden > 0:
                 configDict.update({'dropout_Hidden': dropout_Hidden})
             if W_regularizer_l1_hidden > 0:
@@ -488,7 +489,22 @@ if __name__ == '__main__':
                 configDict.update({'W_regularizer_l2_hidden': W_regularizer_l2_hidden})
             if b_regularizer_l2_hidden > 0:
                 configDict.update({'b_regularizer_l2_hidden': b_regularizer_l2_hidden})
-            configDict.update(hiddenDict)
+        if len(maxout_layers_sizes) > 0:
+            maxoutDict = {
+                "maxout_layers_sizes": maxout_layers_sizes,
+                "trainMaxout": trainMaxout
+            }
+            configDict.update(maxoutDict)
+            if dropout_Maxout > 0:
+                configDict.update({'dropout_Maxout': dropout_Maxout})
+            if W_regularizer_l1_maxout > 0:
+                configDict.update({"W_regularizer_l1_maxout": W_regularizer_l1_maxout})
+            if b_regularizer_l1_maxout > 0:
+                configDict.update({"b_regularizer_l1_maxout": b_regularizer_l1_maxout})
+            if W_regularizer_l2_maxout > 0:
+                configDict.update({"W_regularizer_l2_maxout": W_regularizer_l2_maxout})
+            if b_regularizer_l2_maxout > 0:
+                configDict.update({"b_regularizer_l2_maxout": b_regularizer_l2_maxout})
         if useKalman:
             kalmanDict = {
                 'useKalman': useKalman,

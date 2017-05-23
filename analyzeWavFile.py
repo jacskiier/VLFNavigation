@@ -10,12 +10,16 @@ import numpy as np
 import matplotlib.pylab as plt
 import matplotlib.mlab as mlab
 import matplotlib.cm as cm
+import matplotlib.colors as colors
 
 from python_speech_features import mfcc
 from python_speech_features import logfbank
 
 import CreateFeature
 import CreateUtils
+from mpl_toolkits.mplot3d import Axes3D
+
+from sklearn.externals import joblib
 
 plt.close("all")
 
@@ -29,7 +33,8 @@ rawDataFolder = CreateUtils.getRawDataFolder()
 # fileName = 'afittest00000.wav'
 # fileName = 'carsound00000.wav'
 # fileName = 'biketest00001.wav'
-fileName = 'afitmap00008.wav'
+# fileName = 'bikeneighborhood00028.wav'
+fileName = 'afitmap00073.wav'
 
 rawDataFile = os.path.join(rawDataFolder, fileName)
 
@@ -52,6 +57,7 @@ if plotAmplitude:
     plt.title('Signal Over time')
     plt.xlabel('time (s)')
     plt.ylabel('signal amplitude')
+    plt.show()
 
 if plotCorrelation:
     print("Plot Correlation")
@@ -91,26 +97,62 @@ Pxx = None
 freqs = None
 bins = None
 fftPower = 30
+transformSpecgram = False
 if plotSpecgram:
     plt.figure(4)
     windowSizeInSeconds = 0.1
     NFFT = int(windowSizeInSeconds * samplingRate)
-    noverlap = NFFT/2
+    noverlap = NFFT / 2
     print("Computing specgram with 2 power of {0}".format(np.log2(NFFT)))
     print("Computing specgram with {0} points".format(NFFT))
-    windowType = mlab.window_none  # mlab.window_none, mlab.window_hanning
-    Pxx, freqs, bins, im = plt.specgram(actualDataY,
-                                        window=windowType,
-                                        NFFT=NFFT,
-                                        Fs=samplingRate,
-                                        noverlap=noverlap,
-                                        cmap=cm.get_cmap("gist_heat"),
-                                        mode='psd',
-                                        scale='dB',
-                                        **{'interpolation': 'nearest', })
+    windowType = mlab.window_hanning  # mlab.window_none, mlab.window_hanning
+    # Pxx, freqs, bins, im = plt.specgram(actualDataY,
+    #                                      window=windowType,
+    #                                      NFFT=NFFT,
+    #                                      Fs=samplingRate,
+    #                                      noverlap=noverlap,
+    #                                      cmap=cm.get_cmap("hsv"),
+    #                                      mode='psd',
+    #                                      scale='dB',
+    #                                      **{'interpolation': 'nearest', })
+
+    Pxx, freqs, bins = mlab.specgram(actualDataY,
+                                     window=windowType,
+                                     NFFT=NFFT,
+                                     Fs=samplingRate,
+                                     noverlap=noverlap,
+                                     mode='psd', )
+
+    if transformSpecgram:
+        savedFilterFile = CreateUtils.getPathRelativeToRoot(
+            os.path.join(CreateUtils.getProcessedDataDatasetsFolder('bikeneighborhoodPackFileNormParticle'), 'SavedFilters', "FFTWindowDefault(sklearn-0.18).pkl"))
+        savedFilterFile = CreateUtils.getAbsolutePath(savedFilterFile)
+        print("Using Saved filter {0}".format(savedFilterFile))
+        savedFilterDict = joblib.load(savedFilterFile)
+        pca = savedFilterDict['pca']
+        Pxx = np.transpose(pca.transform(np.transpose(Pxx)))
+
+    PxxDb = np.log10(Pxx)
+    PxxDb *= 10
+    PxxDb[PxxDb < -50] = -50
+    thisCmap = cm.get_cmap("jet")
+    thisCmap.set_bad('w', 1)
+    ax = plt.imshow(PxxDb,
+                    interpolation='nearest',
+                    cmap=thisCmap,
+                    aspect='auto',
+                    origin='lower',
+                    extent=(bins[0], bins[-1], freqs[0], freqs[-1]))
     plt.title("Specgram of {0}".format(fileName))
     plt.xlabel("time (s)")
     plt.ylabel("Frequency (Hz)")
+    cb1 = plt.colorbar(ax)
+    cb1.set_label("Power (dB)")
+    # fig = plt.figure(2)
+    # ax = fig.gca(projection='3d')
+    # X, Y = np.meshgrid(bins, freqs)
+    # surf = ax.plot_surface(X, Y, Pxx, cmap=cm.get_cmap("coolwarm"))
+
     plt.show()
 
 if plotCovariance:

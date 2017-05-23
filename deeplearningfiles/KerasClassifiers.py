@@ -1,4 +1,5 @@
 import os
+import re
 
 import csv
 import warnings
@@ -935,9 +936,12 @@ def kerasClassifier_parameterized(featureParameters,
                                                             datasetParameters['datasetName'],
                                                             classifierParameters['classifierType'],
                                                             classifierParameters['classifierSetName'])
+    modelWeightsRegex = re.compile(""".*modelWeights.h5""")
+    experimentsFolderFiles = os.listdir(experimentsFolder)
+    foundAnyWeights = any([re.match(modelWeightsRegex, filePath) for filePath in experimentsFolderFiles])
 
-    modelStoreWeightsBestFilePathFullTemp = os.path.join(experimentsFolder, 'best_modelWeights.h5')
-    if not os.path.exists(modelStoreWeightsBestFilePathFullTemp) or forceRebuildModel:
+    modelStoreFilePathFullTemp = os.path.join(experimentsFolder, 'model.json')
+    if not (os.path.exists(modelStoreFilePathFullTemp) and foundAnyWeights) or forceRebuildModel:
         makeSequences = datasetParameters['makeSequences'] if 'makeSequences' in datasetParameters else False
         alternateRowsForKeras = datasetParameters[
             'alternateRowsForKeras'] if 'alternateRowsForKeras' in datasetParameters else False
@@ -1002,7 +1006,7 @@ def kerasClassifier_parameterized(featureParameters,
         lstm_layers_sizes = classifierParameters['lstm_layers_sizes']
         hidden_layers_sizes = classifierParameters['hidden_layers_sizes']
         finalActivationType = classifierParameters['finalActivationType']
-        maxout_layers_sizes = classifierParameters['maxout_layers_sizes']
+        maxout_layers_sizes = classifierParameters['maxout_layers_sizes'] if 'maxout_layers_sizes' in classifierParameters else []
 
         n_epochs = classifierParameters['n_epochs']
         batch_size = min(classifierParameters['batch_size'], max_batch_size)
@@ -1300,7 +1304,6 @@ def kerasClassifier_parameterized(featureParameters,
                       datasetParameters=datasetParameters)
         timer.toc()
 
-        modelStoreFilePathFullTemp = os.path.join(experimentsFolder, 'model.json')
         with open(modelStoreFilePathFullTemp, 'w') as modelStoreFile:
             json_string = model.to_json()
             modelStoreFile.write(json_string)

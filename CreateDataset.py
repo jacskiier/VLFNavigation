@@ -458,7 +458,7 @@ def getXYTempAndLabelsFromFile(featureStorePath,
     return fXTemp, fYTemp, outputLabelsFinal, rowPackagingMetadata, rowPackagingMetadataFinal
 
 
-def finalFilteringSets(setDictArg, datasetParameters, filterFitSets, yValueType, totalXColumns, totalYColumns, storeFilterFile):
+def finalFilteringSets(setDictArg, datasetParameters, filterFitSets, yValueType, totalXColumns, totalYColumns, storeFilterFile, savedFilterFile):
     shuffleFinalSamples = datasetParameters['shuffleFinalSamples'] if 'shuffleFinalSamples' in datasetParameters else False
 
     # Sequence Parameters
@@ -467,7 +467,7 @@ def finalFilteringSets(setDictArg, datasetParameters, filterFitSets, yValueType,
 
     # Saved Filter parameters
     useSavedFilter = datasetParameters['useSavedFilter'] if 'useSavedFilter' in datasetParameters else False
-    savedFilterFile = CreateUtils.getAbsolutePath(datasetParameters['savedFilterFile']) if 'savedFilterFile' in datasetParameters else ''
+
     # Filter parameters
     filterPCA = datasetParameters['filterPCA'] if 'filterPCA' in datasetParameters else False
     filterPCAn_components = datasetParameters[
@@ -484,6 +484,7 @@ def finalFilteringSets(setDictArg, datasetParameters, filterFitSets, yValueType,
     xNormalized = datasetParameters['xNormalized'] if 'xNormalized' in datasetParameters else False
 
     if useSavedFilter:
+        print("Using Saved filter {0}".format(savedFilterFile))
         savedFilterDict = joblib.load(savedFilterFile)
         pca = savedFilterDict['pca']
         xBias = savedFilterDict['xBias']
@@ -491,6 +492,7 @@ def finalFilteringSets(setDictArg, datasetParameters, filterFitSets, yValueType,
         xScaleFactor = savedFilterDict['xScaleFactor']
         yScaleFactor = savedFilterDict['yScaleFactor']
     else:
+        print("Creating New Filte File {0}".format(storeFilterFile))
         filterFitX = np.empty((0, totalXColumns))
         filterFitY = np.empty((0, totalYColumns))
         for setName, setValue in setDictArg.iteritems():
@@ -519,6 +521,15 @@ def finalFilteringSets(setDictArg, datasetParameters, filterFitSets, yValueType,
         if yNormalized:
             yBias = - np.min(filterFitY, axis=0)
             yScaleFactor = 1.0 / (np.max(filterFitY, axis=0) + yBias)
+
+        savedFilterDict = {
+            'pca': pca,
+            'xBias': xBias,
+            'yBias': yBias,
+            'xScaleFactor': xScaleFactor,
+            'yScaleFactor': yScaleFactor,
+        }
+        joblib.dump(savedFilterDict, storeFilterFile)
 
     for setName, setValue in setDictArg.iteritems():
         if yValueType in CreateUtils.yValueDiscreteTypes:
@@ -567,15 +578,6 @@ def finalFilteringSets(setDictArg, datasetParameters, filterFitSets, yValueType,
                                       int(filterX.shape[1] * timestepsPerSequence)))
         else:
             setValue[0] = filterX
-
-        savedFilterDict = {
-            'pca': pca,
-            'xBias': xBias,
-            'yBias': yBias,
-            'xScaleFactor': xScaleFactor,
-            'yScaleFactor': yScaleFactor,
-        }
-        joblib.dump(savedFilterDict, storeFilterFile)
 
         if shuffleFinalSamples:
             timer.tic("Shuffle {0} Set".format(setName))
@@ -935,13 +937,21 @@ def buildDataSet(datasetParameters, featureParameters, forceRefreshDataset=False
         timer.tic("Filtering Sets")
         if filterFitSets is None:
             filterFitSets = [defaultSetName]
-        savedFilterFile = os.path.join(processedDataFolder, "SavedFilters", featureSetName + '(sklearn-' + sklearn.__version__ + ').pkl')
+        filterFileName = featureSetName + '(sklearn-' + sklearn.__version__ + ').pkl'
+        storeFilterFile = os.path.join(processedDataFolder, "SavedFilters", filterFileName)
+        if 'savedFilterFile' in datasetParameters:
+            savedFilterFile = CreateUtils.getAbsolutePath(datasetParameters['savedFilterFile'])
+        elif 'savedFilterFolder' in datasetParameters:
+            savedFilterFile = os.path.join(CreateUtils.getAbsolutePath(datasetParameters['savedFilterFolder']), filterFileName)
+        else:
+            savedFilterFile = ""
         (setDict, xScaleFactor, xBias, yScaleFactor, yBias) = finalFilteringSets(setDict,
                                                                                  datasetParameters,
                                                                                  filterFitSets,
                                                                                  yValueType,
                                                                                  totalXColumns,
                                                                                  totalyColumns,
+                                                                                 storeFilterFile,
                                                                                  savedFilterFile)
         timer.toc()
 
@@ -1128,13 +1138,13 @@ def mainRun():
     removeFileNumbers = {}
     onlyFileNumbers = {}
     removeFeatureSetNames = []
-    onlyThisFeatureSetNames = ['FFTWindowDefault']
+    onlyThisFeatureSetNames = ['FFTWindowLowFreq']
     showFigures = True
 
     # Parameters Begin ############
     rngSeed = 0
     shuffleFinalSamples = False  # done after sequencing and filtering but before repackaging
-    shuffleSamplesAfterRepackaging = True  # done after repackaging
+    shuffleSamplesAfterRepackaging = False  # done after repackaging
     # per file parameters
     shuffleSamplesPerFile = False
     maxSamplesPerFile = 0
@@ -1177,11 +1187,12 @@ def mainRun():
         "you can't have both repeatSequenceBeginningAtEnd and repeatSequenceEndingAtEnd"
 
     # filter features ###################################################
-    useSavedFilter = False
-    savedFilterFile = CreateUtils.getPathRelativeToRoot(
-        os.path.join(CreateUtils.getProcessedDataDatasetsFolder('bikeneighborhoodPackFileNormParticle'),
-                     'SavedFilters',
-                     'FFTWindowDefault(sklearn-0.18).pkl'))
+    useSavedFilter = True
+    savedFilterFile = ''
+    # CreateUtils.getPathRelativeToRoot( os.path.join(CreateUtils.getProcessedDataDatasetsFolder('bikeneighborhoodPackFileNormParticle'),
+    # 'SavedFilters', "FFTWindowLowFreq(sklearn-0.18).pkl"))
+    savedFilterFolder = CreateUtils.getPathRelativeToRoot(
+        os.path.join(CreateUtils.getProcessedDataDatasetsFolder('bikeneighborhoodPackFileNormParticle'), 'SavedFilters'))
 
     filterPCA = True
     filterFitSets = ["normal"]  # names of the sets you want to use to filter
@@ -1340,22 +1351,13 @@ def mainRun():
     # defaultSetName = "normal"
     # fileNamesNumbersToSets = [("crazy", "walkneighborhood", [1])]
 
-    datasetName = 'bikeneighborhoodExamPackFileNormParticleShuffle'
+    datasetName = 'bikeneighborhoodPackFileNormC'
     allBaseFileNames = ["bikeneighborhood"]
-    yValueType = 'particle'
-    onlyFileNumbers = {"bikeneighborhood": [31, ]}
-    removeFileNumbers = {"bikeneighborhood": []}
-    defaultSetName = "normal"
-    # fileNamesNumbersToSets = [("crazy", "bikeneighborhood", [32])]
-    fileNamesNumbersToSets = []
-
-    # datasetName = 'bikeneighborhoodPackFileNormParticle'
-    # allBaseFileNames = ["bikeneighborhood"]
-    # yValueType = 'particle'
-    # onlyFileNumbers = {"bikeneighborhood": range(33)}
-    # removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 29, 8, 31, 32]}
-    # defaultSetName = "train"
-    # fileNamesNumbersToSets = [("valid", "bikeneighborhood", [12, 14, 16, 18, 20, 22, 24, 26, 28]), ]
+    yValueType = 'gpsC'
+    onlyFileNumbers = {"bikeneighborhood": range(33)}
+    removeFileNumbers = {"bikeneighborhood": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 29, 8, 31, 32]}
+    defaultSetName = "train"
+    fileNamesNumbersToSets = [("valid", "bikeneighborhood", [12, 14, 16, 18, 20, 22, 24, 26, 28]), ]
 
     ################################
     # Parameters End   ############
@@ -1434,11 +1436,13 @@ def mainRun():
             assert yValueType in CreateUtils.yValueDiscreteTypes, "class packing only valid with discrete"
         datasetParametersToDump.update(packageDict)
     if useSavedFilter:
-        filterDict = {
-            'useSavedFilter': useSavedFilter,
-            'savedFilterFile': savedFilterFile
-        }
-        datasetParametersToDump.update(filterDict)
+        datasetParametersToDump.update({'useSavedFilter': useSavedFilter})
+        if os.path.isfile(CreateUtils.getAbsolutePath(savedFilterFile)):
+            datasetParametersToDump.update({'savedFilterFile': savedFilterFile})
+        elif os.path.exists(CreateUtils.getAbsolutePath(savedFilterFolder)):
+            datasetParametersToDump.update({'savedFilterFolder': savedFilterFolder})
+        else:
+            raise ValueError("useSavedFilter is true but no saved filters exist")
     elif filterPCA:
         filterDict = {
             'filterPCA': filterPCA,
@@ -1469,9 +1473,9 @@ def mainRun():
     if (not os.path.exists(datasetConfigFileName)) or overwriteConfigFile:
         if not os.path.exists(processedDataFolder):
             os.makedirs(processedDataFolder)
-        savedFilterFile = os.path.join(processedDataFolder, 'SavedFilters')
-        if not os.path.exists(savedFilterFile):
-            os.makedirs(savedFilterFile)
+        thisSavedFilterFolder = os.path.join(processedDataFolder, 'SavedFilters')
+        if not os.path.exists(thisSavedFilterFolder):
+            os.makedirs(thisSavedFilterFolder)
         configFileName = CreateUtils.getDatasetConfigFileName(datasetName)
         if not overwriteConfigFile:
             assert not os.path.exists(configFileName), 'do you want to overwirte the config file?'

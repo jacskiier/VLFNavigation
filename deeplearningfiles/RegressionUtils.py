@@ -72,7 +72,7 @@ def load_data(datasetFileName,
     if re.match('''.*\.hf$''', datasetFileName):
         with pd.HDFStore(datasetFileName, 'r') as featureStore:
             for setName in setNames:
-                if setNames is not None:
+                if setName is not None:
                     set_x = featureStore[setName + '_set_x'].as_matrix()
                     set_y = featureStore[setName + '_set_y'].as_matrix()
                     setDict[setName] = (set_x, set_y)
