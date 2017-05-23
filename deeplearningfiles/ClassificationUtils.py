@@ -719,6 +719,12 @@ def plotThresholds(predicted_class,
             plt.xlabel('East (m)')
             plt.ylabel('North (m)')
             plt.title("True Positive percentage for each polygon")
+            # colorbar
+            sm = plt.cm.ScalarMappable(cmap=colorMap)
+            sm.set_array([])
+            cbar = plt.colorbar(sm, ticks=[0, 0.5, 1])
+            cbar.ax.set_yticklabels(['0%', '50%', '100%'])
+
             plt.savefig(os.path.join(statisticsStoreFolder, "labelsplot"))
         else:
             diffArray = np.diff(np.sort(outputLabelsAsArray[:, 0]))
@@ -756,6 +762,12 @@ def plotThresholds(predicted_class,
             plt.xlabel('East (m)')
             plt.ylabel('North (m)')
             plt.title("True Positive percentage for each grid location")
+            # colorbar
+            sm = plt.cm.ScalarMappable(cmap=colorMap)
+            sm.set_array([])
+            cbar = plt.colorbar(sm, ticks=[0, 0.5, 1])
+            cbar.ax.set_yticklabels(['0%', '50%', '100%'])
+            # save figure
             plt.savefig(os.path.join(statisticsStoreFolder, "labelsplot"))
 
     thresholdString = """Set {setName}

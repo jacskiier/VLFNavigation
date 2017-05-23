@@ -3,12 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="adaf546f-baf3-4e20-a082-824a85cc78b4" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CreateClassifierConfig.py" afterPath="$PROJECT_DIR$/CreateClassifierConfig.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CreateDataset.py" afterPath="$PROJECT_DIR$/CreateDataset.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/RunExperiment.py" afterPath="$PROJECT_DIR$/RunExperiment.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/analyzeWavFile.py" afterPath="$PROJECT_DIR$/analyzeWavFile.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py" afterPath="$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/RegressionUtils.py" afterPath="$PROJECT_DIR$/deeplearningfiles/RegressionUtils.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py" afterPath="$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py" />
     </list>
     <ignored path="VLFNavigation.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -21,18 +16,19 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/VLFNavigation$scratch.coverage" NAME="scratch Coverage Results" MODIFIED="1481821617072" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
     <SUITE FILE_PATH="coverage/VLFNavigation$TeacherForcing.coverage" NAME="TeacherForcing Coverage Results" MODIFIED="1483546841868" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$RunExperiment.coverage" NAME="RunExperiment Coverage Results" MODIFIED="1495460620421" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$theanohelper.coverage" NAME="theanohelper Coverage Results" MODIFIED="1481207164887" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$WaveletTransformLayer.coverage" NAME="WaveletTransformLayer Coverage Results" MODIFIED="1481124416699" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$KalmanFilter.coverage" NAME="KalmanFilter Coverage Results" MODIFIED="1479325956025" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$CreateDataset.coverage" NAME="CreateDataset Coverage Results" MODIFIED="1485369103905" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$scratch_7.coverage" NAME="scratch_7 Coverage Results" MODIFIED="1493756802248" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$CreateFeature.coverage" NAME="CreateFeature Coverage Results" MODIFIED="1481124944672" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$visualizeTrainingData.coverage" NAME="visualizeTrainingData Coverage Results" MODIFIED="1484763700915" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/VLFNavigation$analyzeWavFile.coverage" NAME="analyzeWavFile Coverage Results" MODIFIED="1495462563916" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$ColorBar.coverage" NAME="ColorBar Coverage Results" MODIFIED="1495565722656" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
     <SUITE FILE_PATH="coverage/VLFNavigation$ParticleFilter.coverage" NAME="ParticleFilter Coverage Results" MODIFIED="1479328350643" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$scratch_7.coverage" NAME="scratch_7 Coverage Results" MODIFIED="1493756802248" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$RunExperiment.coverage" NAME="RunExperiment Coverage Results" MODIFIED="1495565781059" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$WaveletTransformLayer.coverage" NAME="WaveletTransformLayer Coverage Results" MODIFIED="1481124416699" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$CreateDataset.coverage" NAME="CreateDataset Coverage Results" MODIFIED="1485369103905" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$KalmanFilter.coverage" NAME="KalmanFilter Coverage Results" MODIFIED="1479325956025" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$theanohelper.coverage" NAME="theanohelper Coverage Results" MODIFIED="1481207164887" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$CreateFeature.coverage" NAME="CreateFeature Coverage Results" MODIFIED="1481124944672" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$scratch.coverage" NAME="scratch Coverage Results" MODIFIED="1481821617072" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$analyzeWavFile.coverage" NAME="analyzeWavFile Coverage Results" MODIFIED="1495462563916" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/VLFNavigation$visualizeTrainingData.coverage" NAME="visualizeTrainingData Coverage Results" MODIFIED="1484763700915" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/VLFNavigation$CreateClassifierConfig.coverage" NAME="CreateClassifierConfig Coverage Results" MODIFIED="1485287106103" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="CreatePatchCommitExecutor">
@@ -47,18 +43,18 @@
       <file leaf-file-name="KerasClassifiers.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="6525">
-              <caret line="466" column="57" lean-forward="false" selection-start-line="466" selection-start-column="57" selection-end-line="466" selection-end-column="57" />
+            <state relative-caret-position="-1230">
+              <caret line="905" column="4" lean-forward="false" selection-start-line="905" selection-start-column="4" selection-end-line="905" selection-end-column="4" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="RunExperiment.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/RunExperiment.py">
+      <file leaf-file-name="ClassificationUtils.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2580">
-              <caret line="186" column="0" lean-forward="false" selection-start-line="186" selection-start-column="0" selection-end-line="186" selection-end-column="0" />
+            <state relative-caret-position="249">
+              <caret line="738" column="56" lean-forward="true" selection-start-line="738" selection-start-column="56" selection-end-line="738" selection-end-column="56" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -66,21 +62,23 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="RegressionUtils.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/deeplearningfiles/RegressionUtils.py">
+      <file leaf-file-name="RunExperiment.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/RunExperiment.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1020">
-              <caret line="78" column="9" lean-forward="false" selection-start-line="78" selection-start-column="9" selection-end-line="78" selection-end-column="9" />
-              <folding />
+            <state relative-caret-position="106">
+              <caret line="157" column="55" lean-forward="true" selection-start-line="157" selection-start-column="55" selection-end-line="157" selection-end-column="55" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="analyzeWavFile.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="analyzeWavFile.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/analyzeWavFile.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="346">
-              <caret line="32" column="32" lean-forward="false" selection-start-line="32" selection-start-column="32" selection-end-line="32" selection-end-column="32" />
+            <state relative-caret-position="316">
+              <caret line="36" column="29" lean-forward="true" selection-start-line="36" selection-start-column="29" selection-end-line="36" selection-end-column="29" />
               <folding>
                 <element signature="e#84#93#0" expanded="true" />
               </folding>
@@ -133,18 +131,6 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="CreateUtils.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/CreateUtils.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="540">
-              <caret line="40" column="33" lean-forward="false" selection-start-line="40" selection-start-column="33" selection-end-line="40" selection-end-column="33" />
-              <folding>
-                <element signature="e#0#9#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
     </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
@@ -156,14 +142,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>shuffleFinalSamples</find>
-      <find>shuffleFinal</find>
-      <find>shuffleSam</find>
-      <find>showPathPerRowOfPackagedFile</find>
-      <find>shuffleSamplesAfterRepackaging</find>
-      <find>file</find>
-      <find>FileName</find>
-      <find>Imagery</find>
       <find>particlePackFilePath</find>
       <find>particleFilePath</find>
       <find>storeFilterFile</find>
@@ -186,6 +164,14 @@
       <find>savedFilterFile</find>
       <find>datetime</find>
       <find>interp</find>
+      <find>la</find>
+      <find>labes</find>
+      <find>labe</find>
+      <find>labels</find>
+      <find>labelspl</find>
+      <find>labelsplot</find>
+      <find>outputLabels</find>
+      <find>labelsp</find>
     </findStrings>
     <replaceStrings>
       <replace>22050</replace>
@@ -248,7 +234,6 @@
         <option value="$PROJECT_DIR$/deeplearningfiles/logistic_sgd.py" />
         <option value="$PROJECT_DIR$/kerashelper.py" />
         <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch.py" />
-        <option value="$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py" />
         <option value="$PROJECT_DIR$/CreateFeature.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/Keras Custom Layers/TeacherForcing.py" />
         <option value="$PROJECT_DIR$/visualizeTrainingData.py" />
@@ -260,6 +245,8 @@
         <option value="$PROJECT_DIR$/RunExperiment.py" />
         <option value="$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py" />
         <option value="$PROJECT_DIR$/analyzeWavFile.py" />
+        <option value="$APPLICATION_CONFIG_DIR$/scratches/ColorBar.py" />
+        <option value="$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py" />
       </list>
     </option>
   </component>
@@ -270,10 +257,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="65" />
-    <option name="y" value="24" />
-    <option name="width" value="1855" />
-    <option name="height" value="1056" />
+    <option name="x" value="64" />
+    <option name="y" value="-11" />
+    <option name="width" value="1857" />
+    <option name="height" value="1092" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -324,8 +311,36 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scratches">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" />
+              <option name="myItemType" value="com.intellij.ide.scratch.ScratchProjectViewPane$MyProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Scratches" />
+              <option name="myItemType" value="com.intellij.ide.scratch.ScratchProjectViewPane$MyRootNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
       <pane id="ProjectPane">
         <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="VLFNavigation" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="External Libraries" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="&lt; Python 2.7.12 (~/anaconda2/bin/python2.7) &gt;" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
+            </PATH_ELEMENT>
+          </PATH>
           <PATH>
             <PATH_ELEMENT>
               <option name="myItemId" value="VLFNavigation" />
@@ -370,22 +385,34 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scratches">
-        <subPane>
+      <pane id="Scope">
+        <subPane subId="Project Files">
           <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" />
-              <option name="myItemType" value="com.intellij.ide.scratch.ScratchProjectViewPane$MyProjectNode" />
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
             </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Scratches" />
-              <option name="myItemType" value="com.intellij.ide.scratch.ScratchProjectViewPane$MyRootNode" />
+            <PATH_ELEMENT USER_OBJECT="VLFNavigation">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
-      </pane>
-      <pane id="Scope">
-        <subPane subId="Project Files">
+        <subPane subId="Default">
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="VLFNavigation">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="deeplearningfiles">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
           <PATH>
             <PATH_ELEMENT USER_OBJECT="Root">
               <option name="myItemId" value="" />
@@ -427,7 +454,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.analyzeWavFile">
+  <component name="RunManager" selected="Python.RunExperiment">
     <configuration default="false" name="RunExperiment" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -444,6 +471,7 @@
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/RunExperiment.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
       <method />
     </configuration>
     <configuration default="false" name="CreateDataset" type="PythonConfigurationType" factoryName="Python" temporary="true">
@@ -462,6 +490,7 @@
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/CreateDataset.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
       <method />
     </configuration>
     <configuration default="false" name="analyzeWavFile" type="PythonConfigurationType" factoryName="Python" temporary="true">
@@ -480,24 +509,7 @@
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/analyzeWavFile.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
-    <configuration default="false" name="CreateClassifierConfig" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="VLFNavigation" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/CreateClassifierConfig.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
       <method />
     </configuration>
     <configuration default="false" name="scratch_7" type="PythonConfigurationType" factoryName="Python" temporary="true">
@@ -516,6 +528,26 @@
       <option name="SCRIPT_NAME" value="$APPLICATION_CONFIG_DIR$/scratches/scratch_7.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="ColorBar" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$APPLICATION_CONFIG_DIR$/scratches" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="VLFNavigation" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$APPLICATION_CONFIG_DIR$/scratches/ColorBar.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
       <method />
     </configuration>
     <configuration default="true" type="DjangoTestsConfigurationType" factoryName="Django tests">
@@ -536,6 +568,13 @@
       <option name="CUSTOM_SETTINGS" value="false" />
       <option name="USE_OPTIONS" value="false" />
       <option name="OPTIONS" value="" />
+      <method />
+    </configuration>
+    <configuration default="true" type="JavaScriptTestRunnerJest" factoryName="Jest">
+      <node-interpreter value="project" />
+      <working-dir value="" />
+      <envs />
+      <scope-kind value="ALL" />
       <method />
     </configuration>
     <configuration default="true" type="JavaScriptTestRunnerProtractor" factoryName="Protractor">
@@ -591,6 +630,7 @@
       <option name="SCRIPT_NAME" value="" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
       <method />
     </configuration>
     <configuration default="true" type="Tox" factoryName="Tox">
@@ -620,26 +660,6 @@
       <scripts />
       <node-interpreter value="project" />
       <envs />
-      <method />
-    </configuration>
-    <configuration default="true" type="tests" factoryName="Attests">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="VLFNavigation" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_SCRIPT" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
       <method />
     </configuration>
     <configuration default="true" type="tests" factoryName="Doctests">
@@ -673,15 +693,10 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="VLFNavigation" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_SCRIPT" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
-      <option name="PARAMS" value="" />
-      <option name="USE_PARAM" value="false" />
+      <option name="_new_regexPattern" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;.&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method />
     </configuration>
     <configuration default="true" type="tests" factoryName="Unittests">
@@ -695,19 +710,45 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="VLFNavigation" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_SCRIPT" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
-      <option name="PUREUNITTEST" value="false" />
-      <option name="PARAMS" value="" />
-      <option name="USE_PARAM" value="false" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;.&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method />
     </configuration>
     <configuration default="true" type="tests" factoryName="py.test">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="VLFNavigation" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;.&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method />
+    </configuration>
+    <list size="5">
+      <item index="0" class="java.lang.String" itemvalue="Python.RunExperiment" />
+      <item index="1" class="java.lang.String" itemvalue="Python.CreateDataset" />
+      <item index="2" class="java.lang.String" itemvalue="Python.analyzeWavFile" />
+      <item index="3" class="java.lang.String" itemvalue="Python.scratch_7" />
+      <item index="4" class="java.lang.String" itemvalue="Python.ColorBar" />
+    </list>
+    <recent_temporary>
+      <list size="5">
+        <item index="0" class="java.lang.String" itemvalue="Python.RunExperiment" />
+        <item index="1" class="java.lang.String" itemvalue="Python.ColorBar" />
+        <item index="2" class="java.lang.String" itemvalue="Python.analyzeWavFile" />
+        <item index="3" class="java.lang.String" itemvalue="Python.scratch_7" />
+        <item index="4" class="java.lang.String" itemvalue="Python.CreateDataset" />
+      </list>
+    </recent_temporary>
+    <configuration default="true" type="tests" factoryName="Attests">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs />
@@ -725,29 +766,8 @@
       <option name="TEST_TYPE" value="TEST_SCRIPT" />
       <option name="PATTERN" value="" />
       <option name="USE_PATTERN" value="false" />
-      <option name="testToRun" value="" />
-      <option name="keywords" value="" />
-      <option name="params" value="" />
-      <option name="USE_PARAM" value="false" />
-      <option name="USE_KEYWORD" value="false" />
       <method />
     </configuration>
-    <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="Python.RunExperiment" />
-      <item index="1" class="java.lang.String" itemvalue="Python.CreateDataset" />
-      <item index="2" class="java.lang.String" itemvalue="Python.analyzeWavFile" />
-      <item index="3" class="java.lang.String" itemvalue="Python.CreateClassifierConfig" />
-      <item index="4" class="java.lang.String" itemvalue="Python.scratch_7" />
-    </list>
-    <recent_temporary>
-      <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.analyzeWavFile" />
-        <item index="1" class="java.lang.String" itemvalue="Python.RunExperiment" />
-        <item index="2" class="java.lang.String" itemvalue="Python.scratch_7" />
-        <item index="3" class="java.lang.String" itemvalue="Python.CreateDataset" />
-        <item index="4" class="java.lang.String" itemvalue="Python.CreateClassifierConfig" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="ShelveChangesManager" show_recycled="false">
     <option name="remove_strategy" value="false" />
@@ -938,7 +958,14 @@
       <option name="project" value="LOCAL" />
       <updated>1485292286248</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="Daily Commit">
+      <created>1495562423635</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1495562423635</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="TodoView">
@@ -951,29 +978,28 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="65" y="24" width="1855" height="1056" extended-state="6" />
-    <editor active="false" />
+    <frame x="64" y="-11" width="1857" height="1092" extended-state="6" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23604201" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32795697" sideWeight="0.5041459" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32795697" sideWeight="0.49585405" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3261105" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.23880596" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.34623656" sideWeight="0.49573562" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32936078" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24709785" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32827735" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.23880596" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3967742" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32995737" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.34669557" sideWeight="0.49573562" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32827735" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39761648" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32995737" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -1084,7 +1110,7 @@
           <option name="timeStamp" value="172" />
         </line-breakpoint>
       </breakpoints>
-      <option name="time" value="175" />
+      <option name="time" value="176" />
     </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
@@ -1093,8 +1119,6 @@
     </watches-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/theano/tensor/elemwise.py" />
-    <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/keras/callbacks.py" />
     <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/keras/backend/theano_backend.py" />
     <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/keras/models.py" />
     <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/keras/utils/layer_utils.py" />
@@ -1246,13 +1270,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3774">
-          <caret line="247" column="0" lean-forward="false" selection-start-line="247" selection-start-column="0" selection-end-line="247" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/keras/engine/training.py" />
     <entry file="file://$PROJECT_DIR$/deeplearningfiles/RegressionUtils.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -1310,10 +1327,20 @@
       </provider>
     </entry>
     <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch_7.py" />
+    <entry file="file://$PROJECT_DIR$/analyzeWavFile.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="316">
+          <caret line="36" column="29" lean-forward="true" selection-start-line="36" selection-start-column="29" selection-end-line="36" selection-end-column="29" />
+          <folding>
+            <element signature="e#84#93#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/RunExperiment.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2580">
-          <caret line="186" column="0" lean-forward="false" selection-start-line="186" selection-start-column="0" selection-end-line="186" selection-end-column="0" />
+        <state relative-caret-position="106">
+          <caret line="157" column="55" lean-forward="true" selection-start-line="157" selection-start-column="55" selection-end-line="157" selection-end-column="55" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
@@ -1322,18 +1349,36 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/deeplearningfiles/KerasClassifiers.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6525">
-          <caret line="466" column="57" lean-forward="false" selection-start-line="466" selection-start-column="57" selection-end-line="466" selection-end-column="57" />
+        <state relative-caret-position="-1230">
+          <caret line="905" column="4" lean-forward="false" selection-start-line="905" selection-start-column="4" selection-end-line="905" selection-end-column="4" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/analyzeWavFile.py">
+    <entry file="file://$USER_HOME$/anaconda2/lib/python2.7/site-packages/numpy/ma/core.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="346">
-          <caret line="32" column="32" lean-forward="false" selection-start-line="32" selection-start-column="32" selection-end-line="32" selection-end-column="32" />
+        <state relative-caret-position="177">
+          <caret line="5471" column="0" lean-forward="false" selection-start-line="5471" selection-start-column="0" selection-end-line="5471" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/ColorBar.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="381">
+          <caret line="192" column="0" lean-forward="false" selection-start-line="192" selection-start-column="0" selection-end-line="195" selection-end-column="45" />
           <folding>
-            <element signature="e#84#93#0" expanded="true" />
+            <element signature="e#80#89#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deeplearningfiles/ClassificationUtils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="249">
+          <caret line="738" column="56" lean-forward="true" selection-start-line="738" selection-start-column="56" selection-end-line="738" selection-end-column="56" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
